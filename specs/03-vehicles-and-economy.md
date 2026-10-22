@@ -1,6 +1,6 @@
 # 03 — Vehicles, paints and economy
 
-[Specification index](README.md) · Catalog and save validation: [engine.js](../pista-84/src/engine.js)
+[Specification index](README.md) · Catalog and save validation: [engine.js](../src/engine.js)
 
 ## Complete vehicle catalog
 

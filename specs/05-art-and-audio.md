@@ -22,15 +22,15 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 
 ## Vehicle artwork
 
-Final asset: [vehicle-atlas-v1.png](../pista-84/web/assets/vehicle-atlas-v1.png). Eight vehicles map to the catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
+Final asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 
 The atlas has transparent alpha. Runtime regions are trimmed to visible alpha bounds; every model preserves its own width/height ratio. Motorcycles are narrower; sports-car width is adjusted independently. Garage/menu thumbnails fit the full vehicle inside their canvas rather than cutting off the roof.
 
 Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Custom paints remap body-color hues while preserving lightness and transparency. Braking adds light feedback; steering slightly inclines the vehicle. Procedural 128×80 sprites remain a load-failure fallback, not the intended main artwork.
 
-Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../pista-84/docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
+Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
 
-[reference-scene.png](../pista-84/docs/screenshots/reference-scene.png) is a deterministic composition drawn by the actual renderer, with a red sports car, yellow sports car, beige Fusca and blue hatch. It is a visual review scene, not a second game mode or evidence of player progression.
+[reference-scene.png](../docs/screenshots/reference-scene.png) is a deterministic composition drawn by the actual renderer, with a red sports car, yellow sports car, beige Fusca and blue hatch. It is a visual review scene, not a second game mode or evidence of player progression.
 
 ## Audio implementation
 

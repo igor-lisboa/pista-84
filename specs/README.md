@@ -2,7 +2,7 @@
 
 **Start here. This folder is the canonical specification for the game.**
 
-Baseline: application **1.3.0**, save format **2**, offline cache **pista84-v4**. Updated **2026-10-22**. Game source is in [`../pista-84/`](../pista-84/).
+Baseline: application **1.3.0**, save format **2**, offline cache **pista84-v4**. Updated **2026-10-22**. Game source is in [`../`](../).
 
 These specifications consolidate the original plan, subsequent interface changes, Safari fixes, the supplied visual reference, and the current implementation. Unless marked **pending**, a rule describes existing behavior. Product language remains Brazilian Portuguese; these specifications are in English.
 
@@ -29,9 +29,9 @@ These specifications consolidate the original plan, subsequent interface changes
 
 ## Other useful material
 
-- [Run the project](../pista-84/README.md)
-- [Art provenance and exact generation prompts](../pista-84/docs/ART_DIRECTION.md)
-- [Rendered reference composition](../pista-84/docs/screenshots/reference-scene.png)
+- [Run the project](../README.md)
+- [Art provenance and exact generation prompts](../docs/ART_DIRECTION.md)
+- [Rendered reference composition](../docs/screenshots/reference-scene.png)
 - [Published private game](https://pista-84-igor.amberstoat8.chatgpt.site)
 
-The old `pista-84/docs/SPECS.md` and `PENDENCIAS.md` paths are navigation pointers to this folder. They are not a second specification to maintain.
+The old `docs/SPECS.md` and `PENDENCIAS.md` paths are navigation pointers to this folder. They are not a second specification to maintain.

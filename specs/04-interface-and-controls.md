@@ -1,6 +1,6 @@
 # 04 — Interface and controls
 
-[Specification index](README.md) · Implementation: [app.js](../pista-84/src/app.js), [garage.js](../pista-84/src/garage.js), [HTML](../pista-84/web/index.html), [CSS](../pista-84/web/style.css)
+[Specification index](README.md) · Implementation: [app.js](../src/app.js), [garage.js](../src/garage.js), [HTML](../web/index.html), [CSS](../web/style.css)
 
 ## Initial menu
 

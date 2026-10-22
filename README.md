@@ -1,74 +1,70 @@
-# Car game · PISTA 84
-
-Implementação do plano de corrida em [pista-84/](pista-84/).
-
-- **[Game specifications — start here](specs/README.md)**
-- [Gameplay rules](specs/02-gameplay.md)
-- [Vehicles and economy](specs/03-vehicles-and-economy.md)
-- [Pending work and acceptance criteria](specs/09-roadmap.md)
-- [Execução, controles e testes](pista-84/README.md)
-
-```powershell
-cd pista-84
-npm install
-npm run build
-npm start
-```
-
-Jogue em http://localhost:4173.
-
-
-
-
 # PISTA 84
 
-Arcade brasileiro de corrida infinita em pixel art.
+Arcade brasileiro de corrida infinita em pixel art. Funciona no navegador, instala como PWA, tem celular como controle remoto e projetos nativos Android/iOS (Capacitor).
 
-**[Game specifications — start here](../specs/README.md)** · [Gameplay](../specs/02-gameplay.md) · [Pending work and acceptance criteria](../specs/09-roadmap.md).
+Visual 1.3: cidade no horizonte, árvores detalhadas, pista azul/branco e atlas de oito veículos em perspectiva. Veja a [direção de arte](docs/ART_DIRECTION.md) e a [composição renderizada](docs/screenshots/reference-scene.png).
 
-The canonical definitions are in the workspace-root `specs/` folder, alongside this application's `pista-84/` directory. The older `docs/SPECS.md` and `docs/PENDENCIAS.md` paths now point there.
+## Sumário
 
-Visual 1.3 baseado na imagem de referência enviada: cidade no horizonte, árvores detalhadas, pista azul/branco e atlas de oito veículos em perspectiva. [Direção de arte e prompts](docs/ART_DIRECTION.md) · [Composição renderizada no jogo](docs/screenshots/reference-scene.png). O atlas também fica no cache offline; pinturas e progressos existentes são preservados.
+- [Início rápido](#início-rápido)
+- [Como jogar](#como-jogar)
+- [Celular como controle](#celular-como-controle)
+- [Android e iOS](#android-e-ios)
+- [Testes e publicação](#testes-e-publicação)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Documentação](#documentação)
 
-## Executar localmente
+## Início rápido
 
-Node.js **24** é o ambiente validado, inclusive para os testes SQL com `node:sqlite`.
+Requer Node.js **24** (ambiente validado, inclusive para os testes SQL com `node:sqlite`).
 
 ```powershell
-cd pista-84
 npm install
 npm run build
 npm start
 ```
 
-Abra **http://localhost:4173**. O terminal mostra o endereço da rede para o celular. `PORT` configura outra porta. Edite `src/` e `web/`, depois execute `npm run build`. `www/` e `dist/` são gerados.
+Abra **http://localhost:4173**. O terminal também mostra o endereço da rede para acessar do celular. Use `PORT` para trocar a porta.
 
-## Jogar
+Edite `src/` e `web/` e rode `npm run build` de novo. `www/` e `dist/` são gerados; não os edite.
 
-Versão 1.2: escolha carro e opções no menu inicial. Ao tocar em **JOGAR**, só ficam na tela a corrida, velocidade, distância, combustível e pausa. No celular, controles táteis ficam nas bordas inferiores; retrato e paisagem são suportados sem cortar a pista. A garagem e as opções ficam fora da corrida.
+## Como jogar
 
-←/→ ou A/D dirigem; ↑/W acelera; ↓/S/espaço freia; P/Esc pausa. O carro anda automaticamente. Colete galões verdes, evite trânsito e não pare na pista. 25 metros rendem uma moeda, salva em checkpoints, pausa e fim de corrida. Uma segunda chance gratuita por corrida. Som é ativado no cabeçalho e sua preferência é lembrada.
+| Ação | Teclado |
+| --- | --- |
+| Dirigir | ←/→ ou A/D |
+| Acelerar | ↑ ou W |
+| Frear | ↓, S ou espaço |
+| Pausar | P ou Esc |
 
-Garagem: oito veículos com desempenho, sprites e áudio distintos. Bruto 4×4 suporta duas colisões; motos têm menor área de colisão e perdem mais aderência na chuva. Cinco pinturas compráveis com moedas. Exportação/importação de progresso; no site hospedado, backup manual por conta com proteção contra conflitos de gravação. Restaurar backup substitui os dados do aparelho.
+- O carro anda automaticamente. Colete galões verdes, evite o trânsito e não pare na pista.
+- A cada 25 metros você ganha uma moeda, salva em checkpoints, na pausa e no fim da corrida.
+- Há uma segunda chance gratuita por corrida.
+- Durante a corrida só aparecem pista, velocidade, distância, combustível e pausa. Garagem e opções ficam no menu inicial.
+- O som é ativado no cabeçalho e a preferência é lembrada.
 
-Celular: pedais e setas. Inclinação é opcional, exige HTTPS/permissão e tem calibração de posição neutra. O jogo solo pode ser instalado como PWA e funciona offline depois da primeira visita. No iPhone, use Adicionar à Tela de Início; em navegadores compatíveis, aparece a opção de instalar.
+**Garagem:** oito veículos com desempenho, sprites e áudio distintos. O Bruto 4×4 aguenta duas colisões; as motos têm área de colisão menor, mas perdem mais aderência na chuva. Há cinco pinturas compráveis com moedas.
+
+**Progresso:** exporte e importe o progresso pelo jogo. No site hospedado há backup manual por conta, com proteção contra conflitos de gravação. Restaurar um backup substitui os dados do aparelho.
+
+**Celular:** pedais e setas na tela, em retrato ou paisagem. A inclinação é opcional, exige HTTPS e permissão, e tem calibração da posição neutra. O jogo solo instala como PWA e funciona offline depois da primeira visita. No iPhone, use Adicionar à Tela de Início.
 
 ## Celular como controle
 
 1. Abra o jogo hospedado no computador e clique em **Controle no celular**.
-2. Leia o QR no celular; no site privado, faça login com sua conta nos dois aparelhos.
-3. Aguarde a conexão, feche o modal no computador e inicie a corrida.
-4. Use setas/pedais ou ative a inclinação no celular.
+2. Leia o QR no celular. No site privado, entre com a mesma conta nos dois aparelhos.
+3. Aguarde a conexão, feche o modal no computador e inicie a corrida (ou toque em **Iniciar corrida** no controle).
+4. Use setas e pedais, ou ative a inclinação.
 
-Pareamento usa HTTP/D1. Comandos usam WebRTC quando possível, com **fallback HTTPS**; o Safari começa pelo modo de compatibilidade. Assim, o controle não depende de TURN ou suporte a WebRTC. QR expira em 10 minutos e admite uma conexão. Perda de sinal pausa a corrida; gere outro QR para reconectar. No controle, toque em **Iniciar corrida** para começar na tela principal. Não usa câmera ou microfone.
-
-No iPhone, abra o endereço HTTPS diretamente no Safari, entre com a mesma conta do jogo privado e leia um QR recém-gerado. A inclinação é opcional e só solicita acesso quando você toca no botão. Sem permissão/sensor, use setas e pedais. Adicionar à Tela de Início remove as barras do navegador. A validação automatizada usa WebKit; teste em aparelho físico ainda é necessário.
-
-Localmente, o Node mantém a sinalização em memória. O link troca localhost pelo endereço de rede detectado. Se houver várias interfaces, confira esse endereço; firewall deve permitir a porta na rede privada. Para sensores, sirva o Node atrás de HTTPS (`PUBLIC_ORIGIN` deve corresponder à URL externa). Relay WebSocket original permanece em `/relay`, como alternativa técnica. O controle remoto no wrapper nativo usa a versão web até validação específica.
+- **Conexão:** o pareamento usa HTTP/D1. Os comandos usam WebRTC quando possível, com fallback HTTPS (o Safari começa pelo modo de compatibilidade), então não é preciso TURN. O relay WebSocket original continua em `/relay` como alternativa técnica.
+- **Segurança:** o QR expira em 10 minutos e admite uma conexão. Não usa câmera nem microfone. Perda de sinal pausa a corrida; gere outro QR para reconectar.
+- **iPhone:** abra o endereço HTTPS direto no Safari e leia um QR recém-gerado. A inclinação só pede acesso quando você toca no botão. A validação automatizada usa WebKit; o teste em aparelho físico ainda é necessário.
+- **Execução local:** o Node mantém a sinalização em memória e troca `localhost` pelo endereço de rede detectado. Com várias interfaces, confira o endereço. O firewall deve liberar a porta na rede privada. Para usar sensores, sirva o Node atrás de HTTPS e defina `PUBLIC_ORIGIN` com a URL externa.
+- O controle remoto no wrapper nativo usa a versão web até haver validação específica.
 
 ## Android e iOS
 
-Projetos gerados em `android/` e `ios/`, com ícones/splash próprios. Assets são sincronizados com:
+Os projetos estão em `android/` e `ios/`, com ícones e splash próprios.
 
 ```powershell
 npm run native:sync
@@ -77,7 +73,9 @@ npm run native:android
 npm run native:ios
 ```
 
-Compilação Android exige JDK/Android SDK; iOS exige macOS/Xcode. Não disponíveis neste ambiente. Não há APK/AAB/IPA validado nem certificados de assinatura. Ver NAT-01/NAT-02. Para regenerar ícones e splash a partir do SVG do projeto: `node scripts/native-assets.mjs` (requer Chromium Playwright instalado).
+- Android exige JDK e Android SDK; iOS exige macOS e Xcode. Nenhum está disponível neste ambiente.
+- Não há APK/AAB/IPA validado nem certificados de assinatura (NAT-01/NAT-02 no [roadmap](specs/09-roadmap.md)).
+- Para regenerar ícones e splash a partir do SVG do projeto: `node scripts/native-assets.mjs` (requer Chromium do Playwright).
 
 ## Testes e publicação
 
@@ -87,9 +85,32 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-Build gera assets web/nativos em `www/` e Worker ESM em `dist/server/index.js`. Worker serve jogo, pareamento e backup; Sites provisiona o binding D1 `DB` e aplica migrações de `drizzle/`. Preserve project ID em `.openai/hosting.json`. Para alterar schema: editar `db/schema.ts`, executar `npm run db:generate` e inspecionar a nova migração. Não editar migrações aplicadas.
+- O build gera os assets web/nativos em `www/` e o Worker ESM em `dist/server/index.js`.
+- O Worker serve o jogo, o pareamento e o backup. O Sites provisiona o binding D1 `DB` e aplica as migrações de `drizzle/`. Preserve o project ID em `.openai/hosting.json`.
+- Para alterar o schema: edite `db/schema.ts`, rode `npm run db:generate` e inspecione a nova migração. Não edite migrações já aplicadas.
+- Somente o gateway Sites deve fornecer identidade ao Worker; o Node local não aceita backup por cabeçalhos de identidade. Nenhum segredo fica no frontend. O cache offline cobre apenas assets, sem APIs ou tokens. A fonte Google Fonts é opcional, com fallback local.
+- Pagamentos, anúncios e carteira premium ainda dependem de provedores e configuração comercial. O backup atual serve para progresso casual e não torna as moedas locais uma carteira segura para dinheiro real.
 
-Somente o gateway Sites deve fornecer identidade ao Worker. O Node local não aceita backup por cabeçalhos de identidade. Nenhum segredo fica no frontend. Cache offline cobre assets, sem APIs ou tokens. A fonte Google Fonts é opcional, com fallback local.
+## Estrutura do projeto
 
-Pagamentos, anúncios e carteira premium ainda dependem de provedores e configuração comercial. O backup atual é para progresso casual e não torna moedas locais uma carteira segura para dinheiro real. Contratos, dependências e testes de conclusão estão em [PENDENCIAS.md](docs/PENDENCIAS.md).
+| Caminho | Conteúdo |
+| --- | --- |
+| `src/`, `web/` | Código-fonte do jogo e da interface |
+| `worker/`, `db/`, `drizzle/` | Worker (jogo, pareamento, backup), schema e migrações D1 |
+| `server.mjs` | Servidor Node local |
+| `scripts/` | Build e geração de assets nativos |
+| `tests/` | Testes Node e Playwright |
+| `android/`, `ios/` | Projetos nativos (Capacitor) |
+| `www/`, `dist/` | Saída de build (gerada) |
+| `specs/`, `docs/` | Especificações e documentação |
 
+## Documentação
+
+- **[Especificações do jogo — comece aqui](specs/README.md)**
+- [Regras de jogo](specs/02-gameplay.md)
+- [Veículos e economia](specs/03-vehicles-and-economy.md)
+- [Pendências e critérios de aceite](specs/09-roadmap.md)
+- [Direção de arte e prompts](docs/ART_DIRECTION.md)
+- [Pendências (contratos, dependências e testes de conclusão)](docs/PENDENCIAS.md)
+
+`docs/SPECS.md` e `docs/PENDENCIAS.md` são caminhos antigos; as definições canônicas estão em `specs/`.

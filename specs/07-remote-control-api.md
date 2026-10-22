@@ -1,6 +1,6 @@
 # 07 — Remote control and API contracts
 
-[Specification index](README.md) · Sources: [remote.js](../pista-84/src/remote.js), [signaling.js](../pista-84/src/signaling.js), [cloud.js](../pista-84/src/cloud.js)
+[Specification index](README.md) · Sources: [remote.js](../src/remote.js), [signaling.js](../src/signaling.js), [cloud.js](../src/cloud.js)
 
 ## Pairing flow
 

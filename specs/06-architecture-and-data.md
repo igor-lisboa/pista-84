@@ -7,22 +7,21 @@
 ```text
 car-game/
   README.md
-  specs/                   canonical game definitions
-  pista-84/                application Git repository and runtime source
-    src/                   browser modules and shared service logic
-    web/                   HTML, CSS, PWA files and artwork
-    worker/                hosted Worker entrypoint
-    db/                    Drizzle schema
-    drizzle/               immutable SQL migrations and metadata
-    tests/                 unit/service and browser tests
-    scripts/               build, assets, screenshots and verification
-    android/ and ios/      generated Capacitor projects
-    www/                   generated browser/native assets (ignored)
-    dist/                  generated hosted Worker (ignored)
-    docs/                  historical entry points and art provenance/screenshots
+  specs/                 canonical game definitions
+  src/                   browser modules and shared service logic
+  web/                   HTML, CSS, PWA files and artwork
+  worker/                hosted Worker entrypoint
+  db/                    Drizzle schema
+  drizzle/               immutable SQL migrations and metadata
+  tests/                 unit/service and browser tests
+  scripts/               build, assets, screenshots and verification
+  android/ and ios/      generated Capacitor projects
+  www/                   generated browser/native assets (ignored)
+  dist/                  generated hosted Worker (ignored)
+  docs/                  historical entry points and art provenance/screenshots
 ```
 
-This documentation change introduces no new runtime behavior. The canonical `specs/` is at the workspace root, outside the nested application Git repository; preserve it when copying the complete workspace.
+This documentation change introduces no new runtime behavior. The canonical `specs/` lives at the repository root, next to the application source.
 
 ## Module responsibilities
 
@@ -70,7 +69,7 @@ Restore replaces local progress and resets the active run. Backup does not turn 
 
 ## Database
 
-Binding: **`DB`**, provisioned for the hosted Worker. Schema: [db/schema.ts](../pista-84/db/schema.ts).
+Binding: **`DB`**, provisioned for the hosted Worker. Schema: [db/schema.ts](../db/schema.ts).
 
 | Table | Fields | Purpose |
 | --- | --- | --- |

@@ -7,7 +7,6 @@
 Node.js **24** is the verified environment; service tests use `node:sqlite`.
 
 ```powershell
-cd pista-84
 npm install
 npm run build
 npm start

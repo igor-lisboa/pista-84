@@ -1,6 +1,6 @@
 # 02 — Gameplay rules and simulation
 
-[Specification index](README.md) · Implementation: [engine.js](../pista-84/src/engine.js)
+[Specification index](README.md) · Implementation: [engine.js](../src/engine.js)
 
 ## States and run lifecycle
 
