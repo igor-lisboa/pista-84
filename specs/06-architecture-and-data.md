@@ -88,6 +88,6 @@ The tracked `.openai/hosting.json` retains the Site project identity and D1 bind
 
 ## Offline and native
 
-Service worker cache **pista84-v4** stores listed same-origin app assets, including atlas/scenery. It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity.
+Service worker cache **pista84-v5** stores listed same-origin app assets, including atlas/scenery. It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version.

@@ -1,4 +1,4 @@
-const CACHE='pista84-v4';
+const CACHE='pista84-v5';
 const ASSETS=['/','/index.html','/style.css','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png','/apple-touch-icon.png','/assets/vehicle-atlas-v1.png','/src/app.js','/src/engine.js','/src/render.js','/src/scenery.js','/src/sprites.js','/src/garage.js','/src/audio.js','/src/remote.js','/vendor/qr.js'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('pista84-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

@@ -7,3 +7,7 @@
 @media(max-height:690px) and (orientation:portrait){.menu-content{gap:15px}.logo{font-size:76px}.logo>span{margin-left:82px}.menu-actions{gap:7px}.primary{min-height:47px;padding:13px 20px}.menu-button{padding:12px 15px}.selected-car{margin-top:0}.selected-car canvas{height:45px}.tagline{margin-top:12px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media(min-width:601px) and (pointer:fine){.hud{top:auto;left:auto;right:28px;bottom:24px;display:grid;grid-template-columns:150px;gap:7px;text-align:right}.hud .speed{grid-row:1}.hud .fuel{grid-row:2;margin:0 0 0 auto;width:104px}.hud .distance{grid-row:3}.hud .distance small{display:none}.hud .distance strong{font-size:19px}.hud .speed strong{font-size:31px}.hud .pause-button{position:fixed;right:25px;top:22px}.hud em{font-size:9px}.hud .fuel small{font-size:9px}}
+
+.goal{position:relative;height:4px;margin-top:5px;background:#ffffff26;border-radius:2px;overflow:visible}.goal i{display:block;height:100%;width:0;background:var(--yellow);border-radius:2px}.goal b{position:absolute;top:-3px;width:2px;height:10px;background:var(--pink);display:none}.goal-label{display:block;margin-top:3px;font-size:8px;letter-spacing:1px;color:var(--muted)}
+@media(min-width:601px) and (pointer:fine){.hud .distance small.goal-label{display:block}.hud .goal{margin-left:auto;width:150px}}
+.curve-hint.sharp{color:var(--pink);animation:pulse .5s infinite alternate}@keyframes pulse{to{opacity:.45}}

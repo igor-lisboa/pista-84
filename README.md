@@ -38,7 +38,10 @@ Edite `src/` e `web/` e rode `npm run build` de novo. `www/` e `dist/` são gera
 | Pausar | P ou Esc |
 
 - O carro anda automaticamente. Colete galões verdes, evite o trânsito e não pare na pista.
-- A cada 25 metros você ganha uma moeda, salva em checkpoints, na pausa e no fim da corrida.
+- **Curvas empurram o carro para fora:** quanto mais forte a curva e maior a velocidade, mais você precisa esterçar ou frear. As curvas aparecem no horizonte e avançam até o carro, e o aviso de curva pisca quando é preciso frear.
+- **Fora do asfalto** a grama te segura, levanta poeira e treme a tela; bater na barreira externa conta como colisão.
+- **Checkpoint a cada 1 km** devolve 15% de combustível. A barra de progresso no HUD mostra o próximo checkpoint e a marca rosa indica seu recorde.
+- A cada 25 metros você ganha uma moeda, salva em checkpoints, na pausa e no fim da corrida. Com o tempo o trânsito fica mais denso, passam a bloquear duas faixas de uma vez e as curvas ficam mais fechadas.
 - Há uma segunda chance gratuita por corrida.
 - Durante a corrida só aparecem pista, velocidade, distância, combustível e pausa. Garagem e opções ficam no menu inicial.
 - O som é ativado no cabeçalho e a preferência é lembrada.

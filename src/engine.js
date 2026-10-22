@@ -23,27 +23,52 @@ export function environment(time){
 }
 export function roadCurve(distance){const difficulty=clamp(distance/9000,0,1);return Math.sin((distance+140)/(245-difficulty*85))*105+Math.sin(distance/600)*15;}
 export const PAINTS=[{id:'original',name:'Original de fábrica',color:null,price:0},{id:'ocean',name:'Azul oceano',color:'#69bddd',price:60},{id:'cherry',name:'Cereja',color:'#e87582',price:60},{id:'cream',name:'Creme vintage',color:'#e7dbb0',price:60},{id:'night',name:'Preto grafite',color:'#75818c',price:90}];
+export const WALL=1.35,EDGE=.96,CHECKPOINT=1000,PATH_UNIT=270;
+export const roadBend=distance=>roadCurve(distance)/120;
 export class Race {
  constructor(car=CARS[0],random=Math.random){this.car=car;this.random=random;this.reset();}
- reset(){Object.assign(this,{status:'ready',x:0,speed:80,fuel:100,distance:0,time:0,entities:[],spawn:1.6,fuelSpawn:4,coins:0,reason:'',invincible:0,continued:false,health:this.car.shape==='suv'?2:1,events:[]});}
+ reset(){Object.assign(this,{status:'ready',x:0,speed:80,fuel:100,distance:0,time:0,entities:[],spawn:1.6,fuelSpawn:4,coins:0,reason:'',invincible:0,continued:false,health:this.car.shape==='suv'?2:1,events:[],path:0,checkpoints:0,offroad:false,drift:0,wall:0});}
  start(){this.reset();this.status='running';}
  finish(reason){this.status='over';this.reason=reason;}
- resume(){if(this.status!=='over'||this.continued)return false;this.continued=true;this.status='running';this.fuel=Math.max(45,this.fuel);this.speed=90;this.entities=[];this.health=this.car.shape==='suv'?2:1;this.invincible=3;return true;}
+ resume(){if(this.status!=='over'||this.continued)return false;this.continued=true;this.status='running';this.fuel=Math.max(45,this.fuel);this.speed=90;this.entities=[];this.x=clamp(this.x,-.6,.6);this.offroad=false;this.health=this.car.shape==='suv'?2:1;this.invincible=3;return true;}
+ hit(){
+  if(this.invincible>0)return false;
+  this.health--;this.events.push('hit');
+  if(this.health<=0){this.finish(this.wall?'Você bateu na barreira! Fique na pista.':'Fim de corrida. Cuidado com o trânsito!');return true;}
+  this.speed=Math.max(35,this.speed*.65);this.invincible=2;return false;
+ }
  update(dt,input={}){
   this.events=[];if(this.status!=='running')return;dt=clamp(dt,0,.05);this.time+=dt;this.invincible=Math.max(0,this.invincible-dt);
   const difficulty=Math.min(2.8,this.distance/4500);const target=input.brake?0:input.accelerate?this.car.max:Math.min(this.car.max,105+difficulty*24);
   this.speed+=clamp(target-this.speed,-(input.brake?60:20)*dt,this.car.accel*dt);
   const grip=1-environment(this.time).rain*(this.car.shape==='bike'?.22:.1);
-  this.x=clamp(this.x+(input.steer||0)*dt*1.2*this.car.handling*grip-roadCurve(this.distance)/120*(.012+difficulty*.03)*dt,-1.2,1.2);
-  if(Math.abs(this.x)>.96)this.speed=Math.max(input.brake?0:15,this.speed-(this.car.shape==='suv'?20:38)*dt);
-  this.distance+=this.speed/3.6*dt;this.coins=Math.floor(this.distance/25);
+  // Bends push the car toward the outside; the stronger the bend and the speed, the harder you must steer or brake.
+  const load=clamp((this.speed/140)**2,.3,1.7);
+  this.drift=roadBend(this.path+PATH_UNIT*.08)*load*(.45+Math.min(difficulty,1.5)*.12)/Math.sqrt(this.car.handling)/grip;
+  this.x+=((input.steer||0)*1.4*this.car.handling*grip-this.drift)*dt;
+  this.offroad=Math.abs(this.x)>EDGE;
+  if(this.offroad){
+   const mud=this.car.shape==='suv'?.55:1;
+   this.speed=Math.max(input.brake?0:22,this.speed-(this.speed>60?70:28)*mud*dt);
+   if(!input.brake&&this.speed>85)this.speed=Math.max(85,this.speed-90*mud*dt);
+  }
+  this.wall=0;
+  if(Math.abs(this.x)>=WALL){this.wall=Math.sign(this.x);this.x=this.wall*(WALL-.4);if(this.hit())return;this.speed=Math.min(this.speed,70);}
+  const before=this.distance;this.distance+=this.speed/3.6*dt;this.path+=dt*(.2+this.speed/480)*PATH_UNIT;this.coins=Math.floor(this.distance/25);
+  if(Math.floor(this.distance/CHECKPOINT)>Math.floor(before/CHECKPOINT)){this.checkpoints=Math.floor(this.distance/CHECKPOINT);this.fuel=Math.min(100,this.fuel+15);this.events.push('checkpoint');}
   this.fuel=Math.max(0,this.fuel-dt*this.car.consumption*(.45+this.speed/190));
   if(this.fuel<=0){this.finish('Pane seca! O trânsito alcançou você.');return;}
   if(this.speed<5){this.finish('Você parou na pista. O trânsito alcançou você.');return;}
   this.spawn-=dt;this.fuelSpawn-=dt;
-  if(this.spawn<=0){this.entities.push({type:'traffic',lane:Math.floor(this.random()*3)-1,z:1.1,car:CARS[Math.floor(this.random()*CARS.length)]});this.spawn=Math.max(.7,2.5-difficulty*.5)+this.random()*.7;}
+  if(this.spawn<=0){
+   const lane=Math.floor(this.random()*3)-1,pick=()=>CARS[Math.floor(this.random()*CARS.length)];
+   this.entities.push({type:'traffic',lane,z:1.1,pace:.5+this.random()*.3,car:pick()});
+   // Later in the run, two cars can block neighbouring lanes, leaving a single gap.
+   if(this.random()<Math.min(.4,difficulty*.25)){const other=(lane+1+Math.floor(this.random()*2)+3)%3-1;this.entities.push({type:'traffic',lane:other,z:1.1,pace:.5+this.random()*.3,car:pick()});}
+   this.spawn=Math.max(.65,2.4-difficulty*.55)+this.random()*.6;
+  }
   if(this.fuelSpawn<=0){this.entities.push({type:'fuel',lane:Math.floor(this.random()*3)-1,z:1.1});this.fuelSpawn=7+this.random()*3;}
-  for(const e of this.entities){e.z-=dt*(.16+this.speed/600)*(e.type==='traffic'?.72:1);if(!e.passed&&e.z<.12&&e.z>-.09){const width=this.car.shape==='bike'?.19:.27;if(Math.abs(this.x-e.lane*.61)<width){e.passed=true;if(e.type==='fuel'){this.fuel=Math.min(100,this.fuel+32);e.collected=true;this.events.push('fuel');}else if(this.invincible<=0){this.health--;this.events.push('hit');if(this.health<=0){this.finish('Fim de corrida. Cuidado com o trânsito!');return;}this.speed=Math.max(35,this.speed*.65);this.invincible=2;}}}}
+  for(const e of this.entities){e.z-=dt*(.2+this.speed/480)*(e.type==='traffic'?(e.pace||.72):1);if(!e.passed&&e.z<.12&&e.z>-.09){const width=this.car.shape==='bike'?.19:.27;if(Math.abs(this.x-e.lane*.61)<width){e.passed=true;if(e.type==='fuel'){this.fuel=Math.min(100,this.fuel+32);e.collected=true;this.events.push('fuel');}else if(this.hit())return;}}}
   this.entities=this.entities.filter(e=>e.z>-.15&&!e.collected);
  }
 }

@@ -60,3 +60,49 @@ function treeImage(){
  treeCache.set('pine',canvas);return canvas;
 }
 export function drawTree(c,x,y,scale){const image=treeImage();c.fillStyle='#233b3545';c.fillRect(Math.round(x-21*scale),Math.round(y-3*scale),Math.ceil(44*scale),Math.ceil(5*scale));c.drawImage(image,Math.round(x-32*scale),Math.round(y-96*scale),Math.round(64*scale),Math.round(96*scale));}
+// Periodic mountain ridges: harmonics are integers of the tile width, so panning by heading never shows a seam.
+export function drawMountains(c,w,horizon,offset,far,near){
+ const unit=w/480,period=w*1.7;
+ const ridge=(seed,amp,base,color,speed)=>{
+  c.fillStyle=color;c.beginPath();c.moveTo(0,horizon+2);
+  for(let x=0;x<=w+8;x+=8){
+   const u=(x+offset*speed)/period*Math.PI*2;
+   const hgt=base+amp*(.5+.28*Math.sin(u+seed)+.17*Math.sin(u*3+seed*2.3)+.09*Math.sin(u*7+seed*.7));
+   c.lineTo(x,horizon+2-hgt*unit);
+  }
+  c.lineTo(w,horizon+2);c.closePath();c.fill();
+ };
+ ridge(1.2,70,18,far,.35);ridge(4.1,48,10,near,.6);
+}
+export function drawSun(c,w,horizon,x,altitude,color,size){
+ const y=horizon-altitude,r=size*w/480;
+ c.save();c.beginPath();c.rect(0,0,w,horizon+2);c.clip();
+ const glow=c.createRadialGradient(x,y,r*.4,x,y,r*4.2);glow.addColorStop(0,color+'aa');glow.addColorStop(1,color+'00');c.fillStyle=glow;c.fillRect(x-r*5,y-r*5,r*10,r*10);
+ c.fillStyle=color;const step=Math.max(2,Math.round(w/240));
+ for(let yy=-r;yy<=r;yy+=step){const half=Math.sqrt(Math.max(0,r*r-yy*yy));c.fillRect(Math.round(x-half),Math.round(y+yy),Math.ceil(half*2),step);}
+ c.restore();
+}
+export function drawLamp(c,x,y,s,side,night){
+ const pole=Math.max(1,Math.round(2.2*s));
+ c.fillStyle='#233b3545';c.fillRect(Math.round(x-9*s),Math.round(y-2*s),Math.ceil(18*s),Math.ceil(3*s));
+ c.fillStyle='#4b5568';c.fillRect(Math.round(x-pole/2),Math.round(y-62*s),pole,Math.ceil(62*s));
+ c.fillRect(Math.round(x-(side>0?16:0)*s),Math.round(y-64*s),Math.ceil(16*s),Math.max(1,Math.round(2.2*s)));
+ const hx=x-side*14*s;c.fillStyle=night>.25?'#fff0b0':'#c9ced6';c.fillRect(Math.round(hx-4*s),Math.round(y-63*s),Math.ceil(8*s),Math.ceil(3*s));
+ if(night>.25){c.globalAlpha=night*.28;c.fillStyle='#ffe9a6';c.fillRect(Math.round(hx-14*s),Math.round(y-60*s),Math.ceil(28*s),Math.ceil(10*s));c.globalAlpha=1;}
+}
+const BOARDS=[['#ff638d','#fff3d6'],['#ffda65','#24315a'],['#8ae3be','#17302b'],['#669df4','#f7f5ec']];
+export function drawBillboard(c,x,y,s,index){
+ const [bg,fg]=BOARDS[index%BOARDS.length],W=74*s,H=34*s,top=y-82*s;
+ c.fillStyle='#233b3545';c.fillRect(Math.round(x-W/2),Math.round(y-2*s),Math.ceil(W),Math.ceil(4*s));
+ c.fillStyle='#3a4256';c.fillRect(Math.round(x-W*.3),Math.round(top+H),Math.max(1,Math.round(3*s)),Math.ceil(48*s));c.fillRect(Math.round(x+W*.3),Math.round(top+H),Math.max(1,Math.round(3*s)),Math.ceil(48*s));
+ c.fillStyle='#1d2438';c.fillRect(Math.round(x-W/2-2*s),Math.round(top-2*s),Math.ceil(W+4*s),Math.ceil(H+4*s));
+ c.fillStyle=bg;c.fillRect(Math.round(x-W/2),Math.round(top),Math.ceil(W),Math.ceil(H));
+ c.fillStyle=fg;
+ const bars=[[.1,.2,.55],[.1,.45,.35],[.1,.7,.45],[.72,.18,.16]];
+ for(const [bx,by,bw] of bars)c.fillRect(Math.round(x-W/2+bx*W),Math.round(top+by*H),Math.ceil(bw*W*(bx>.5?.9:1)),Math.max(1,Math.ceil(H*.14)));
+}
+export function drawBush(c,x,y,s,tint){
+ c.fillStyle='#233b3545';c.fillRect(Math.round(x-14*s),Math.round(y-2*s),Math.ceil(28*s),Math.ceil(4*s));
+ const r=(xx,yy,ww,hh,col)=>{c.fillStyle=col;c.fillRect(Math.round(x+xx*s),Math.round(y+yy*s),Math.ceil(ww*s),Math.ceil(hh*s));};
+ r(-13,-12,26,12,tint?'#2e6a3c':'#2a5f38');r(-9,-18,18,8,tint?'#3f8a4a':'#38794a');r(-4,-20,8,4,'#55a35a');r(-12,-6,24,3,'#214a2d');
+}
