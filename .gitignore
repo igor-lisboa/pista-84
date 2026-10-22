@@ -1,0 +1,13 @@
+node_modules/
+test-results/
+playwright-report/
+*.tar.gz
+.sites/
+www/
+worker/generated-assets.js
+dist/
+android/.gradle/
+android/local.properties
+android/app/build/
+ios/App/Pods/
+ios/App/build/

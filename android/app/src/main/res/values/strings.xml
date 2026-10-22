@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PISTA 84</string>
+    <string name="title_activity_main">PISTA 84</string>
+    <string name="package_name">br.com.pista84.app</string>
+    <string name="custom_url_scheme">br.com.pista84.app</string>
+</resources>

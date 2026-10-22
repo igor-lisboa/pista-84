@@ -1,0 +1,94 @@
+import {CARS,PAINTS,Race,loadSave,clamp,roadCurve} from './engine.js';
+import {Renderer,drawCar} from './render.js';
+import {loadSprites,spriteDimensions} from './sprites.js';
+import {AudioEngine} from './audio.js';
+import {RemoteConnection} from './remote.js';
+import {createGarage} from './garage.js';
+import {qrImage} from '../vendor/qr.js';
+const $=id=>document.getElementById(id),km=n=>(n/1000).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+let storage;try{storage=localStorage;}catch{storage={getItem:()=>null,setItem:()=>{throw Error('storage');}};}
+const save=loadSave(storage),race=new Race(selectedCar()),audio=new AudioEngine(),keys=new Set(),held=new Map();
+let paid=0,clock=0,previous='ready',lastCheckpoint=0,renderer,connection,cloudEnabled=false,toastTimer,feedbackTimer,remoteTimer;
+let remote={},remoteStart=false,remotePause=false,tilt=0,rawTilt=0,tiltZero=0,tiltEnabled=false,calibrateNext=false,lastSensor=0,view='menu';
+const params=new URLSearchParams(location.search),controllerPage=params.has('controller');
+function selectedCar(){const car=CARS.find(c=>c.id===save.selected)||CARS[0],paint=PAINTS.find(p=>p.id===save.paint);return {...car,color:paint?.color||car.color};}
+function toast(message){$('toast').textContent=message;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',4500);}
+function feedback(message){$('feedback').textContent=message;$('feedback').classList.add('show');clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>$('feedback').classList.remove('show'),1500);}
+function persist(){try{storage.setItem('pista84',JSON.stringify(save));}catch{toast('Progresso disponível só nesta sessão: armazenamento bloqueado.');}refresh();}
+function refresh(){if(controllerPage)return;$('best').textContent=`${km(save.best)} km`;$('wallet').textContent=`◈ ${save.coins}`;$('carName').textContent=race.car.name.toUpperCase();featured();}
+function settle(){save.coins+=Math.max(0,race.coins-paid);paid=race.coins;save.best=Math.max(save.best,race.distance);persist();}
+function clearInput(){keys.clear();held.clear();remote={};tilt=0;document.querySelectorAll('.pressed').forEach(el=>el.classList.remove('pressed'));}
+function active(name){return [...held.values()].includes(name);}
+function input(){return {steer:clamp((keys.has('ArrowRight')||keys.has('d')||active('right')?1:0)-(keys.has('ArrowLeft')||keys.has('a')||active('left')?1:0)+(tiltEnabled?tilt:0)+(remote.steer||0),-1,1),accelerate:!!(keys.has('ArrowUp')||keys.has('w')||active('accelerate')||remote.accelerate),brake:!!(keys.has('ArrowDown')||keys.has('s')||keys.has(' ')||active('brake')||remote.brake)};}
+function setView(next){view=next;document.body.dataset.view=next;$('menu').hidden=next!=='menu';$('raceUI').hidden=next==='menu';$('overlay').hidden=next!=='overlay';if(next==='menu')$('raceUI').hidden=true;}
+async function wakeScreen(){try{if('wakeLock'in navigator&&!document.hidden)await navigator.wakeLock.request('screen');}catch{}}
+function start(){if(controllerPage||$('modal').open)return;race.start();paid=0;lastCheckpoint=0;previous='running';clearInput();setView('race');wakeScreen();if(save.sound&&!audio.enabled)audio.toggle().catch(()=>{});}
+function backToMenu(){if(race.distance>0)settle();clearInput();race.reset();paid=0;previous='ready';setView('menu');refresh();}
+function resume(){if(race.status!=='paused'||$('modal').open)return;clearInput();race.status='running';setView('race');wakeScreen();}
+function pause(){if(race.status==='paused'){resume();return;}if(race.status!=='running')return;race.status='paused';settle();clearInput();setView('overlay');$('overlay').innerHTML='<div class="overlay-card"><span class="kicker">UMA PARADA NA ESTRADA</span><h2>PAUSA</h2><button id="resume" class="primary">CONTINUAR <b>▶</b></button><div class="overlay-actions"><button id="pauseSettings" class="secondary">OPÇÕES</button><button id="toMenu" class="secondary">MENU INICIAL</button></div></div>';$('resume').onclick=resume;$('pauseSettings').onclick=settings;$('toMenu').onclick=backToMenu;}
+function gameOver(){settle();audio.tone(65,.5,'sawtooth',.3);setView('overlay');$('overlay').innerHTML=`<div class="overlay-card"><span class="kicker">HÁ SEMPRE UMA PRÓXIMA VIAGEM</span><h2>FIM DA LINHA</h2><p>${race.reason}</p><div class="result-stats"><span>${km(race.distance)} km</span><span>◈ ${race.coins}</span></div><button id="restart" class="primary">CORRER DE NOVO <b>▶</b></button>${!race.continued?'<button id="continue" class="secondary">SEGUNDA CHANCE GRATUITA</button>':''}<button id="toMenu" class="secondary">MENU INICIAL</button></div>`;$('restart').onclick=start;$('toMenu').onclick=backToMenu;if($('continue'))$('continue').onclick=()=>{if(race.resume()){previous='running';clearInput();setView('race');}};}
+function carThumb(car,width=180,height=110){const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;canvas.setAttribute('aria-label',car.name);const dimensions=spriteDimensions(car),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;drawCar(ctx,width/2,height*.94,Math.min(width*.85/dimensions.width,height*.86/dimensions.height),car);return canvas;}
+function featured(){if(!$('menuCar'))return;const c=$('menuCar'),ctx=c.getContext('2d'),car=selectedCar(),dimensions=spriteDimensions(car);ctx.clearRect(0,0,c.width,c.height);ctx.imageSmoothingEnabled=false;drawCar(ctx,c.width/2,c.height*.94,Math.min(c.width*.85/dimensions.width,c.height*.86/dimensions.height),car);}
+function openModal(){if(race.status==='running')pause();clearInput();if(!$('modal').open)$('modal').showModal();}
+function resetForCar(){if(race.distance>0)settle();race.car=selectedCar();race.reset();paid=0;previous='ready';setView('menu');refresh();}
+const renderGarage=createGarage({save,race,$,selectedCar,carThumb,resetForCar,persist,featured,toast,cloudEnabled:()=>cloudEnabled});
+function garage(){openModal();renderGarage();}
+function settings(){openModal();$('modalBody').innerHTML=`<span class="label">DO SEU JEITO</span><h1>Opções<span>.</span></h1><div class="settings-list"><button id="sound" aria-pressed="${audio.enabled}">♪ Som ${audio.enabled?'ligado':'desligado'}</button><button id="tilt">⌁ ${tiltEnabled?'Desativar':'Ativar'} direção por inclinação</button><button id="calibrate" ${tiltEnabled?'':'hidden'}>◎ Calibrar posição do volante</button><button id="fullscreen">⛶ Tela cheia</button><button id="install" hidden>↧ Instalar jogo</button></div><p id="sensorStatus">No celular, os botões de direção funcionam sem permissão de sensores.</p><p class="help-keys">← → / A D · Direção<br>↑ / W · Acelerar<br>↓ / S / Espaço · Freio<br>P / Esc · Pausar<br><br>O carro acelera sozinho. Colete galões verdes e evite o trânsito.</p><small class="label">VERSÃO 1.3 · ARCADE</small>`;
+ $('sound').onclick=async()=>{try{save.sound=await audio.toggle();$('sound').textContent=`♪ Som ${audio.enabled?'ligado':'desligado'}`;$('sound').setAttribute('aria-pressed',String(audio.enabled));persist();}catch{toast('Áudio indisponível neste navegador. A corrida continua normalmente.');}};
+ $('tilt').onclick=enableTilt;$('calibrate').onclick=calibrate;$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if($('app').requestFullscreen)await $('app').requestFullscreen();else toast('No Safari, use Adicionar à Tela de Início para jogar sem as barras.');}catch{toast('Jogue na tela atual ou adicione o jogo à Tela de Início.');}};if(installPrompt){$('install').hidden=false;$('install').onclick=installGame;}
+}
+async function enableTilt(){try{if(tiltEnabled){tiltEnabled=false;tilt=0;}else{if(!window.DeviceOrientationEvent)throw Error('Sensor indisponível. Use os botões de direção.');if(!window.isSecureContext)throw Error('Abra o link HTTPS do jogo para usar a inclinação.');if(typeof DeviceOrientationEvent.requestPermission==='function'&&await DeviceOrientationEvent.requestPermission()!=='granted')throw Error('Permissão de movimento negada. Os botões continuam funcionando.');tiltEnabled=true;calibrateNext=true;lastSensor=0;setTimeout(()=>{if(tiltEnabled&&!lastSensor){tiltEnabled=false;toast('Nenhum sinal do sensor. Continue com os botões de direção.');}},5000);}$('tilt').textContent=tiltEnabled?'⌁ Desativar inclinação':'⌁ Ativar inclinação';if($('calibrate'))$('calibrate').hidden=!tiltEnabled;toast(tiltEnabled?'Segure na posição confortável: este será o centro do volante.':'Direção pelos botões ativada.');}catch(e){toast(e.message);}}
+function calibrate(){tiltZero=rawTilt;tilt=0;toast('Volante centralizado.');}
+window.addEventListener('deviceorientation',e=>{if(e.gamma===null&&e.beta===null)return;lastSensor=performance.now();const angle=screen.orientation?.angle??window.orientation??0;rawTilt=Math.abs(angle)===90?(e.beta||0)*Math.sign(angle):(e.gamma||0);if(calibrateNext){tiltZero=rawTilt;calibrateNext=false;}const v=(rawTilt-tiltZero)/25;tilt=Math.abs(v)<.06?0:clamp(v,-1,1);});
+screen.orientation?.addEventListener?.('change',()=>{calibrateNext=true;resize();});window.addEventListener('orientationchange',()=>{calibrateNext=true;setTimeout(resize,150);});
+function bindControls(root=document){for(const el of root.querySelectorAll('[data-control]')){
+ const name=el.dataset.control;const down=(id,event)=>{event.preventDefault();held.set(id,name);el.classList.add('pressed');};const up=id=>{held.delete(id);if(![...held.values()].includes(name))el.classList.remove('pressed');};
+ if(window.PointerEvent){el.addEventListener('pointerdown',e=>{down(e.pointerId,e);try{el.setPointerCapture(e.pointerId);}catch{}});for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,e=>up(e.pointerId));}
+ else{el.addEventListener('touchstart',e=>{for(const t of e.changedTouches)down(t.identifier,e);},{passive:false});for(const type of ['touchend','touchcancel'])el.addEventListener(type,e=>{e.preventDefault();for(const t of e.changedTouches)up(t.identifier);},{passive:false});el.addEventListener('mousedown',e=>down('mouse',e));window.addEventListener('mouseup',()=>up('mouse'));}
+ el.addEventListener('contextmenu',e=>e.preventDefault());
+ }}
+function disconnectInput(){clearTimeout(remoteTimer);remote={};remoteStart=false;remotePause=false;if(race.status==='running')pause();}
+async function remoteDialog(){
+ if(window.Capacitor?.isNativePlatform?.()){toast('Abra a versão web para conectar o controle.');return;}
+ openModal();const old=connection;connection=null;await old?.close();
+ $('modalBody').innerHTML='<div class="remote-content"><span class="label">A TELA É SUA. O VOLANTE TAMBÉM.</span><h1>Controle no celular<span>.</span></h1><p id="remoteState">Preparando seu QR Code…</p><div id="remoteLink"></div><button id="remotePlay" class="primary" hidden>COMEÇAR CORRIDA ▶</button><button id="pairAgain" class="secondary">GERAR NOVO QR CODE</button><p>No celular, abra o link no Safari e entre com a mesma conta deste jogo privado. Depois, toque em “Iniciar corrida” no controle. Botões funcionam sem sensor.</p></div>';
+ $('pairAgain').onclick=remoteDialog;$('remotePlay').onclick=()=>{$('modal').close();start();};
+ try{const current=new RemoteConnection({onStatus:(state,detail)=>{if(connection!==current)return;if(state==='connected'){if($('remoteState'))$('remoteState').textContent=`Celular conectado. ${detail||''}`;if($('remotePlay'))$('remotePlay').hidden=false;}if(['disconnected','error'].includes(state)){disconnectInput();if($('remoteState'))$('remoteState').textContent=detail||'Sinal interrompido. Mantenha o Safari aberto no celular.';}},onInput:i=>{if(connection!==current)return;remote=i;clearTimeout(remoteTimer);remoteTimer=setTimeout(disconnectInput,2000);if(i.start&&!remoteStart){if($('modal').open)$('modal').close();if(race.status==='paused')resume();else if(race.status!=='running')start();}if(i.pause&&!remotePause&&race.status==='running')pause();remoteStart=!!i.start;remotePause=!!i.pause;}});connection=current;
+  const room=await current.host();if(connection!==current)return;
+  const u=new URL(location.origin+location.pathname);u.searchParams.set('controller',room.id);u.searchParams.set('token',room.joinToken);if(params.get('transport')==='relay')u.searchParams.set('transport','relay');
+  if(['localhost','127.0.0.1'].includes(u.hostname))try{const data=await(await fetch('/network')).json();if(data.host)u.hostname=data.host;}catch{}
+  const link=document.createElement('a');link.href=u.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Abrir controle neste aparelho ↗';const img=document.createElement('img');img.alt='QR Code do controle';img.src=await qrImage(u.href);
+  if(!$('remoteLink'))return;$('remoteLink').replaceChildren(img,link);$('remoteState').textContent='Leia com a câmera do celular. Você tem 10 minutos para conectar.';
+ }catch(e){if($('remoteState'))$('remoteState').textContent=e.message;}
+}
+function controllerMode(){
+ document.body.dataset.view='controller';$('app').innerHTML='<section class="controller"><header><h1>PISTA<span>84</span></h1><span class="label">CONTROLE</span></header><p id="connection">Conectando à sua tela…</p><div class="controller-toolbar"><button id="remoteStart">▶ Iniciar corrida</button><button id="remotePause">Ⅱ Pausar</button></div><div class="controller-wheel"><div id="wheel" class="wheel"></div></div><div class="controller-toolbar"><button id="tilt">⌁ Ativar inclinação</button><button id="calibrate" hidden>◎ Calibrar</button></div><div class="controller-pedals"><button data-control="left" aria-label="Virar à esquerda">◀ ESQUERDA</button><button data-control="right" aria-label="Virar à direita">DIREITA ▶</button><button data-control="brake">FREIO</button><button data-control="accelerate">ACELERAR</button></div><p class="controller-note">Mantenha o Safari aberto. Se o celular bloquear, a corrida pausa.</p></section>';
+ bindControls();$('tilt').onclick=enableTilt;$('calibrate').onclick=calibrate;
+ let startUntil=0,pauseUntil=0;$('remoteStart').onclick=()=>{startUntil=performance.now()+700;wakeScreen();};$('remotePause').onclick=()=>pauseUntil=performance.now()+700;
+ connection=new RemoteConnection({forceRelay:params.get('transport')==='relay',onStatus:(state,message)=>{$('connection').textContent=state==='connected'?'Conectado. Boa viagem!':message||'Sinal interrompido. Confira a conexão.';}});
+ const token=params.get('token')||new URLSearchParams(location.hash.slice(1)).get('token');
+ if(!token){$('connection').textContent='Link incompleto. Leia um novo QR Code na tela principal.';return;}
+ connection.join(params.get('controller'),token).then(wakeScreen).catch(e=>$('connection').textContent=e.message);
+ setInterval(()=>{const i=document.hidden?{steer:0,accelerate:false,brake:false}:input();i.start=performance.now()<startUntil;i.pause=performance.now()<pauseUntil;connection.send(i);if($('wheel'))$('wheel').style.setProperty('--wheel-angle',`${i.steer*50}deg`);},40);
+}
+function resize(){const height=window.visualViewport?.height||innerHeight;document.documentElement.style.setProperty('--app-height',`${Math.round(height)}px`);renderer?.resize();}
+window.addEventListener('resize',resize);window.visualViewport?.addEventListener('resize',resize);resize();
+let installPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});async function installGame(){await installPrompt?.prompt();installPrompt=null;}
+if(controllerPage)controllerMode();else{
+ renderer=new Renderer($('game'));refresh();bindControls();loadSprites().then(refresh).catch(()=>{});
+ $('start').onclick=start;$('garageNav').onclick=garage;$('garageOpen').onclick=garage;$('settingsNav').onclick=settings;$('remoteNav').onclick=remoteDialog;$('pause').onclick=pause;$('closeModal').onclick=()=>$('modal').close();
+ fetch('/health').then(r=>r.json()).then(data=>cloudEnabled=data.cloudBackup===true).catch(()=>{});
+ window.addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||$('modal').open)return;const key=e.key.length===1?e.key.toLowerCase():e.key;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(key))e.preventDefault();keys.add(key);if(e.repeat)return;if(key==='Enter'&&race.status!=='running')race.status==='paused'?resume():start();if(['p','Escape'].includes(key))pause();});window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
+ let last=performance.now(),lastUi=0;
+ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;const i=input();race.update(dt,i);for(const e of race.events){if(e==='fuel'){feedback('+32 COMBUSTÍVEL');audio.tone(660,.22,'square',.2);}if(e==='hit'&&race.health>0){feedback('IMPACTO ABSORVIDO');audio.tone(90,.3,'sawtooth',.3);}}
+  if(previous!=='over'&&race.status==='over')gameOver();previous=race.status;if(race.status==='running'&&race.time-lastCheckpoint>=5){settle();lastCheckpoint=race.time;}
+  renderer.draw(race,clock,i);audio.update(race,i.brake);
+  if(now-lastUi>80){lastUi=now;$('distance').innerHTML=`${km(race.distance)} <em>km</em>`;$('speed').innerHTML=`${Math.round(race.speed).toString().padStart(3,'0')} <em>km/h</em>`;$('fuelLabel').textContent=`${Math.ceil(race.fuel)}%`;$('fuelBar').style.width=`${race.fuel}%`;$('fuelBar').style.background=race.fuel<25?'#ff7a8d':'#8ae3be';const curve=roadCurve(race.distance+120)/120;$('curveHint').hidden=Math.abs(curve)<.5||race.status!=='running';$('curveHint').firstElementChild.textContent=curve>0?'↷':'↶';}
+  requestAnimationFrame(frame);
+ }requestAnimationFrame(frame);
+ if('serviceWorker'in navigator&&!window.Capacitor?.isNativePlatform?.())navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInput();if(race.status==='running')pause();}else if(controllerPage)wakeScreen();});
+window.addEventListener('pagehide',()=>{if(!controllerPage&&race.distance>0)settle();clearInput();});
+// Safari may fire blur when its browser chrome changes focus; visibility is the pause authority on touch devices.
+window.addEventListener('blur',()=>{if(!matchMedia('(pointer:coarse)').matches){clearInput();if(race.status==='running')pause();}});
