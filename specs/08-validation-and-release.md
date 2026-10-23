@@ -28,13 +28,13 @@ The 1.3 baseline passed **22 unit/service tests + 16 browser cases = 38**. This 
 | --- | --- |
 | Simulation | Acceleration, fuel, distance, braking stop, collisions, pickup cap/consumption |
 | State | Pause freezes progress; continuation is unique; restart/reset restores state |
-| Vehicle differences | SUV resistance, motorcycle grip, catalog/audio profile coverage |
+| Vehicle differences | SUV impact speed retention, motorcycle grip, catalog/audio profile coverage |
 | Environment | Curve bounds/direction changes; continuous light/weather intensities |
 | Progress | Malformed saves, ownership validation, migration, per-user backup and revision conflict |
 | Room services | Memory and D1 adapters, token/role checks, atomic answer, expiration/deletion, compatibility input |
 | Browser flows | Initial menu hides in race; pause/result/menu; vehicle and paint purchase persistence |
 | Touch | Tap to start; independently held inputs; visible/hittable pedals; portrait/landscape viewport |
-| Graphics | Eight atlas entries load; transparency and complete bodywork fit thumbnail bounds |
+| Graphics | Eight straight sprites and sixteen turn frames load; complete transparent bodywork, mirrored turns, and distance-based lane-dash movement |
 | Offline | Reload into a playable game with cached modules/artwork |
 | Remote | Start/brake without RTCPeerConnection; loss pauses; new QR reconnects |
 

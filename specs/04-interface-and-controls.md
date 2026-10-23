@@ -27,7 +27,7 @@ The result displays the failure reason, distance and run coins. Actions are rest
 
 ## Garage
 
-Eight cards show model sprite, description, maximum speed, acceleration, consumption, resistance and purchase/selection state. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
+Eight cards show model sprite, description, maximum speed, acceleration, consumption, impact speed retention and purchase/selection state. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
 
 ## Settings
 

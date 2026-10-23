@@ -2,30 +2,43 @@
 // Bodies use a 128 × 80 grid; every model has its own roofline and rear treatment.
 const cache=new Map();
 let atlasLoaded=false;
-const atlasTiles=new Map(),atlasPaints=new Map();
+const atlasTiles=new Map(),atlasPaints=new Map(),turnTiles=new Map(),turnPaints=new Map();
 const atlasRegions={fusca:[0,.15,.25,.34],brasilia:[.25,.15,.25,.34],gol:[.5,.15,.25,.34],palio:[.75,.15,.25,.34],moto:[0,.54,.2,.36],gt:[.215,.54,.29,.36],suv:[.515,.54,.245,.36],superbike:[.79,.54,.21,.36]};
 const basePaints={fusca:'#f5c542',brasilia:'#6ed4a0',gol:'#669df4',palio:'#f08364',moto:'#ddd8cf',gt:'#e76368',suv:'#c2a177',superbike:'#af94ec'};
 function rgbHsl(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;let h=0,s=0;if(d){s=l>.5?d/(2-max-min):d/(max+min);h=(max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4)/6;}return [h,s,l];}
 function hslRgb(h,s,l){const f=n=>{const k=(n+h*12)%12,a=s*Math.min(l,1-l);return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1))));};return [f(0),f(8),f(4)];}
-export function spritesReady(){return atlasLoaded;}
+export function spritesReady(){return atlasLoaded&&turnTiles.size===16;}
+export const steeringPose=steer=>Math.abs(steer)<.18?0:Math.abs(steer)<.7?1:2;
 export function spriteDimensions(car){const tile=atlasTiles.get(car.id),factor=car.shape==='bike'?.6:car.shape==='sport'?1.12:1;return tile?{width:112*factor,height:112*factor*tile.height/tile.width}:{width:128,height:80};}
-export async function loadSprites(url='./assets/vehicle-atlas-v1.png'){
+async function loadAtlas(url,regions,target){
  const image=new Image();image.decoding='async';await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Sprite atlas unavailable'));image.src=url;});
  const source=document.createElement('canvas');source.width=image.width;source.height=image.height;const ctx=source.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,image.width,image.height).data;
- for(const [id,region] of Object.entries(atlasRegions)){
+ for(const [id,region] of Object.entries(regions)){
   const rx=Math.floor(region[0]*image.width),ry=Math.floor(region[1]*image.height),rw=Math.floor(region[2]*image.width),rh=Math.floor(region[3]*image.height);let minX=rx+rw,minY=ry+rh,maxX=rx,maxY=ry;
   for(let y=ry;y<ry+rh;y++)for(let x=rx;x<rx+rw;x++){if(pixels[(y*image.width+x)*4+3]>80){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}
-  if(maxX<=minX)continue;const canvas=document.createElement('canvas');canvas.width=maxX-minX+1;canvas.height=maxY-minY+1;canvas.getContext('2d').drawImage(image,minX,minY,canvas.width,canvas.height,0,0,canvas.width,canvas.height);atlasTiles.set(id,canvas);
+  if(maxX<=minX)continue;const canvas=document.createElement('canvas');canvas.width=maxX-minX+1;canvas.height=maxY-minY+1;canvas.getContext('2d').drawImage(image,minX,minY,canvas.width,canvas.height,0,0,canvas.width,canvas.height);target.set(id,canvas);
  }
- atlasLoaded=atlasTiles.size===8;return atlasLoaded;
 }
-function paintedTile(car){
- const original=atlasTiles.get(car.id);if(!original)return null;if(car.color===basePaints[car.id])return original;
- const key=`${car.id}:${car.color}`;if(atlasPaints.has(key))return atlasPaints.get(key);
+// Cell gutters follow the authored sheet; each crop includes the complete body.
+const turnRegions={};
+for(const [ids,y0,y1,cuts] of [
+ [['fusca','brasilia'],0,350,[0,312,627,932,1254]],
+ [['gol','palio'],350,630,[0,315,628,932,1254]],
+ [['moto','gt'],630,930,[0,295,580,927,1254]],
+ [['suv','superbike'],930,1254,[0,318,660,930,1254]]
+])for(let i=0;i<4;i++)turnRegions[`${ids[Math.floor(i/2)]}:${i%2+1}`]=[cuts[i]/1254,y0/1254,(cuts[i+1]-cuts[i])/1254,(y1-y0)/1254];
+export async function loadSprites(url='./assets/vehicle-atlas-v1.png',turnUrl='./assets/vehicle-turns-v2.png'){
+ await Promise.all([loadAtlas(url,atlasRegions,atlasTiles),loadAtlas(turnUrl,turnRegions,turnTiles)]);
+ atlasLoaded=atlasTiles.size===8;return spritesReady();
+}
+function paintedTile(car,pose=0){
+ const tiles=pose?turnTiles:atlasTiles,paints=pose?turnPaints:atlasPaints;
+ const original=tiles.get(pose?`${car.id}:${pose}`:car.id);if(!original)return null;if(car.color===basePaints[car.id])return original;
+ const key=`${car.id}:${car.color}:${pose}`;if(paints.has(key))return paints.get(key);
  const canvas=document.createElement('canvas');canvas.width=original.width;canvas.height=original.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(original,0,0);const data=ctx.getImageData(0,0,canvas.width,canvas.height),p=data.data;
  const target=rgbHsl(...[1,3,5].map(i=>parseInt(car.color.slice(i,i+2),16))),bases={fusca:.115,brasilia:.25,gol:.62,palio:.065,moto:.6,gt:0,suv:.14,superbike:.76},base=bases[car.id];
  for(let i=0;i<p.length;i+=4){if(p[i+3]<80)continue;const [h,s,l]=rgbHsl(p[i],p[i+1],p[i+2]),diff=Math.min(Math.abs(h-base),1-Math.abs(h-base));if(diff<.13&&s>.16&&l>.14&&l<.93){const rgb=hslRgb(target[0],target[1]*.85+.1,l);p[i]=rgb[0];p[i+1]=rgb[1];p[i+2]=rgb[2];}}
- ctx.putImageData(data,0,0);if(atlasPaints.size>80)atlasPaints.clear();atlasPaints.set(key,canvas);return canvas;
+ ctx.putImageData(data,0,0);if(paints.size>80)paints.clear();paints.set(key,canvas);return canvas;
 }
 function shade(hex,factor){const v=hex.replace('#','');return '#'+[0,2,4].map(i=>Math.min(255,Math.max(0,Math.round(parseInt(v.slice(i,i+2),16)*factor))).toString(16).padStart(2,'0')).join('');}
 function sprite(car,brake,turn){
@@ -82,9 +95,21 @@ function sprite(car,brake,turn){
  }
  if(cache.size>150)cache.clear();cache.set(key,canvas);return canvas;
 }
+// Pick authored poses. Never shear, rotate or slice the rear image to fake yaw.
 export function drawCar(ctx,x,y,scale,car,brake=false,steer=0){
- const tile=atlasLoaded?paintedTile(car):null;
- if(tile){const dimensions=spriteDimensions(car),width=dimensions.width*scale,height=dimensions.height*scale;ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.rotate(clampTurn(steer)*.025);ctx.drawImage(tile,Math.round(-width/2),Math.round(-height),Math.round(width),Math.round(height));if(brake){ctx.globalAlpha=.42;ctx.fillStyle='#ff5c4c';ctx.fillRect(-width*.4,-height*.21,width*.18,Math.max(2,height*.035));ctx.fillRect(width*.22,-height*.21,width*.18,Math.max(2,height*.035));}ctx.restore();return;}
- const image=sprite(car,brake,Math.abs(steer)>.2?Math.sign(steer):0);ctx.drawImage(image,Math.round(x-64*scale),Math.round(y-80*scale),Math.round(128*scale),Math.round(80*scale));
+ const pose=steeringPose(steer),tile=atlasLoaded?paintedTile(car,pose):null;
+ const image=tile||sprite(car,brake,0),turn=!!tile&&pose>0;
+ const dimensions=atlasLoaded?spriteDimensions(car):{width:128,height:80};
+ const height=dimensions.height*scale*(turn?.96:1);
+ const width=height*image.width/image.height;
+ ctx.save();ctx.translate(Math.round(x),Math.round(y));
+ if(turn&&steer<0)ctx.scale(-1,1);
+ const left=-width*(turn?.4:.5);
+ ctx.drawImage(image,Math.round(left),Math.round(-height),Math.round(width),Math.round(height));
+ if(tile&&brake){
+  ctx.globalAlpha=.72;ctx.fillStyle='#ff5445';
+  const lamps=turn?[.1,.58]:[.12,.72];
+  for(const lamp of lamps)ctx.fillRect(left+width*lamp,-height*.24,width*.13,Math.max(2,height*.045));
+ }
+ ctx.restore();
 }
-function clampTurn(value){return Math.max(-1,Math.min(1,value));}

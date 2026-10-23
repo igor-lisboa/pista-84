@@ -4,20 +4,20 @@
 
 ## Complete vehicle catalog
 
-Maximum speed is km/h; acceleration is the maximum speed increase in km/h per simulation second. Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md).
+Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve. Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md).
 
-| ID | Display name | Shape | Max | Acceleration | Consumption | Handling | Resistance | Coin price |
+| ID | Display name | Shape | Max | Acceleration | Consumption | Handling | Impact speed retained | Coin price |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `fusca` | Fusca 76 | bug | 155 | 26 | 0.72 | 1.00 | 1 | 0 |
-| `brasilia` | Brasília 80 | box | 165 | 29 | 0.80 | 1.00 | 1 | 180 |
-| `gol` | Gol Bolinha | box | 185 | 36 | 0.90 | 1.12 | 1 | 420 |
-| `palio` | Palio 98 | box | 180 | 34 | 0.82 | 1.08 | 1 | 350 |
-| `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 1 | 260 |
-| `gt` | Veloce GT | sport | 285 | 60 | 1.65 | 1.15 | 1 | 1200 |
-| `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 2 | 850 |
-| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | 1 | 1500 |
+| `fusca` | Fusca 76 | bug | 155 | 26 | 0.72 | 1.00 | 42% | 0 |
+| `brasilia` | Brasília 80 | box | 165 | 29 | 0.80 | 1.00 | 42% | 180 |
+| `gol` | Gol Bolinha | box | 185 | 36 | 0.90 | 1.12 | 42% | 420 |
+| `palio` | Palio 98 | box | 180 | 34 | 0.82 | 1.08 | 42% | 350 |
+| `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 42% | 260 |
+| `gt` | Veloce GT | sport | 285 | 60 | 1.65 | 1.15 | 42% | 1200 |
+| `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 70% | 850 |
+| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | 42% | 1500 |
 
-Fusca is always owned. A locked vehicle can only be selected after purchasing it with available free coins. Owned vehicles can be selected again without another charge. Both motorcycle models use the smaller collision threshold and reduced rain grip. The SUV has the resistance and shoulder behavior defined in gameplay. There are no performance upgrades or stat changes from paint.
+Fusca is always owned. A locked vehicle can only be selected after purchasing it with available free coins. Owned vehicles can be selected again without another charge. Both motorcycle models use the smaller collision threshold and reduced rain grip. The SUV has the impact speed-retention and shoulder behavior defined in gameplay. There are no performance upgrades or stat changes from paint.
 
 ## Paint catalog
 

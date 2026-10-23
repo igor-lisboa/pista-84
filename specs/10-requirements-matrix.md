@@ -10,11 +10,11 @@ Stable IDs correspond to the original-plan areas. **Implemented** means behavior
 | R02 | Desktop steering, acceleration and braking | Implemented | [Controls](04-interface-and-controls.md) |
 | R03 | Mobile touch and optional tilt | Implemented; physical QA pending | [Controls](04-interface-and-controls.md), QA-01 |
 | R04 | Continuous fuel use and collectible canisters | Implemented | Capacity, drain, spawns and refill in [gameplay](02-gameplay.md) |
-| R05 | Traffic collision, empty tank and stop failures | Implemented | Collision/resistance rules and thresholds in [gameplay](02-gameplay.md) |
+| R05 | Recoverable traffic impacts and empty-tank failure | Implemented | Impact speed retention and contact thresholds in [gameplay](02-gameplay.md) |
 | R06 | Distance/speed/fuel feedback | Implemented | Minimal race HUD; wallet/record/settings outside the race |
-| R07 | Increasing difficulty and visible curves | Implemented | Higher cruise/drift/traffic frequency; bounded curve function with increasing frequency |
+| R07 | Increasing difficulty and visible curves | Implemented | Increasing traffic frequency; seeded endless road with varied straights and bounded left/right bends |
 | R08 | Day/sunset/night/dawn and clear/rain/fog | Implemented | Timing/interpolation/grip in [gameplay](02-gameplay.md); presentation in [art](05-art-and-audio.md) |
-| R09 | National cars, motorcycles and distinct attributes | Implemented | Eight vehicles and resistance/handling differences in [catalog](03-vehicles-and-economy.md) |
+| R09 | National cars, motorcycles and distinct attributes | Implemented | Eight vehicles and impact retention/handling differences in [catalog](03-vehicles-and-economy.md) |
 | R10 | Free currency, unlocks and cosmetics | Implemented | Settlement, prices and paints; editable casual save is not a trusted paid wallet |
 | R11 | Second chance and ad rewards | Partial | One free continuation exists; actual rewarded continuation/doubling pending ADS-01 |
 | R12 | Retro music and vehicle-specific engine/braking | Implemented as synthesized audio | [Audio definitions](05-art-and-audio.md); physical mixing validation pending QA-01 |

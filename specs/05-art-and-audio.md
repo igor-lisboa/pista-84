@@ -10,15 +10,16 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 
 ## Camera, road and scene
 
-- Horizon: **25.5% of canvas height**.
+- Horizon: **27.5% of canvas height**.
 - Player ground position: `horizon + 0.855 × remainingRoadHeight`.
 - Curved perspective is shared by road, lane markers, traffic and roadside objects.
 - Asphalt is subdued blue-grey; roadside grass has restrained bands rather than a high-contrast neon pattern.
-- Blue/white shoulder strips, white road edges and dashed lane separators.
+- Red/white shoulder strips, white road edges and dashed lane separators.
 - Layered pixel city with windows, rooftops, antennae and landmark towers; pixel-cluster clouds and shaded conifers.
 - City/tree caches avoid rebuilding complex static details each frame.
 - Camera offset keeps lateral driving readable near the edges. Portrait and landscape preserve the world aspect ratio.
 - Rain, fog and night remain dynamic rather than fixed into the artwork.
+- Road projection spans 240 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/billboards.js`; these are offline house ads, with no ad-network integration or tracking.
 
 ## Vehicle artwork
 
@@ -26,7 +27,9 @@ Final asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight v
 
 The atlas has transparent alpha. Runtime regions are trimmed to visible alpha bounds; every model preserves its own width/height ratio. Motorcycles are narrower; sports-car width is adjusted independently. Garage/menu thumbnails fit the full vehicle inside their canvas rather than cutting off the roof.
 
-Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Custom paints remap body-color hues while preserving lightness and transparency. Braking adds light feedback; steering slightly inclines the vehicle. Procedural 128×80 sprites remain a load-failure fallback, not the intended main artwork.
+Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Custom paints remap body-color hues while preserving lightness and transparency. Braking adds light feedback; steering selects separate authored mild/strong rear three-quarter turn frames. Left frames mirror their right counterpart. No row shearing or body rotation is used. Procedural 128×80 sprites remain a load-failure fallback, not the intended main artwork.
+
+Turn poses: [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png) adds 16 transparent frames for all eight models. Full generation prompt and built-in imagegen provenance: [turn-sprites-v2.md](../docs/turn-sprites-v2.md). Straight and turning frames preserve each source frame's aspect ratio using uniform scaling.
 
 Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
 

@@ -61,6 +61,12 @@ Storage key: **`pista84`**, JSON save format **2**.
 
 No active entities, room tokens, running-state snapshot or paid entitlement belongs in this save. Storage failures show feedback and keep the session playable. Exports contain the progress JSON; import checks shape/size and normalizes through the same validator.
 
+## Environment balance override
+
+The local server and build load `.env` through Node's `loadEnvFile`. `PISTA84_COINS` accepts a nonnegative safe integer; empty disables the override. Only the allowlisted `{coins}` object is served in `/src/runtime-config.js`; other environment values are never embedded. The build generates that module for static/native use and a matching Worker fallback. Worker runtime `PISTA84_COINS` takes precedence over its build fallback.
+
+The override is applied when loading local, imported or restored progress, and when reading a cloud backup. Reads do not change database rows or revisions. Purchases and rewards still change the session balance; reloading reapplies the configured value. This setting applies to all players of the configured environment. Clearing it restores normal saved-balance behavior. `.env` is ignored by Git; `.env.example` documents the options.
+
 ## Cloud backup
 
 Hosted only, manually invoked from the garage. Identity is supplied by the Sites gateway in `oai-authenticated-user-id`; user identity is not accepted from request JSON. Read returns the account snapshot/revision, or an empty snapshot at revision 0. Writes require the current revision and fail with 409 on conflict.
@@ -88,6 +94,6 @@ The tracked `.openai/hosting.json` retains the Site project identity and D1 bind
 
 ## Offline and native
 
-Service worker cache **pista84-v5** stores listed same-origin app assets, including atlas/scenery. It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity.
+Service worker cache **pista84-v8** stores listed same-origin app assets, including atlas/scenery. It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version.

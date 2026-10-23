@@ -13,5 +13,5 @@ test('cloud backups are isolated by authenticated user and use optimistic concur
  const b=await (await cloudProgress(req('bob'),adapter)).json();assert.equal(b.save,null);
  assert.equal((await cloudProgress(req('alice','PUT',{save:{...snapshot,coins:150},revision:1}),adapter)).status,200);
  assert.equal((await cloudProgress(req('alice','PUT',{save:snapshot,revision:1}),adapter)).status,409);
- assert.equal((await (await cloudProgress(req('alice'),adapter)).json()).save.coins,150);db.close();
+ assert.equal((await (await cloudProgress(req('alice'),adapter)).json()).save.coins,150);const overridden=await (await cloudProgress(req('alice'),adapter,{coins:10000})).json();assert.equal(overridden.save.coins,10000);assert.equal(overridden.revision,2);assert.equal((await (await cloudProgress(req('alice'),adapter)).json()).save.coins,150);db.close();
 });

@@ -28,6 +28,19 @@ Abra **http://localhost:4173**. O terminal também mostra o endereço da rede pa
 
 Edite `src/` e `web/` e rode `npm run build` de novo. `www/` e `dist/` são gerados; não os edite.
 
+## Configuração local (.env)
+
+O arquivo `.env` na raiz é lido pelo servidor e pelo build. Use `.env.example` como modelo:
+
+```dotenv
+PISTA84_COINS=10000
+PORT=4173
+```
+
+`PISTA84_COINS` define seu saldo ao abrir/recarregar o jogo e ao importar ou restaurar progresso, com prioridade sobre o saldo local e o backup no banco. Aceita inteiros não negativos, incluindo `0`. Deixe vazio para usar o saldo salvo. Compras e ganhos continuam alterando o saldo durante a sessão; recarregar reaplica o valor configurado. A leitura do backup não altera o registro no banco; salvar na nuvem continua sendo uma ação manual.
+
+Depois de editar `.env`, reinicie `npm start`. Para gerar os arquivos web, nativos ou hospedados, rode `npm run build` novamente. No Worker, a variável de ambiente `PISTA84_COINS` pode sobrescrever o valor do build. Essa configuração vale para todos os jogadores desse ambiente. Apenas esse saldo é exposto ao navegador; não coloque segredos nele. O `.env` fica fora do Git.
+
 ## Como jogar
 
 | Ação | Teclado |
@@ -37,20 +50,28 @@ Edite `src/` e `web/` e rode `npm run build` de novo. `www/` e `dist/` são gera
 | Frear | ↓, S ou espaço |
 | Pausar | P ou Esc |
 
-- O carro anda automaticamente. Colete galões verdes, evite o trânsito e não pare na pista.
+- Segure ↑ / W ou ACELERAR para ganhar velocidade. Soltar o acelerador desacelera; o freio reduz a velocidade com mais força. Parar permite retomar a corrida sem game over.
 - **Curvas empurram o carro para fora:** quanto mais forte a curva e maior a velocidade, mais você precisa esterçar ou frear. As curvas aparecem no horizonte e avançam até o carro, e o aviso de curva pisca quando é preciso frear.
 - **Fora do asfalto** a grama te segura, levanta poeira e treme a tela; bater na barreira externa conta como colisão.
 - **Checkpoint a cada 1 km** devolve 15% de combustível. A barra de progresso no HUD mostra o próximo checkpoint e a marca rosa indica seu recorde.
-- A cada 25 metros você ganha uma moeda, salva em checkpoints, na pausa e no fim da corrida. Com o tempo o trânsito fica mais denso, passam a bloquear duas faixas de uma vez e as curvas ficam mais fechadas.
+- A cada 25 metros você ganha uma moeda, salva em checkpoints, na pausa e no fim da corrida.
+- **Dificuldade progressiva:** nos primeiros três minutos de corrida, o trânsito fica mais frequente, recebe mais duplas em faixas diferentes e acelera gradualmente. A velocidade dos oponentes fica limitada a 82% da máxima do jogador e a 85% da máxima do próprio veículo. Pausar também pausa essa progressão.
+- **Velocidade e distância usam a mesma medida:** a 120 km/h constantes, você percorre 2 km por minuto de simulação. A câmera mais próxima do chão reforça a sensação de velocidade sem multiplicar a quilometragem.
 - Há uma segunda chance gratuita por corrida.
 - Durante a corrida só aparecem pista, velocidade, distância, combustível e pausa. Garagem e opções ficam no menu inicial.
 - O som é ativado no cabeçalho e a preferência é lembrada.
 
-**Garagem:** oito veículos com desempenho, sprites e áudio distintos. O Bruto 4×4 aguenta duas colisões; as motos têm área de colisão menor, mas perdem mais aderência na chuva. Há cinco pinturas compráveis com moedas.
+**Garagem:** oito veículos com desempenho, sprites e áudio distintos. Impactos reduzem a velocidade sem encerrar a corrida; o Bruto 4×4 retém mais velocidade. As motos têm área de colisão menor, mas perdem mais aderência na chuva. Há cinco pinturas compráveis com moedas.
 
 **Progresso:** exporte e importe o progresso pelo jogo. No site hospedado há backup manual por conta, com proteção contra conflitos de gravação. Restaurar um backup substitui os dados do aparelho.
 
 **Celular:** pedais e setas na tela, em retrato ou paisagem. A inclinação é opcional, exige HTTPS e permissão, e tem calibração da posição neutra. O jogo solo instala como PWA e funciona offline depois da primeira visita. No iPhone, use Adicionar à Tela de Início.
+
+## Anúncios nas placas
+
+As placas aparecem a cada 228 metros, alternando os lados da pista. Os textos de exemplo estão em [`src/billboards.js`](src/billboards.js): edite `title`, `subtitle`, `background` e `foreground` para colocar a identidade de um patrocinador, depois rode `npm run build`. O texto se ajusta à largura da placa; prefira títulos curtos.
+
+As peças são locais e funcionam offline. A veiculação paga, métricas e integração com uma rede de anúncios ainda não estão implementadas.
 
 ## Celular como controle
 

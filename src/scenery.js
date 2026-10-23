@@ -1,3 +1,4 @@
+import {BILLBOARD_ADS} from './billboards.js';
 // Layered city and roadside sprites built on a fixed pixel grid.
 const treeCache=new Map();
 const cityCache=new Map();
@@ -90,16 +91,18 @@ export function drawLamp(c,x,y,s,side,night){
  const hx=x-side*14*s;c.fillStyle=night>.25?'#fff0b0':'#c9ced6';c.fillRect(Math.round(hx-4*s),Math.round(y-63*s),Math.ceil(8*s),Math.ceil(3*s));
  if(night>.25){c.globalAlpha=night*.28;c.fillStyle='#ffe9a6';c.fillRect(Math.round(hx-14*s),Math.round(y-60*s),Math.ceil(28*s),Math.ceil(10*s));c.globalAlpha=1;}
 }
-const BOARDS=[['#ff638d','#fff3d6'],['#ffda65','#24315a'],['#8ae3be','#17302b'],['#669df4','#f7f5ec']];
 export function drawBillboard(c,x,y,s,index){
- const [bg,fg]=BOARDS[index%BOARDS.length],W=74*s,H=34*s,top=y-82*s;
+ const ad=BILLBOARD_ADS[index%BILLBOARD_ADS.length],W=90*s,H=38*s,top=y-82*s;
+ c.save();
  c.fillStyle='#233b3545';c.fillRect(Math.round(x-W/2),Math.round(y-2*s),Math.ceil(W),Math.ceil(4*s));
  c.fillStyle='#3a4256';c.fillRect(Math.round(x-W*.3),Math.round(top+H),Math.max(1,Math.round(3*s)),Math.ceil(48*s));c.fillRect(Math.round(x+W*.3),Math.round(top+H),Math.max(1,Math.round(3*s)),Math.ceil(48*s));
  c.fillStyle='#1d2438';c.fillRect(Math.round(x-W/2-2*s),Math.round(top-2*s),Math.ceil(W+4*s),Math.ceil(H+4*s));
- c.fillStyle=bg;c.fillRect(Math.round(x-W/2),Math.round(top),Math.ceil(W),Math.ceil(H));
- c.fillStyle=fg;
- const bars=[[.1,.2,.55],[.1,.45,.35],[.1,.7,.45],[.72,.18,.16]];
- for(const [bx,by,bw] of bars)c.fillRect(Math.round(x-W/2+bx*W),Math.round(top+by*H),Math.ceil(bw*W*(bx>.5?.9:1)),Math.max(1,Math.ceil(H*.14)));
+ c.fillStyle=ad.background;c.fillRect(Math.round(x-W/2),Math.round(top),Math.ceil(W),Math.ceil(H));
+ c.fillStyle=ad.foreground;c.textAlign='center';c.textBaseline='middle';
+ c.font=`900 ${Math.max(1,11*s)}px monospace`;c.fillText(ad.title,x,top+H*.36,W*.88);
+ c.fillRect(Math.round(x-W*.4),Math.round(top+H*.59),Math.ceil(W*.8),Math.max(1,Math.round(s)));
+ c.font=`bold ${Math.max(1,5.5*s)}px monospace`;c.fillText(ad.subtitle,x,top+H*.78,W*.88);
+ c.restore();
 }
 export function drawBush(c,x,y,s,tint){
  c.fillStyle='#233b3545';c.fillRect(Math.round(x-14*s),Math.round(y-2*s),Math.ceil(28*s),Math.ceil(4*s));
