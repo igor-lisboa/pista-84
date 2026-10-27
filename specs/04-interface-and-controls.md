@@ -27,7 +27,7 @@ The text refreshes about 12 times per second. The bottom corners are reserved fo
 
 Pause offers continue, options and initial menu. Settings are a modal over the paused state. Returning to the menu ends the active run and settles progress.
 
-The result displays the failure reason, score in points, distance, run coins and the best score. A crash (any contact with traffic or the barrier) shows the crash title **"VOCÊ BATEU!"** (localized) and the impact speed; an empty tank shows the ordinary end title. Actions are restart, one free second chance if unused, and initial menu. Restart creates a new run rather than restoring the failed one.
+The result displays the failure reason, score in points, distance, run coins and the best score. A crash (any contact with traffic or the barrier) shows the crash title **"VOCÊ BATEU!"** ("YOU CRASHED!", localized) and the impact speed; an empty tank shows the ordinary end title. Actions are restart, one free second chance if unused, and initial menu. Restart creates a new run rather than restoring the failed one.
 
 ## Garage
 

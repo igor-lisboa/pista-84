@@ -98,7 +98,7 @@ Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s
 Contact testing occurs when an unpassed entity crosses the player contact band **PLAYER_DEPTH +/- 0.018**, using its previous and current depth to avoid skipping a contact. A hit requires `abs(player.x - laneCenter(entity.lane))` below **0.114** for a motorcycle or **0.162** for other player vehicles. An entity is marked passed after its first contact so it cannot repeatedly refuel or crash the player.
 
 - A fuel canister adds **32** fuel up to 100 and disappears.
-- Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** (localized), the reason line shows the crash speed, and the one free second chance is still offered.
+- Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** ("YOU CRASHED!", localized), the reason line shows the crash speed, and the one free second chance is still offered.
 - While the 3 s second-chance invincibility lasts, traffic and barrier contacts do not end the run (the barrier still places the car back on the road).
 - Stopping does not end a run. **Running out of fuel** ends it (`'fuel'`, "Pane seca!" message) and also offers the second chance.
 - Traffic changes lanes and follows the car ahead, so a gap that looks open can close; no speed makes touching a car safe.

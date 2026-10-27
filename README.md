@@ -1,22 +1,22 @@
 # PISTA 84
 
-Arcade brasileiro de corrida infinita em pixel art. Funciona no navegador, instala como PWA, tem celular como controle remoto e projetos nativos Android/iOS (Capacitor).
+Brazilian pixel-art endless racing arcade game. It runs in the browser, installs as a PWA, uses your phone as a remote controller, and has native Android/iOS projects (Capacitor).
 
-Versão 1.4: visual arcade de pôr do sol (fontes Bungee e Chakra Petch, contornos duros e faixa quadriculada), 14 veículos, trânsito mais pesado, pontuação por ritmo, 7 idiomas e trilha sonora procedural. O código é todo em TypeScript. Veja a [direção de arte](docs/ART_DIRECTION.md) e a [composição renderizada](docs/screenshots/reference-scene.png).
+Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 14 vehicles, heavier traffic, pace-based scoring, 7 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
 
-## Sumário
+## Table of contents
 
-- [Início rápido](#início-rápido)
-- [Como jogar](#como-jogar)
-- [Celular como controle](#celular-como-controle)
-- [Android e iOS](#android-e-ios)
-- [Testes e publicação](#testes-e-publicação)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Documentação](#documentação)
+- [Quick start](#quick-start)
+- [How to play](#how-to-play)
+- [Phone as controller](#phone-as-controller)
+- [Android and iOS](#android-and-ios)
+- [Testing and publishing](#testing-and-publishing)
+- [Project structure](#project-structure)
+- [Documentation](#documentation)
 
-## Início rápido
+## Quick start
 
-Requer Node.js **24** (ambiente validado, inclusive para os testes SQL com `node:sqlite`).
+Requires Node.js **24** (the validated environment, including the SQL tests with `node:sqlite`).
 
 ```powershell
 npm install
@@ -24,88 +24,88 @@ npm run build
 npm start
 ```
 
-Abra **http://localhost:4173**. O terminal também mostra o endereço da rede para acessar do celular. Use `PORT` para trocar a porta.
+Open **http://localhost:4173**. The terminal also shows the network address for accessing the game from your phone. Use `PORT` to change the port.
 
-Edite `src/` e `web/` e rode `npm run build` de novo. `www/` e `dist/` são gerados; não os edite. Todo o código é TypeScript: o Node 24 executa os `.ts` diretamente (apenas sintaxe apagável, imports com extensão `.ts`), o `tsc --noEmit` faz a checagem de tipos e o esbuild empacota o app do navegador (`src/app.ts` e `web/sw.ts` em `www/app.js` e `www/sw.js`) e o Worker.
+Edit `src/` and `web/` and run `npm run build` again. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/app.ts` and `web/sw.ts` into `www/app.js` and `www/sw.js`) and the Worker.
 
-## Configuração local (.env)
+## Local configuration (.env)
 
-O arquivo `.env` na raiz é lido pelo servidor e pelo build. Use `.env.example` como modelo:
+The `.env` file at the root is read by the server and by the build. Use `.env.example` as a template:
 
 ```dotenv
 PISTA84_COINS=10000
 PORT=4173
 ```
 
-`PISTA84_COINS` define seu saldo ao abrir/recarregar o jogo e ao importar ou restaurar progresso, com prioridade sobre o saldo local e o backup no banco. Aceita inteiros não negativos, incluindo `0`. Deixe vazio para usar o saldo salvo. Compras e ganhos continuam alterando o saldo durante a sessão; recarregar reaplica o valor configurado. A leitura do backup não altera o registro no banco; salvar na nuvem continua sendo uma ação manual.
+`PISTA84_COINS` sets your balance when you open/reload the game and when you import or restore progress, taking priority over the local balance and the database backup. It accepts non-negative integers, including `0`. Leave it empty to use the saved balance. Purchases and earnings still change the balance during the session; reloading reapplies the configured value. Reading the backup does not change the record in the database; saving to the cloud remains a manual action.
 
-Depois de editar `.env`, reinicie `npm start`. Para gerar os arquivos web, nativos ou hospedados, rode `npm run build` novamente. No Worker, a variável de ambiente `PISTA84_COINS` pode sobrescrever o valor do build. Essa configuração vale para todos os jogadores desse ambiente. Apenas esse saldo é exposto ao navegador, por `GET /runtime-config.json` (servido pelo Node e pelo Worker e gravado em `www/` no build, para os apps nativos); o app busca esse arquivo ao iniciar. Não coloque segredos nele. O `.env` fica fora do Git.
+After editing `.env`, restart `npm start`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only this balance is exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
 
-## Como jogar
+## How to play
 
-| Ação | Teclado |
+| Action | Keyboard |
 | --- | --- |
-| Dirigir | ←/→ ou A/D |
-| Acelerar | ↑ ou W |
-| Frear | ↓, S ou espaço |
-| Iniciar / continuar | Enter |
-| Pausar | P ou Esc |
+| Steer | ←/→ or A/D |
+| Accelerate | ↑ or W |
+| Brake | ↓, S or space |
+| Start / continue | Enter |
+| Pause | P or Esc |
 
-- Segure ↑ / W ou ACELERAR para ganhar velocidade. Soltar o acelerador desacelera; o freio reduz a velocidade com mais força. Parar permite retomar a corrida sem game over.
-- **Curvas empurram o carro para fora:** quanto mais forte a curva e maior a velocidade, mais você precisa esterçar ou frear. As curvas aparecem no horizonte e avançam até o carro, e o aviso de curva pisca quando é preciso frear.
-- **Qualquer batida é fatal:** tocar em um carro do trânsito ou na barreira externa encerra a corrida na hora, sem limite de velocidade, sem vida e sem quique. A tela "VOCÊ BATEU!" mostra a velocidade do impacto. A outra forma de perder é ficar sem combustível.
-- **Fora do asfalto** (a grama) a velocidade é puxada para 40 km/h em cerca de meio segundo, o motor quase não tem tração (10%), levanta poeira, treme a tela e o HUD avisa "FORA DA PISTA". Volte para o asfalto antes de acelerar de novo.
-- **Checkpoint a cada 1 km** devolve 15% de combustível e zera o relógio do quilômetro (veja a pontuação). A barra de progresso no HUD mostra o próximo checkpoint e a marca ciano indica seu recorde. Latas de combustível na pista devolvem 32%.
-- **Pontuação por ritmo:** cada metro vale pontos multiplicados pela velocidade média do quilômetro atual: `multiplicador = clamp(km/h médios ÷ 100, 0,2, 3,5)`, reiniciado a cada checkpoint. O HUD mostra os pontos e o multiplicador (×1,0 = 100 km/h de média). O fim da corrida mostra pontos e o melhor placar.
-- **Moedas vêm da pontuação:** 1 moeda a cada 25 pontos. Elas são salvas a cada 5 s de corrida, na pausa, no fim da corrida e ao voltar ao menu.
-- **Dificuldade progressiva:** ao longo dos primeiros quatro minutos (240 s) de corrida o trânsito fica mais frequente, recebe mais duplas e trios em faixas diferentes (sempre sobram ao menos duas faixas livres, no máximo 16 carros) e acelera gradualmente. A velocidade dos oponentes fica limitada a 82% da máxima do jogador e a 85% da máxima do próprio veículo. Os carros trocam de faixa quando há espaço, seguem o carro da frente e nunca se sobrepõem. Pausar também pausa essa progressão.
-- **Velocidade e distância usam a mesma medida:** a 120 km/h constantes, você percorre 2 km por minuto de simulação. A câmera mais próxima do chão reforça a sensação de velocidade sem multiplicar a quilometragem.
-- Há uma segunda chance gratuita por corrida (3 s de invencibilidade).
-- Durante a corrida só aparecem pista, velocidade, distância, pontos, combustível e pausa (barra superior). Garagem, opções e idioma ficam no menu inicial.
-- **Som:** vem ligado, mas o navegador só libera o áudio no primeiro toque ou tecla. Um único botão em Opções liga/desliga música, motor e efeitos, e a preferência é lembrada. A música é procedural (Web Audio, sem arquivos): um loop calmo para menu/pausa (74 bpm) e três faixas de corrida (Neon Highway 132 bpm, Turbo Rush 150 bpm, Sunset Drive 118 bpm), uma sorteada ao iniciar a corrida, nunca a mesma da sorteada anteriormente (ao retomar depois de uma pausa a música de corrida recomeça com outra faixa).
-- **Idiomas:** português (Brasil), English, português (Portugal), français, italiano, 日本語 e Deutsch, em Opções. O padrão vem de `navigator.languages`; idioma desconhecido cai em inglês. As traduções ainda não foram revisadas por falantes nativos.
+- Hold ↑ / W or ACELERAR (Accelerate) to gain speed. Releasing the accelerator slows the car down; the brake reduces speed more sharply. Stopping lets you resume the race without a game over.
+- **Curves push the car outward:** the sharper the curve and the higher the speed, the more you need to steer or brake. Curves show up on the horizon and move toward the car, and the curve warning blinks when you need to brake.
+- **Every crash is fatal:** touching a traffic car or the outer barrier ends the race immediately, with no speed threshold, no lives and no bounce. The "VOCÊ BATEU!" (You crashed!) screen shows the impact speed. The other way to lose is running out of fuel.
+- **Off the asphalt** (the grass), speed is pulled down to 40 km/h in about half a second, the engine has almost no traction (10%), dust is kicked up, the screen shakes and the HUD warns "FORA DA PISTA" (Off track). Get back on the asphalt before accelerating again.
+- **A checkpoint every 1 km** restores 15% of fuel and resets the kilometer clock (see scoring). The progress bar in the HUD shows the next checkpoint and the cyan mark indicates your record. Fuel cans on the track restore 32%.
+- **Pace-based scoring:** each meter is worth points multiplied by the average speed of the current kilometer: `multiplier = clamp(average km/h ÷ 100, 0.2, 3.5)`, reset at each checkpoint. The HUD shows the points and the multiplier (×1.0 = 100 km/h average). The end of the race shows points and the best score.
+- **Coins come from score:** 1 coin for every 25 points. They are saved every 5 s of racing, on pause, at the end of the race and when returning to the menu.
+- **Progressive difficulty:** over the first four minutes (240 s) of a race, traffic becomes more frequent, gets more pairs and trios in different lanes (at least two lanes are always left free, with a maximum of 16 cars) and gradually speeds up. Opponent speed is capped at 82% of the player's maximum and 85% of the vehicle's own maximum. Cars change lanes when there is room, follow the car ahead and never overlap. Pausing also pauses this progression.
+- **Speed and distance use the same measure:** at a constant 120 km/h, you cover 2 km per simulated minute. The camera closer to the ground reinforces the sense of speed without multiplying the mileage.
+- There is one free second chance per race (3 s of invincibility).
+- During the race only the track, speed, distance, points, fuel and pause appear (top bar). Garage, options and language are in the start menu.
+- **Sound:** it starts on, but the browser only unlocks audio on the first tap or key press. A single button in Options turns music, engine and effects on/off, and the preference is remembered. The music is procedural (Web Audio, no files): a calm loop for menu/pause (74 bpm) and three race tracks (Neon Highway 132 bpm, Turbo Rush 150 bpm, Sunset Drive 118 bpm), one picked at random when the race starts, never the same as the previously picked one (when resuming after a pause, the race music restarts with a different track).
+- **Languages:** Portuguese (Brazil), English, Portuguese (Portugal), French, Italian, Japanese and German, in Options. The default comes from `navigator.languages`; an unknown language falls back to English. The translations have not yet been reviewed by native speakers.
 
-**Garagem:** 14 veículos com desempenho e áudio distintos. Os carros comuns se desbloqueiam com moedas; os dois PREMIUM (Veloce GT, R$ 29,90, e Raio 1000, R$ 19,90) só podem ser comprados com dinheiro real por meio da interface `CashStore` (`src/ui/store.ts`). Nenhum provedor de pagamento está conectado: a loja padrão informa "indisponível" e o jogo mostra um aviso. As motos têm área de colisão menor, mas perdem mais aderência na chuva. Os seis veículos novos (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS e Maverick GT) usam sprites pixel art procedurais, ainda sem arte de atlas. Há cinco pinturas compráveis com moedas.
+**Garage:** 14 vehicles with distinct performance and audio. Regular cars are unlocked with coins; the two PREMIUM ones (Veloce GT, R$ 29.90, and Raio 1000, R$ 19.90) can only be bought with real money through the `CashStore` interface (`src/ui/store.ts`). No payment provider is connected: the default store reports "unavailable" and the game shows a notice. Motorcycles have a smaller collision area but lose more grip in the rain. The six new vehicles (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT) use procedural pixel-art sprites, still without atlas art. There are five paint jobs that can be bought with coins.
 
-**Progresso:** exporte e importe o progresso pelo jogo. No site hospedado há backup manual por conta, com proteção contra conflitos de gravação. Restaurar um backup substitui os dados do aparelho. O save (v2) guarda moedas, recorde de distância e de pontos, veículos, pinturas, som e idioma.
+**Progress:** export and import your progress in the game. On the hosted site there is a manual per-account backup, with protection against write conflicts. Restoring a backup replaces the data on the device. The save (v2) stores coins, distance and score records, vehicles, paints, sound and language.
 
-**Celular:** pedais no canto inferior direito e setas no inferior esquerdo, em retrato ou paisagem; as setas somem enquanto a inclinação está ligada. A inclinação é opcional, exige HTTPS e permissão, e tem calibração da posição neutra. O jogo solo instala como PWA e funciona offline depois da primeira visita. No iPhone, use Adicionar à Tela de Início.
+**Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. On iPhone, use Add to Home Screen.
 
-## Anúncios nas placas
+## Billboard ads
 
-As placas aparecem a cada 228 metros, alternando os lados da pista. Os textos de exemplo estão em [`src/render/billboards.ts`](src/render/billboards.ts): edite `title`, `subtitle`, `background` e `foreground` para colocar a identidade de um patrocinador, depois rode `npm run build`. O texto se ajusta à largura da placa; prefira títulos curtos.
+Billboards appear every 228 meters, alternating sides of the track. The sample texts are in [`src/render/billboards.ts`](src/render/billboards.ts): edit `title`, `subtitle`, `background` and `foreground` to apply a sponsor's identity, then run `npm run build`. The text fits the billboard width; prefer short titles.
 
-As peças são locais e funcionam offline. A veiculação paga, métricas e integração com uma rede de anúncios ainda não estão implementadas.
+The pieces are local and work offline. Paid serving, metrics and integration with an ad network are not implemented yet.
 
-## Celular como controle
+## Phone as controller
 
-1. Abra o jogo hospedado no computador e clique em **Controle no celular**.
-2. Leia o QR no celular. No site privado, entre com a mesma conta nos dois aparelhos.
-3. Aguarde a conexão, feche o modal no computador e inicie a corrida (ou toque em **Iniciar corrida** no controle).
-4. Use setas e pedais, ou ative a inclinação.
+1. Open the hosted game on the computer and click **Controle no celular** (Phone controller).
+2. Scan the QR code with the phone. On the private site, sign in with the same account on both devices.
+3. Wait for the connection, close the modal on the computer and start the race (or tap **Iniciar corrida** (Start race) on the controller).
+4. Use the arrows and pedals, or enable tilt.
 
-- **Conexão:** o pareamento usa HTTP/D1. Os comandos usam WebRTC quando possível, com fallback HTTPS (o Safari começa pelo modo de compatibilidade), então não é preciso TURN. O relay WebSocket original continua em `/relay` como alternativa técnica.
-- **Segurança:** o QR expira em 10 minutos e admite uma conexão. Não usa câmera nem microfone. Perda de sinal pausa a corrida; gere outro QR para reconectar.
-- **iPhone:** abra o endereço HTTPS direto no Safari e leia um QR recém-gerado. A inclinação só pede acesso quando você toca no botão. A validação automatizada usa WebKit; o teste em aparelho físico ainda é necessário.
-- **Execução local:** o Node mantém a sinalização em memória e troca `localhost` pelo endereço de rede detectado. Com várias interfaces, confira o endereço. O firewall deve liberar a porta na rede privada. Para usar sensores, sirva o Node atrás de HTTPS e defina `PUBLIC_ORIGIN` com a URL externa.
-- O controle remoto no wrapper nativo usa a versão web até haver validação específica.
+- **Connection:** pairing uses HTTP/D1. Commands use WebRTC when possible, with an HTTPS fallback (Safari starts in compatibility mode), so TURN is not needed. The original WebSocket relay remains at `/relay` as a technical alternative.
+- **Security:** the QR code expires in 10 minutes and allows one connection. It uses neither camera nor microphone. Signal loss pauses the race; generate another QR code to reconnect.
+- **iPhone:** open the HTTPS address directly in Safari and scan a freshly generated QR code. Tilt only asks for access when you tap the button. Automated validation uses WebKit; testing on a physical device is still needed.
+- **Local execution:** Node keeps signaling in memory and replaces `localhost` with the detected network address. With multiple interfaces, check the address. The firewall must allow the port on the private network. To use sensors, serve Node behind HTTPS and set `PUBLIC_ORIGIN` to the external URL.
+- The remote controller in the native wrapper uses the web version until there is specific validation.
 
-## Android e iOS
+## Android and iOS
 
-Os projetos estão em `android/` e `ios/`, com ícones e splash próprios.
+The projects are in `android/` and `ios/`, with their own icons and splash screens.
 
 ```powershell
 npm run native:sync
 npm run native:android
-# Em macOS com Xcode:
+# On macOS with Xcode:
 npm run native:ios
 ```
 
-- Android exige JDK e Android SDK; iOS exige macOS e Xcode. Nenhum está disponível neste ambiente.
-- Não há APK/AAB/IPA validado nem certificados de assinatura (NAT-01/NAT-02 no [roadmap](specs/09-roadmap.md)).
-- Para regenerar ícones e splash a partir do SVG do projeto: `node scripts/native-assets.ts` (requer Chromium do Playwright).
+- Android requires the JDK and Android SDK; iOS requires macOS and Xcode. Neither is available in this environment.
+- There is no validated APK/AAB/IPA nor signing certificates (NAT-01/NAT-02 in the [roadmap](specs/09-roadmap.md)).
+- To regenerate icons and splash screens from the project SVG: `node scripts/native-assets.ts` (requires Playwright's Chromium).
 
-## Testes e publicação
+## Testing and publishing
 
 ```powershell
 npm run typecheck
@@ -114,45 +114,45 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` roda `tsc --noEmit` em todo o projeto. `npm test` executa `node --test tests/*.test.ts`: **54 testes** de simulação, trânsito, mundo/save/áudio, i18n, sinalização, backup e configuração. `npm run test:browser` roda 16 casos do Playwright (`tests/browser/*.spec.ts`) em Chromium e WebKit; eles empacotam com esbuild um *harness* que expõe `window.Pista` (módulos do jogo, renderer e sprites) ao `page.evaluate`. O servidor local sobe sozinho (`npm start`), então rode `npm run build` antes.
-- Todo o código, comentários, identificadores, nomes de teste e mensagens de erro de servidor/API estão em inglês; o texto visível ao jogador fica em `src/i18n/locales/*.ts`.
-- O build gera os assets web/nativos em `www/` e o Worker ESM em `dist/server/index.js`.
-- O Worker serve o jogo, `/runtime-config.json`, o pareamento (`/api/rooms`), o backup (`/api/progress`) e `/health`. O Sites provisiona o binding D1 `DB` e aplica as migrações de `drizzle/`. Preserve o project ID em `.openai/hosting.json`.
-- Para alterar o schema: edite `db/schema.ts`, rode `npm run db:generate` e inspecione a nova migração. Não edite migrações já aplicadas.
-- Somente o gateway Sites deve fornecer identidade ao Worker; o Node local não aceita backup por cabeçalhos de identidade. Nenhum segredo fica no frontend. O cache offline (service worker `pista84-v10`) cobre apenas assets locais, sem APIs ou tokens; as fontes do Google Fonts são opcionais, com fallback para fontes do sistema, e não ficam em cache.
-- Pagamentos, anúncios e carteira premium ainda dependem de provedores e configuração comercial: os carros PREMIUM só serão vendáveis quando uma integração de cobrança implementar `CashStore`. O backup atual serve para progresso casual e não torna as moedas locais uma carteira segura para dinheiro real.
-- Scripts auxiliares (Node 24, com o servidor local rodando quando abrem o jogo): `node scripts/screenshots.ts` (capturas em `docs/screenshots/`), `node scripts/reference-shot.ts` (cena de referência), `node scripts/native-assets.ts` (ícones e splash) e `node scripts/verify-hosted.ts` (verificação do site hospedado, configuração por stdin).
+- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **54 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 16 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), so run `npm run build` first.
+- All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
+- The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
+- The Worker serves the game, `/runtime-config.json`, pairing (`/api/rooms`), backup (`/api/progress`) and `/health`. Sites provisions the D1 binding `DB` and applies the migrations in `drizzle/`. Preserve the project ID in `.openai/hosting.json`.
+- To change the schema: edit `db/schema.ts`, run `npm run db:generate` and inspect the new migration. Do not edit migrations that have already been applied.
+- Only the Sites gateway should provide identity to the Worker; local Node does not accept backup through identity headers. No secret is kept in the frontend. The offline cache (service worker `pista84-v10`) covers only local assets, with no APIs or tokens; Google Fonts are optional, with a fallback to system fonts, and are not cached.
+- Payments, ads and the premium wallet still depend on providers and commercial setup: the PREMIUM cars will only be sellable once a billing integration implements `CashStore`. The current backup is meant for casual progress and does not make local coins a secure wallet for real money.
+- Helper scripts (Node 24, with the local server running when they open the game): `node scripts/screenshots.ts` (captures in `docs/screenshots/`), `node scripts/reference-shot.ts` (reference scene), `node scripts/native-assets.ts` (icons and splash screens) and `node scripts/verify-hosted.ts` (hosted site verification, configuration via stdin).
 
-## Estrutura do projeto
+## Project structure
 
-| Caminho | Conteúdo |
+| Path | Contents |
 | --- | --- |
-| `src/game/` | Simulação pura, sem DOM: carros, ambiente, estrada, pontuação, trânsito, corrida, save e `index.ts` (barrel) |
-| `src/render/` | Renderer Canvas, cenário, sprites (atlas e procedurais), placas e ruído |
-| `src/audio/` | Motor de áudio, player de música procedural e dados das faixas |
-| `src/i18n/` | Tradutor, tipos e `locales/*.ts` (pt-BR é a fonte; en, pt-PT, fr, it, ja, de) |
-| `src/ui/` | Orquestrador (`game-app`), HUD, entrada, overlays, opções, garagem, diálogo do celular, página do controle, notificações, `store` (`CashStore`), arte dos carros e DOM |
-| `src/net/remote.ts` | Cliente de pareamento (WebRTC e fallback HTTPS) |
-| `src/server/` | Sinalização das salas, backup em nuvem e tipos D1 (compartilhados pelo Node e pelo Worker) |
-| `src/shared/config.ts` | Configuração pública (`PISTA84_COINS`) |
-| `src/app.ts`, `src/qr.ts` | Ponto de entrada do navegador e geração do QR |
-| `web/` | HTML, CSS, manifesto, ícones, atlas de veículos e `sw.ts` (service worker) |
-| `worker/index.ts`, `db/`, `drizzle/` | Worker (jogo, pareamento, backup), schema e migrações D1 |
-| `server.ts` | Servidor Node local (estáticos, sinalização em memória, `/runtime-config.json`, `/network`, `/qr`, relay WebSocket) |
-| `scripts/*.ts` | Build, ambiente, assets nativos, capturas e verificação hospedada |
-| `tests/` | Testes Node (`*.test.ts`), `tests/support/` e testes Playwright (`tests/browser/*.spec.ts`) |
-| `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configurações |
-| `android/`, `ios/` | Projetos nativos (Capacitor) |
-| `www/`, `dist/` | Saída de build (gerada) |
-| `specs/`, `docs/` | Especificações e documentação |
+| `src/game/` | Pure simulation, no DOM: cars, environment, road, scoring, traffic, race, save and `index.ts` (barrel) |
+| `src/render/` | Canvas renderer, scenery, sprites (atlas and procedural), billboards and noise |
+| `src/audio/` | Audio engine, procedural music player and track data |
+| `src/i18n/` | Translator, types and `locales/*.ts` (pt-BR is the source; en, pt-PT, fr, it, ja, de) |
+| `src/ui/` | Orchestrator (`game-app`), HUD, input, overlays, options, garage, phone dialog, controller page, notifications, `store` (`CashStore`), car art and DOM |
+| `src/net/remote.ts` | Pairing client (WebRTC and HTTPS fallback) |
+| `src/server/` | Room signaling, cloud backup and D1 types (shared by Node and the Worker) |
+| `src/shared/config.ts` | Public configuration (`PISTA84_COINS`) |
+| `src/app.ts`, `src/qr.ts` | Browser entry point and QR generation |
+| `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
+| `worker/index.ts`, `db/`, `drizzle/` | Worker (game, pairing, backup), D1 schema and migrations |
+| `server.ts` | Local Node server (static files, in-memory signaling, `/runtime-config.json`, `/network`, `/qr`, WebSocket relay) |
+| `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
+| `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
+| `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configuration |
+| `android/`, `ios/` | Native projects (Capacitor) |
+| `www/`, `dist/` | Build output (generated) |
+| `specs/`, `docs/` | Specifications and documentation |
 
-## Documentação
+## Documentation
 
-- **[Especificações do jogo — comece aqui](specs/README.md)**
-- [Regras de jogo](specs/02-gameplay.md)
-- [Veículos e economia](specs/03-vehicles-and-economy.md)
-- [Pendências e critérios de aceite](specs/09-roadmap.md)
-- [Direção de arte e prompts](docs/ART_DIRECTION.md)
-- [Pendências (contratos, dependências e testes de conclusão)](docs/PENDENCIAS.md)
+- **[Game specifications — start here](specs/README.md)**
+- [Game rules](specs/02-gameplay.md)
+- [Vehicles and economy](specs/03-vehicles-and-economy.md)
+- [Pending work and acceptance criteria](specs/09-roadmap.md)
+- [Art direction and prompts](docs/ART_DIRECTION.md)
+- [Pending work (contracts, dependencies and completion tests)](docs/PENDING.md)
 
-`docs/SPECS.md` e `docs/PENDENCIAS.md` são caminhos antigos (a segunda traz um resumo do que ainda falta); as definições canônicas estão em `specs/`.
+`docs/SPECS.md` and `docs/PENDING.md` are legacy paths (the latter has a summary of what is still missing); the canonical definitions are in `specs/`.
