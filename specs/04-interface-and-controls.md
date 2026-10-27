@@ -1,37 +1,45 @@
 # 04 — Interface and controls
 
-[Specification index](README.md) · Implementation: [app.js](../src/app.js), [garage.js](../src/garage.js), [HTML](../web/index.html), [CSS](../web/style.css)
+[Specification index](README.md) · Implementation: [`src/ui/`](../src/ui/) (`game-app.ts`, `hud.ts`, `input.ts`, `overlays.ts`, `settings.ts`, `garage.ts`, `remote-dialog.ts`, `controller-page.ts`), [`src/i18n/`](../src/i18n/), [HTML](../web/index.html), [CSS](../web/style.css)
+
+## Look
+
+The 1.4 interface is a sunset-arcade cabinet: deep purple background, sun-yellow, hot pink and cyan accents, **Bungee** (display) and **Chakra Petch** (text) loaded from Google Fonts with system fallbacks (Impact/Arial Black and Segoe UI/system-ui, plus Japanese system fonts), hard outlines, offset shadows with no blur, square corners and a checkered strip at the top of the menu. The fonts are optional; the page must remain usable offline without them.
 
 ## Initial menu
 
-The initial screen contains the PISTA 84 identity, animated scene, **JOGAR**, **GARAGEM**, **CELULAR COMO CONTROLE**, settings, selected vehicle, record and coin balance. Vehicle selection is available through both garage entry points. Starting hides the entire menu.
+The initial screen contains the PISTA 84 identity, animated scene, **JOGAR**, **GARAGEM**, **CELULAR COMO CONTROLE**, a settings button (⚙), selected vehicle (with a "change vehicle" link), record distance and coin balance. Vehicle selection is available through both garage entry points. Starting hides the entire menu. Enter also starts a run.
 
 ## Race interface
 
-Only the road, vehicles and essential information remain during play:
+Only the road, vehicles and essential information remain during play. The HUD is a **top bar only**:
 
-- Distance in kilometers, localized to `pt-BR` with two decimals.
-- Speed in km/h, padded to three digits.
-- Fuel percentage and bar; the bar changes to a warning color below 25.
-- Pause button and a small upcoming-curve hint when curvature magnitude exceeds 0.5.
+- **Left:** speed in km/h, padded to three digits.
+- **Centre:** distance in kilometers (two decimals, localized), the score in points with the live pace multiplier (`1234 PTS · x1.4`), a checkpoint progress bar with the next checkpoint label (replaced by an off-road warning while on the grass) and a marker for the saved distance record.
+- **Right:** fuel percentage and bar (the bar changes to a warning color below 25) and the pause button.
+- A small upcoming-curve hint (below the bar, left) appears when the bend ahead (about 108 m) exceeds 0.45 in magnitude, and blinks when it exceeds 0.8 above 150 km/h.
 - Touch steering/pedals when applicable.
-- Brief pickup/impact feedback, rather than a persistent notification panel.
+- Brief pickup/checkpoint/record/off-road feedback text over the road, rather than a persistent notification panel.
 
-Desktop with a fine pointer uses the compact lower-right HUD. Touch layouts retain the upper HUD to leave the bottom corners for controls. Garage, wallet, record, backup, audio settings and keyboard help must not surround the race canvas.
+The text refreshes about 12 times per second. The bottom corners are reserved for the touch controls. Garage, wallet, record, backup, audio settings and keyboard help must not surround the race canvas.
 
 ## Pause and result overlays
 
 Pause offers continue, options and initial menu. Settings are a modal over the paused state. Returning to the menu ends the active run and settles progress.
 
-The result displays the failure reason, distance and run coins. Actions are restart, one free second chance if unused, and initial menu. Restart creates a new run rather than restoring the failed one.
+The result displays the failure reason, score in points, distance, run coins and the best score. A crash (any contact with traffic or the barrier) shows the crash title **"VOCÊ BATEU!"** (localized) and the impact speed; an empty tank shows the ordinary end title. Actions are restart, one free second chance if unused, and initial menu. Restart creates a new run rather than restoring the failed one.
 
 ## Garage
 
-Eight cards show model sprite, description, maximum speed, acceleration, consumption, impact speed retention and purchase/selection state. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
+Fourteen cards show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. Coin cars show their coin price; the two PREMIUM cars show a PREMIUM tag and a real-money price in BRL, and tapping them shows an "unavailable" toast until a `CashStore` is configured. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
 
-## Settings
+## Settings (Options)
 
-Sound toggle, optional tilt, calibration, fullscreen, installation where the browser provides an install prompt, and compact control help. Sound state is saved. Tilt is enabled per session, not automatically granted from a saved preference. Fullscreen failure must not block play; Safari can use Add to Home Screen instead.
+Language picker (a row of seven flag buttons, active one highlighted), a single sound toggle for music + engine + effects, optional tilt, calibration, fullscreen, installation where the browser provides an install prompt, compact control help and the version label. Sound state is saved (default **on**). Tilt is enabled per session, not automatically granted from a saved preference. Fullscreen failure must not block play; Safari can use Add to Home Screen instead.
+
+## Languages
+
+Seven interface languages: **pt-BR** (source), **en**, **pt-PT**, **fr**, **it**, **ja**, **de**. The choice is made in Options, applied immediately without reload and saved as `lang` in the save. With no saved choice the language comes from `navigator.languages` (`pt` maps to pt-BR unless it is pt-PT; other tags match by base language); an unknown language falls back to English. Message keys are typed from the pt-BR table; a locale may omit keys and then falls back to pt-BR per key (pt-PT only overrides part of the table). Tests require every full locale (en, fr, it, ja, de) to translate every key with the same `{placeholders}` and forbid unknown keys. Static HTML is translated through `data-i18n` and `data-i18n-aria` attributes. The phone controller page also follows the browser language. Translations still need native-speaker review (I18N-01 in the [roadmap](09-roadmap.md)).
 
 ## Input mapping
 
@@ -40,13 +48,14 @@ Sound toggle, optional tilt, calibration, fullscreen, installation where the bro
 | Steer left/right | Left/right arrows, A/D | Separate left/right buttons or optional tilt |
 | Accelerate | Up arrow, W | Accelerate pedal |
 | Brake | Down arrow, S, Space | Brake pedal |
-| Start | Enter / JOGAR | JOGAR, or remote **Iniciar corrida** |
+| Start / continue | Enter / JOGAR | JOGAR, or remote **Iniciar corrida** |
 | Pause/continue | P, Escape / pause button | Pause button / remote **Pausar**, overlay Continue |
 
-Input must not override typing in form fields. Keyboard controls do not act through an open modal. Default arrow/space scrolling is prevented when controlling the game.
+Input must not override typing in form fields. Keyboard controls do not act through an open modal. Default arrow/space scrolling is prevented when controlling the game. Keyboard, on-screen buttons, tilt and a paired phone are merged into one drive input per frame.
 
 ## Touch behavior
 
+- On coarse-pointer devices the **pedals sit at the bottom right** (accelerate and brake) and the **steering arrows at the bottom left**. While tilt steering is on (`body[data-tilt=on]`) the arrows are hidden.
 - Support independent simultaneous touches: steering and a pedal can be held together.
 - Use Pointer Events and pointer capture where available; fall back to touch/mouse listeners otherwise.
 - Track touch/pointer identity; release, cancellation and lost capture clear the corresponding held action.
@@ -65,8 +74,12 @@ Permission rejection, missing sensors and unsupported audio/fullscreen must leav
 
 Use actual `visualViewport.height` when available and safe-area insets for notches/home indicators. Canvas backing resolution follows its displayed aspect ratio instead of cropping a wide road into portrait. Internal render width is 480 on displays narrower than 600 CSS pixels, otherwise 960; backing height follows the viewport ratio.
 
-Layouts cover portrait, landscape and short landscape menus. Hidden race/menu layers must not intercept taps. Hiding the document pauses the game. Touch-device browser-chrome blur alone does not pause it. Wake lock is best-effort, not a requirement to play.
+Layouts cover portrait, landscape and short landscape menus. Hidden race/menu layers must not intercept taps. Hiding the document pauses the game. Touch-device browser-chrome blur alone does not pause it. Wake lock is best-effort, not a requirement to play. `prefers-reduced-motion` disables CSS transitions and animations.
+
+## Audio unlock
+
+Browsers only allow audio after a user gesture. Sound defaults to on in the save, and the first tap, key press or race start switches the audio context on (when the saved preference is on). Until then the menu is silent. If Web Audio is missing the game shows a toast and stays playable.
 
 ## Phone-controller screen
 
-Dedicated controller layout: connection status, start, pause, optional tilt/calibration, steering buttons, brake and accelerator. The wheel illustration reflects steering. Sensor permission is not needed for buttons. Blocking the phone or losing input pauses the main game. The private Site requires authorized login on both devices.
+Dedicated controller layout: connection status, start, pause, steering wheel illustration, optional tilt/calibration, steering buttons, brake and accelerator. The wheel illustration reflects steering. Sensor permission is not needed for buttons. Blocking the phone or losing input pauses the main game. The private Site requires authorized login on both devices.

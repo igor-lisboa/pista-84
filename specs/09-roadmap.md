@@ -14,7 +14,7 @@ Implement authenticated server-issued race sessions, bounded/plausible progress 
 
 ## COM-01 — Payments, premium currency and paid vehicles
 
-**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected.
+**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected. The client side already exists: the two PREMIUM cars (Veloce GT R$ 29,90 and Raio 1000 R$ 19,90) can only be bought through the `CashStore` interface in `src/ui/store.ts`, whose default `unavailableStore` makes the garage show an "unavailable" toast. A billing integration must implement `CashStore` (web checkout, Google Play or App Store) and be injected into `GameApp`.
 
 Create new migrations for `orders`, `payment_events`, `wallet_entries` and `entitlements`. Implement:
 
@@ -24,7 +24,7 @@ Create new migrations for `orders`, `payment_events`, `wallet_entries` and `enti
 - States `pending → paid → fulfilled`; cancellation/failure grants nothing; refund/revocation updates rights.
 - Native receipt validation and restore purchases for the corresponding stores.
 
-**Accept:** sandbox success/failure/cancel, duplicate and invalid webhooks, refunds, receipt restoration on a second device and forged balance attempts. Activate real sales only after provider configuration and successful sandbox validation.
+**Accept:** sandbox success/failure/cancel, duplicate and invalid webhooks, refunds, receipt restoration on a second device and forged balance attempts; a premium car is owned only after a confirmed entitlement, never because its id appears in an imported or edited local save. Activate real sales only after provider configuration and successful sandbox validation.
 
 ## ADS-01 — Rewarded ads and ad removal
 
@@ -66,6 +66,22 @@ Open `ios/App/App.xcodeproj`, set the final application identity/team, resolve S
 
 **Accept:** simulator build, physical iPhone run, granted/denied motion permission, rotation, audio after interruption and a signed TestFlight build. In-app payments additionally depend on COM-01.
 
+## ART-01 — Authored atlas art for the six newer vehicles
+
+**P2; art production.** Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT are drawn by procedural pixel sprites (`src/render/sprites.ts`) and have no authored straight, mild-turn or strong-turn frames or paint-remap data.
+
+Produce transparent atlas tiles and 12 turn frames in the style of `vehicle-atlas-v1.png` and `vehicle-turns-v2.png`, add their regions, base paints and hues to `sprites.ts`, and keep the procedural sprites as the load-failure fallback. Record provenance and prompts in `docs/`.
+
+**Accept:** all 14 vehicles use authored art for straight and both turn poses, mirrored left turns and custom paints; the sprite completeness browser tests cover all 14; no clipping or regression in garage thumbnails.
+
+## I18N-01 — Translation review
+
+**P2 before wider distribution.** The six non-source locales (en, pt-PT, fr, it, ja, de) have not been reviewed by native speakers, and pt-PT only overrides part of the pt-BR table (the rest falls back to pt-BR).
+
+Have a native speaker per language review every string for tone, length in the HUD, overlays and buttons, and complete pt-PT if full coverage is wanted. Verify fonts for Japanese on target devices (the CSS uses system Japanese fallbacks, not a bundled font).
+
+**Accept:** a reviewer sign-off per language, no truncated or overflowing text at 390 px wide, and the i18n tests still passing (add pt-PT to the full-coverage test if completed).
+
 ## QA-01 — Physical-device validation
 
 **P1 before public mobile distribution.** Automated Chromium/WebKit results do not replace actual devices.
@@ -78,10 +94,10 @@ Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exerc
 
 **P2 before commercial release.** Complete human playtests and broader browser/update checks.
 
-Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category; fuel availability, prices, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
+Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category (14 vehicles); fuel availability, coin prices against score-based earnings, the pace multiplier, the 240 s traffic ramp, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
 
 **Accept:** recorded metrics drive balance changes; all vehicle categories remain viable; no update loses legitimate progress; no unsupported global browser/device claim.
 
 ## Dependency order
 
-Run physical/balance QA alongside native tool provisioning. Address ECO-01 before COM-01. Configure providers before ADS-01. NET-01 is optimization; NET-02 is a separate functional lifetime limitation. Do not mark purchases, ads or store releases delivered merely because their future API contracts are documented here.
+Run physical/balance QA alongside native tool provisioning. ART-01 and I18N-01 are independent content work. Address ECO-01 before COM-01. Configure providers before ADS-01. NET-01 is optimization; NET-02 is a separate functional lifetime limitation. Do not mark purchases, ads or store releases delivered merely because their future API contracts are documented here.

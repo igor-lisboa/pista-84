@@ -3,6 +3,7 @@ import { AudioUnavailableError } from '../audio/audio.ts';
 import type { SaveData } from '../game/index.ts';
 import { LANGS, getLang, isLang, t, type Lang } from '../i18n/index.ts';
 import { byId } from './dom.ts';
+import { flagSvg } from './flags.ts';
 import { TiltError, type InputController } from './input.ts';
 import type { Notifications } from './notifications.ts';
 
@@ -31,14 +32,17 @@ export class SettingsDialog {
 
   render(): void {
     const { audio, input } = this.deps;
-    const languages = (Object.entries(LANGS) as [Lang, string][])
-      .map(([code, name]) => `<option value="${code}" ${code === getLang() ? 'selected' : ''}>${name}</option>`)
+    const flags = (Object.entries(LANGS) as [Lang, string][])
+      .map(([code, name]) => {
+        const active = code === getLang();
+        return `<button class="flag ${active ? 'active' : ''}" data-lang="${code}" role="radio" aria-checked="${active}" aria-label="${name}" title="${name}">${flagSvg(code)}</button>`;
+      })
       .join('');
     byId('modalBody').innerHTML = `
       <span class="label">${t('set.label')}</span>
       <h1>${t('set.title')}<span>.</span></h1>
       <div class="settings-list">
-        <label>${t('set.language')}<select id="language">${languages}</select></label>
+        <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
         <button id="sound" aria-pressed="${audio.enabled}">${audio.enabled ? t('set.soundOn') : t('set.soundOff')}</button>
         <button id="tilt">${input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff')}</button>
         <button id="calibrate" ${input.tiltEnabled ? '' : 'hidden'}>${t('set.calibrate')}</button>
@@ -49,10 +53,12 @@ export class SettingsDialog {
       <p class="help-keys">${t('set.keys')}</p>
       <small class="label">${t('set.version')}</small>`;
 
-    byId<HTMLSelectElement>('language').onchange = (event) => {
-      const value = (event.target as HTMLSelectElement).value;
-      if (isLang(value)) this.deps.changeLanguage(value);
-    };
+    for (const flag of document.querySelectorAll<HTMLButtonElement>('.flag')) {
+      flag.onclick = () => {
+        const lang = flag.dataset.lang;
+        if (isLang(lang) && lang !== getLang()) this.deps.changeLanguage(lang);
+      };
+    }
     byId('sound').onclick = () => void this.toggleSound();
     byId('tilt').onclick = () => void this.toggleTilt();
     byId('calibrate').onclick = () => {

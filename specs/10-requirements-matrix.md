@@ -2,30 +2,33 @@
 
 [Specification index](README.md)
 
-Stable IDs correspond to the original-plan areas. **Implemented** means behavior exists in the current source; **partial** means the delivered portion and remaining work are explicitly distinguished.
+Stable IDs correspond to the original-plan areas. **Implemented** means behavior exists in the current source (1.4.0); **partial** means the delivered portion and remaining work are explicitly distinguished. The *Code* and *Tests* columns map each requirement to files under `src/` and `tests/` (browser specs are in `tests/browser/`).
 
-| ID | Requirement | Status | Definition / remaining work |
-| --- | --- | --- | --- |
-| R01 | Infinite road-running race | Implemented for solo | [Gameplay](02-gameplay.md); remote room lifetime has NET-02 limitation |
-| R02 | Desktop steering, acceleration and braking | Implemented | [Controls](04-interface-and-controls.md) |
-| R03 | Mobile touch and optional tilt | Implemented; physical QA pending | [Controls](04-interface-and-controls.md), QA-01 |
-| R04 | Continuous fuel use and collectible canisters | Implemented | Capacity, drain, spawns and refill in [gameplay](02-gameplay.md) |
-| R05 | Recoverable traffic impacts and empty-tank failure | Implemented | Impact speed retention and contact thresholds in [gameplay](02-gameplay.md) |
-| R06 | Distance/speed/fuel feedback | Implemented | Minimal race HUD; wallet/record/settings outside the race |
-| R07 | Increasing difficulty and visible curves | Implemented | Increasing traffic frequency; seeded endless road with varied straights and bounded left/right bends |
-| R08 | Day/sunset/night/dawn and clear/rain/fog | Implemented | Timing/interpolation/grip in [gameplay](02-gameplay.md); presentation in [art](05-art-and-audio.md) |
-| R09 | National cars, motorcycles and distinct attributes | Implemented | Eight vehicles and impact retention/handling differences in [catalog](03-vehicles-and-economy.md) |
-| R10 | Free currency, unlocks and cosmetics | Implemented | Settlement, prices and paints; editable casual save is not a trusted paid wallet |
-| R11 | Second chance and ad rewards | Partial | One free continuation exists; actual rewarded continuation/doubling pending ADS-01 |
-| R12 | Retro music and vehicle-specific engine/braking | Implemented as synthesized audio | [Audio definitions](05-art-and-audio.md); physical mixing validation pending QA-01 |
-| R13 | Phone as secondary gamepad with QR | Implemented, with lifetime limit | WebRTC/HTTPS, mobile start/pause; [API](07-remote-control-api.md); NET-02 |
-| R14 | Responsive web architecture | Implemented | Full viewport, real Canvas aspect, safe areas, portrait/landscape, offline PWA |
-| R15 | Real premium currency, payments and ad removal | Pending | ECO-01, COM-01 and ADS-01; current catalog uses only free coins |
-| R16 | Native Android/iOS packaging | Partial | Projects/assets generated and synced; compiled/signed/device-validated distribution pending NAT-01/NAT-02/QA-01 |
-| UX01 | Initial menu instead of surrounding dashboard | Implemented | [Menu and overlays](04-interface-and-controls.md) |
-| UX02 | Minimal information during actual driving | Implemented | Essential HUD only; touch controls remain usable |
-| ART01 | Latest supplied visual reference | Implemented | City, conifers, blue/white road borders, larger perspective sprites; [art direction](05-art-and-audio.md) |
-| DATA01 | Persistent record, ownership and manual backup | Implemented for casual progress | [Data schema](06-architecture-and-data.md); commercial integrity pending ECO-01 |
-| DOC01 | Findable, consolidated game definitions | Implemented by this folder | Root `specs/README.md` is the starting point; legacy spec paths redirect here |
+| ID | Requirement | Status | Definition / remaining work | Code | Tests |
+| --- | --- | --- | --- | --- | --- |
+| R01 | Infinite road-running race | Implemented for solo | [Gameplay](02-gameplay.md); remote room lifetime has NET-02 limitation | `game/race.ts`, `game/road.ts` | `race.test.ts`, `world.test.ts` (seeded road) |
+| R02 | Desktop steering, acceleration and braking | Implemented | [Controls](04-interface-and-controls.md) | `ui/input.ts`, `game/race.ts` | `race.test.ts` (throttle, coast, brake, steering) |
+| R03 | Mobile touch and optional tilt | Implemented; physical QA pending | [Controls](04-interface-and-controls.md), QA-01 | `ui/input.ts`, `ui/settings.ts`, `web/style.css` | `browser/mobile.spec.ts` |
+| R04 | Continuous fuel use and collectible canisters | Implemented | Capacity, drain, spawns, checkpoint refuel and canisters in [gameplay](02-gameplay.md) | `game/race.ts`, `game/traffic.ts` | `race.test.ts` (fuel can, fuel exhaustion, checkpoints), `browser/game.spec.ts` (fuel exhaustion) |
+| R05 | Traffic hazards with fatal crashes and empty-tank failure | Implemented | Any contact with traffic or the barrier ends the run; off-road drag to 40 km/h; one free second chance ([gameplay](02-gameplay.md)) | `game/race.ts`, `ui/overlays.ts` | `race.test.ts` (fatal contact, barrier, off-road, second chance), `browser/game.spec.ts` (crash screen, off-road) |
+| R06 | Distance/speed/fuel/score feedback | Implemented | Top-bar race HUD with points and pace multiplier; wallet/record/settings outside the race | `ui/hud.ts`, `ui/overlays.ts` | `browser/game.spec.ts` (race flow), `browser/mobile.spec.ts` |
+| R07 | Increasing difficulty and visible curves | Implemented | 240 s traffic ramp, waves, lane changes, 16-car cap; seeded endless road with bounded bends | `game/traffic.ts`, `game/road.ts`, `ui/hud.ts` | `traffic.test.ts`, `world.test.ts` |
+| R08 | Day/sunset/night/dawn and clear/rain/fog | Implemented | Timing/interpolation/grip in [gameplay](02-gameplay.md); presentation in [art](05-art-and-audio.md) | `game/environment.ts`, `render/renderer.ts` | `world.test.ts` (environment), `race.test.ts` (rain grip) |
+| R09 | National cars, motorcycles and distinct attributes | Implemented | 14 vehicles with distinct speed, acceleration, consumption and handling in the [catalog](03-vehicles-and-economy.md) | `game/cars.ts`, `render/sprites.ts` | `world.test.ts` (fourteen vehicles), `race.test.ts` (differences, 350 km/h) |
+| R10 | Free currency, unlocks and cosmetics | Implemented | Score-based coins (1 per 25 points), coin prices and paints; editable casual save is not a trusted paid wallet | `game/scoring.ts`, `game/race.ts`, `game/save.ts`, `ui/garage.ts` | `race.test.ts` (score, coins), `world.test.ts` (pace, saves), `browser/game.spec.ts` (garage purchases) |
+| R11 | Second chance and ad rewards | Partial | One free continuation exists; actual rewarded continuation/doubling pending ADS-01 | `game/race.ts` (`resume`), `ui/overlays.ts` | `race.test.ts` (second chance), `browser/game.spec.ts` |
+| R12 | Retro music and vehicle-specific engine/braking | Implemented as synthesized audio | Procedural menu loop and three race tracks, 14 engine voices; [audio definitions](05-art-and-audio.md); physical mixing validation pending QA-01 | `audio/audio.ts`, `audio/music.ts`, `audio/tracks.ts` | `world.test.ts` (engine voices, music), `browser/game.spec.ts` (sound toggle) |
+| R13 | Phone as secondary gamepad with QR | Implemented, with lifetime limit | WebRTC/HTTPS, mobile start/pause; [API](07-remote-control-api.md); NET-02 | `net/remote.ts`, `server/signaling.ts`, `ui/remote-dialog.ts`, `ui/controller-page.ts` | `signaling.test.ts`, `browser/game.spec.ts` (relay, reconnect) |
+| R14 | Responsive web architecture | Implemented | Full viewport, real Canvas aspect, safe areas, portrait/landscape, offline PWA | `render/renderer.ts`, `web/style.css`, `web/sw.ts` | `browser/mobile.spec.ts`, `browser/game.spec.ts` (offline cache) |
+| R15 | Real premium currency, payments and ad removal | Partial | The two PREMIUM cars are sold only for real money through the `CashStore` interface, but no provider is wired (default store unavailable); wallet, ads and entitlements pending ECO-01, COM-01 and ADS-01 | `ui/store.ts`, `ui/garage.ts`, `game/cars.ts` | `world.test.ts` (two premium cars), `browser/game.spec.ts` (premium cannot be bought with coins) |
+| R16 | Native Android/iOS packaging | Partial | Projects/assets generated and synced; compiled/signed/device-validated distribution pending NAT-01/NAT-02/QA-01 | `capacitor.config.json`, `scripts/native-assets.ts` | none (manual) |
+| UX01 | Initial menu instead of surrounding dashboard | Implemented | [Menu and overlays](04-interface-and-controls.md) | `ui/game-app.ts`, `web/index.html` | `browser/game.spec.ts` (menu hides in race) |
+| UX02 | Minimal information during actual driving | Implemented | Top-bar HUD only; touch controls bottom corners | `ui/hud.ts`, `web/style.css` | `browser/mobile.spec.ts` (HUD clear of the control corners) |
+| UX03 | Seven interface languages | Implemented; native review pending | pt-BR, en, pt-PT, fr, it, ja, de; picked in Options, saved as `lang`; I18N-01 | `i18n/`, `ui/settings.ts` | `i18n.test.ts`, `browser/game.spec.ts` (language switch) |
+| ART01 | Latest supplied visual reference | Implemented | City, conifers, blue/white road borders, larger perspective sprites, 1.4 sunset-arcade interface; [art direction](05-art-and-audio.md) | `render/`, `web/style.css` | `browser/game.spec.ts` (sprites, lanes) |
+| ART02 | Authored art for every vehicle | Partial | Eight vehicles have atlas and turn art; the six newer ones use procedural sprites; ART-01 | `render/sprites.ts` | `browser/game.spec.ts` (all 14 sprites complete) |
+| DATA01 | Persistent record, ownership and manual backup | Implemented for casual progress | [Data schema](06-architecture-and-data.md) (save v2: `bestScore`, `lang`, `sound` default on); commercial integrity pending ECO-01 | `game/save.ts`, `ui/garage.ts`, `server/cloud.ts` | `world.test.ts` (saves, balance override), `cloud.test.ts`, `config.test.ts` |
+| TS01 | Fully typed codebase | Implemented | All JS removed; `npm run typecheck`, native `.ts` execution, esbuild bundles ([architecture](06-architecture-and-data.md)) | `tsconfig.json`, all sources | `npm run typecheck` (clean) |
+| DOC01 | Findable, consolidated game definitions | Implemented by this folder | Root `specs/README.md` is the starting point; legacy spec paths redirect here | `specs/` | none |
 
 Validation baseline and its limits are in [08 — Validation and release](08-validation-and-release.md). Future acceptance criteria are in [09 — Roadmap](09-roadmap.md).

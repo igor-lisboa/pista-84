@@ -145,6 +145,13 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
 .settings-list{display:grid;gap:12px;margin-top:22px}
 .settings-list button,.settings-list select{background:var(--panel);color:var(--cream);padding:15px 16px;border:3px solid var(--line);text-align:left;font:700 14px var(--body);border-radius:0;box-shadow:0 4px 0 #000a;width:100%}
 .settings-list select{appearance:none;cursor:pointer}
+.language-picker{display:grid;gap:8px}
+.language-picker .label{font:700 11px var(--body);letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+.flags{display:flex;flex-wrap:wrap;gap:10px}
+.settings-list .flags .flag{width:auto;padding:6px;border:3px solid var(--line);background:var(--panel);box-shadow:0 4px 0 #000a;line-height:0;opacity:.75}
+.flag svg{display:block;width:42px;height:28px}
+.settings-list .flags .flag:hover{opacity:1}
+.settings-list .flags .flag.active{border-color:var(--sun);opacity:1;transform:translateY(2px);box-shadow:0 2px 0 #000a}
 .settings-list label{display:grid;gap:6px;font:700 11px var(--body);letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
 .help-keys{font-size:13px;line-height:2;color:var(--muted)}
 /* ---------- phone as controller ---------- */

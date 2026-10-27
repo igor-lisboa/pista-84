@@ -110,12 +110,12 @@ test('the language can be switched in the options', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#start span')).toHaveText('JOGAR');
   await page.locator('#settingsNav').click();
-  await page.locator('#language').selectOption('en');
+  await page.locator('[data-lang="en"]').click();
   await page.locator('#closeModal').click();
   await expect(page.locator('#start span')).toHaveText('PLAY');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.locator('#settingsNav').click();
-  await page.locator('#language').selectOption('ja');
+  await page.locator('[data-lang="ja"]').click();
   await page.locator('#closeModal').click();
   await expect(page.locator('#start span')).toHaveText('プレイ');
 });

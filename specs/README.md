@@ -34,4 +34,4 @@ These specifications consolidate the original plan, subsequent interface changes
 - [Rendered reference composition](../docs/screenshots/reference-scene.png)
 - [Published private game](https://pista-84-igor.amberstoat8.chatgpt.site)
 
-The old `docs/SPECS.md` and `PENDENCIAS.md` paths are navigation pointers to this folder. They are not a second specification to maintain.
+The old `docs/SPECS.md` and `docs/PENDENCIAS.md` paths are navigation pointers to this folder (the latter carries a short status summary of the backlog). They are not a second specification to maintain.

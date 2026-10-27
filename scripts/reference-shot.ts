@@ -9,7 +9,8 @@ const VIEWPORT = {width: 760, height: 744};
 
 /** Browser-side entry: composes a fixed scene and draws a single frame. */
 const SCENE_SOURCE = `
-  import {Renderer, loadSprites} from './src/render/index.ts';
+  import {Renderer} from './src/render/renderer.ts';
+  import {loadSprites} from './src/render/sprites.ts';
   import {Race, CARS} from './src/game/index.ts';
 
   function traffic(lane, z, car) {

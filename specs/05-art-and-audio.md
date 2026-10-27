@@ -1,10 +1,12 @@
 # 05 — Art direction and audio
 
-[Specification index](README.md)
+[Specification index](README.md) · Implementation: [`src/render/`](../src/render/), [`src/audio/`](../src/audio/)
 
 ## Reference and visual identity
 
 The latest supplied screenshot is the primary in-game visual reference: a winding grey road with blue/white edges, a city skyline, conifers, muted sky, large rear-view vehicles with visible roofs, and limited HUD information. Earlier mountain/coastal scenery and thin procedural car icons are superseded by the 1.3 art direction.
+
+The 1.4 interface wraps the scene in a **sunset-arcade** look: deep purple panels, sun-yellow, hot pink and cyan, Bungee and Chakra Petch fonts (Google Fonts, optional, with system fallbacks), hard outlines, offset shadows and a checkered strip on the menu. See [interface and controls](04-interface-and-controls.md).
 
 The initial menu retains PISTA 84 branding. The reference is a style/composition guide, not a background pasted over an otherwise nonfunctional game.
 
@@ -19,17 +21,22 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 - City/tree caches avoid rebuilding complex static details each frame.
 - Camera offset keeps lateral driving readable near the edges. Portrait and landscape preserve the world aspect ratio.
 - Rain, fog and night remain dynamic rather than fixed into the artwork.
-- Road projection spans 240 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/billboards.js`; these are offline house ads, with no ad-network integration or tracking.
+- Road projection spans 240 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/render/billboards.ts`; these are offline house ads, with no ad-network integration or tracking.
+- Speed effects scale with `fast = clamp((speed - 55) / 200, 0, 1)`: radial speed streaks, a tighter edge vignette and a small bob of the player's car. Screen shake combines a constant off-road rumble, a rumble above 210 km/h, and a decaying impact shake with a red flash on a crash; the off-road entry adds a brief shake and dust tint.
 
 ## Vehicle artwork
 
-Final asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
+Authored asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the original catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 
 The atlas has transparent alpha. Runtime regions are trimmed to visible alpha bounds; every model preserves its own width/height ratio. Motorcycles are narrower; sports-car width is adjusted independently. Garage/menu thumbnails fit the full vehicle inside their canvas rather than cutting off the roof.
 
-Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Custom paints remap body-color hues while preserving lightness and transparency. Braking adds light feedback; steering selects separate authored mild/strong rear three-quarter turn frames. Left frames mirror their right counterpart. No row shearing or body rotation is used. Procedural 128×80 sprites remain a load-failure fallback, not the intended main artwork.
+Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Custom paints remap body-color hues while preserving lightness and transparency. Braking adds light feedback; steering selects separate authored mild/strong rear three-quarter turn frames. Left frames mirror their right counterpart. No row shearing or body rotation is used.
 
-Turn poses: [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png) adds 16 transparent frames for all eight models. Full generation prompt and built-in imagegen provenance: [turn-sprites-v2.md](../docs/turn-sprites-v2.md). Straight and turning frames preserve each source frame's aspect ratio using uniform scaling.
+Turn poses: [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png) adds 16 transparent frames for the eight atlas models. Full generation prompt and built-in imagegen provenance: [turn-sprites-v2.md](../docs/turn-sprites-v2.md). Straight and turning frames preserve each source frame's aspect ratio using uniform scaling.
+
+### Procedural sprites (the six newer vehicles)
+
+Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT have **no atlas art**. They are drawn once into a transparent **128×80** canvas by `src/render/sprites.ts` (rects and polygons with a body/dark/mid/light livery, tail lights that brighten when braking) and cached per car, paint, brake state and offset; the cache is cleared when it grows past its limit. Shared four-wheeler and bike painters are specialised per model: Kombi (two-tone paint, split rear window, engine-lid vents), Uno (roof ladder), Chevette (round lamps, sloping hatch), Opala (long trunk, chrome bumper, tail-light bar), Maverick (fastback glass, black stripe, triple tail lights, twin pipes). Steering shifts these sprites sideways by a few pixels instead of using turn frames. The same procedural sprites remain the load-failure fallback for the eight atlas cars. Authored atlas art for the six newer vehicles is pending (ART-01).
 
 Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
 
@@ -37,9 +44,11 @@ Atlas creation used the built-in imagegen tool followed by a badge-removal edit.
 
 ## Audio implementation
 
-Web Audio is activated through a user gesture. Missing support must produce a clear message and leave racing functional. Sound preference persists; a subsequent start gesture can resume enabled audio.
+All audio is synthesized with Web Audio; there are no audio files. The audio context is activated through a user gesture (the first tap or key press unlocks it). Missing support must produce a clear message and leave racing functional. **One toggle** (Options) switches music, engine and effects together; the preference is saved and **defaults to on**.
 
-Each vehicle has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking uses band-pass noise while the run is active and speed exceeds 15 km/h.
+### Engines
+
+Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking uses band-pass noise (centre `brakeBase + speed × 1.5`) while the run is active, the brake is held and speed exceeds 15 km/h. Engine level follows the running state.
 
 | Vehicle ID | Engine base Hz | Speed ratio | Waveform | Filter base Hz | Brake base Hz |
 | --- | ---: | ---: | --- | ---: | ---: |
@@ -51,7 +60,24 @@ Each vehicle has its own engine base frequency, speed ratio, oscillator waveform
 | gt | 27 | 1.10 | sawtooth | 1300 | 2200 |
 | suv | 22 | 0.50 | sawtooth | 320 | 520 |
 | superbike | 125 | 1.80 | square | 1800 | 2500 |
+| kombi | 33 | 0.55 | triangle | 420 | 600 |
+| uno | 58 | 0.85 | sawtooth | 760 | 1050 |
+| chevette | 48 | 0.78 | sawtooth | 700 | 950 |
+| cg125 | 105 | 1.50 | square | 1000 | 1400 |
+| opala | 30 | 0.90 | sawtooth | 560 | 800 |
+| maverick | 25 | 1.00 | sawtooth | 900 | 1300 |
 
-Music is a synthesized chiptune arpeggio with bass/percussive tones. Note interval is `max(0.12, 0.26 - runTime / 1800)` seconds; an additional upper voice appears after 50 seconds. Pickup, impact and game-over tones provide feedback. Engine/music/braking activity follows the running state.
+### Music
 
-The current soundtrack is a synthesized procedural loop, not a delivered catalog of composed/licensed synthwave songs. Audio hardware behavior and subjective mixing still require physical-device review.
+Music is procedural: a lookahead scheduler (`src/audio/music.ts`) walks a 16-step grid of data-only tracks (`src/audio/tracks.ts`, four-bar loops with chords, bass, arpeggio, stabs, kick/snare/hats and a per-voice mix) and renders each voice with plain oscillators and noise. Switching between menu and race music crossfades.
+
+| Track | Used for | Tempo | Character |
+| --- | --- | ---: | --- |
+| `menu` | Menu, pause, result screens | 74 bpm | Calm Am7–Fmaj7–Cmaj7–G6 pad, sine bass and arpeggio, no drums |
+| `neon-highway` | Race | 132 bpm | Four-on-the-floor synthwave in A minor |
+| `turbo-rush` | Race | 150 bpm | Fast E-minor chase with rolling hi-hats |
+| `sunset-drive` | Race | 118 bpm | Laid-back upbeat D-minor groove with off-beat stabs |
+
+The menu loop plays whenever the race is not running; each time race music starts it picks one of the three race tracks at random and never the same one as the previous pick. Because pausing switches to the menu loop, resuming after a pause starts a different race track. Pickup, checkpoint, off-road, crash and game-over tones provide feedback (short oscillator beeps/thuds on the effects bus).
+
+The current soundtrack is a synthesized procedural loop set, not a catalog of composed/licensed songs. Audio hardware behavior and subjective mixing still require physical-device review.

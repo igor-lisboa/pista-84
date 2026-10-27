@@ -1,19 +1,19 @@
 # 02 — Gameplay rules and simulation
 
-[Specification index](README.md) · Implementation: [engine.js](../src/engine.js)
+[Specification index](README.md) · Implementation: [`src/game/`](../src/game/) (`race.ts`, `traffic.ts`, `road.ts`, `scoring.ts`, `environment.ts`)
 
 ## States and run lifecycle
 
 | State | Behavior | Available transition |
 | --- | --- | --- |
 | `ready` | Menu and animated scenery; no race simulation | Start → `running` |
-| `running` | Movement, fuel, distance, spawning and collisions update | Pause → `paused`; failure → `over` |
+| `running` | Movement, fuel, distance, score, spawning and collisions update | Pause → `paused`; crash or empty tank → `over` |
 | `paused` | Simulation freezes and controls clear | Continue → `running`; menu/car change → `ready` |
 | `over` | Result overlay; run rewards settled | Restart → new `running`; free second chance → same `running`; menu → `ready` |
 
 The interface view (`menu`, `race`, `overlay`, or phone controller) is distinct from the simulation state. Opening a modal during a run pauses it. Closing that modal does not silently resume the race. Changing a vehicle settles the previous run and resets it. Changing paint updates appearance without resetting the run.
 
-A fresh run starts with **0 km/h**, **100 fuel**, **0 distance/time/coins**, centered steering, no traffic, and no impacts. Only progress is saved; the active run is not restored after reload.
+A fresh run starts with **0 km/h**, **100 fuel**, **0 distance/time/score/coins**, centered steering, no traffic, and no crashes. `Race.endReason` is `'fuel' | 'traffic' | 'wall'`; the last two are crashes. Only progress is saved; the active run is not restored after reload.
 
 ## Timing and movement
 
@@ -21,25 +21,36 @@ A fresh run starts with **0 km/h**, **100 fuel**, **0 distance/time/coins**, cen
 
 ```text
 speedRatio = clamp(speed / vehicle.max, 0, 1)
-acceleration = vehicle.accel * 1.8 * (1 - 0.45 * speedRatio)
+traction = offRoad ? 0.1 : 1
+acceleration = vehicle.accel * 2.2 * (1 - 0.45 * speedRatio) * traction
 force = brake ? -110
       : accelerate ? acceleration
       : -(12 + speed * 0.025)
 speed = clamp(speed + force * dt, 0, vehicle.max)
 
-distance += speed / 3.6 * dt
-runCoins = floor(distance / 25)
+metres = speed / 3.6 * dt
+distance += metres
+score += metres * paceMultiplier(kmMetres, kmTime)   // see Score and checkpoints
+runCoins = floor(score / 25)
 ```
 
 Lateral position `x` uses normalized road half-widths. Five traffic lanes use indices **-2, -1, 0, 1, 2**, width **0.372**, and centers **-0.744, -0.372, 0, 0.372, 0.744**. Four dashed dividers separate them between the solid road edges. Vehicle sprites, lateral authority, drift and collision widths scale by **0.6** to preserve lane-change proportions. Combined keyboard, touch, tilt and remote input clamps to **[-1, 1]**. Steering follows input exponentially (`1 - exp(-22 * dt)`) and returns smoothly to neutral. Lateral authority is `(1.35 - 0.25 * speedRatio) * clamp(speed / 90, 0, 1) * handling * grip * VEHICLE_SCALE`. Steering has no lateral authority when stopped. Releasing throttle coasts; braking has priority over simultaneous acceleration and can stop the car without ending the run.
 
-Rain grip is `1 - rainIntensity * 0.22` for motorcycles and `1 - rainIntensity * 0.10` for other vehicles. The shoulder starts at `abs(x) > 0.96`; grass slows the car by 100 km/h/s while above 60 km/h (85 for the SUV). It does not raise a stopped car's speed. At `abs(x) >= 1.35`, the car bounces to `abs(x) = 1.19` and receives the impact speed penalty.
+Rain grip is `1 - rainIntensity * 0.22` for motorcycles and `1 - rainIntensity * 0.10` for other vehicles.
+
+## Off-road (grass)
+
+The shoulder starts at `abs(x) > 0.96` (`EDGE`). While on the grass the engine has only **10%** traction and the speed is dragged exponentially toward **40 km/h** (`OFFROAD_LIMIT`): `speed = 40 + (speed - 40) * exp(-5.5 * dt)`, so most of the excess is shed within about 0.5–0.7 s. A speed already at or below 40 km/h is left alone, the grass never raises a stopped car's speed, and braking on the shoulder still reaches a standstill without ending the run. An `offroad` event fires once each time the car enters the grass (feedback text, thud sound and a screen shake); the HUD checkpoint label shows an off-road warning while it lasts, and the renderer adds dust and a constant rumble.
+
+## Crashes
+
+There is no health, speed-loss bounce or speed threshold. **Any contact with traffic, or reaching the barrier at `abs(x) >= 1.35` (`WALL`), is a fatal crash** unless the car is still invincible after a second chance. On a crash the speed becomes 0, `crashSpeed` records the speed at impact, the `hit` and `crash` events fire and the run ends with `endReason` `'traffic'` or `'wall'`. At the barrier the car is also placed back at `abs(x) = 1.19`.
 
 ## Curves and difficulty
 
 Each race gets a new 32-bit road seed. Stateless generation combines that seed with the distance section, so physics, rendering and curve hints always sample the same road, regardless of query order. Pause and second chance preserve the seed. Restart selects a new seed. There is no fixed track table or accumulating segment list.
 
-Every **1600 m** section randomly selects a left bend, right bend or entirely straight stretch (**41%, 41%, 18%**). A bend has **240-500 m** of leading straight (at least **420 m** at the start of a run), **180-240 m** entry, **200-360 m** sustained curve, and **180-240 m** exit; the remainder is straight. Bend magnitude varies from **0.32 to 0.64**. Entries and exits use `t*t*t*(t*(6*t - 15) + 10)` and return to zero before section boundaries. Traffic frequency and pace increase with elapsed simulation time; curvature stays moderate.
+Every **1600 m** section randomly selects a left bend, right bend or entirely straight stretch (**41%, 41%, 18%**). A bend has **240–500 m** of leading straight (at least **420 m** at the start of a run), **180–240 m** entry, **200–360 m** sustained curve, and **180–240 m** exit; the remainder is straight. Bend magnitude varies from **0.32 to 0.64**. Entries and exits use `t*t*t*(t*(6*t - 15) + 10)` and return to zero before section boundaries. Traffic frequency and pace increase with elapsed simulation time; curvature stays moderate.
 
 Road path advances in metres at the same rate as distance. Curvature at the player plane creates outward drift:
 
@@ -50,7 +61,7 @@ drift = roadBend(path + PATH_UNIT * PLAYER_DEPTH, roadSeed)
 x += (smoothedSteer * steeringAuthority - drift) * dt
 ```
 
-The renderer integrates upcoming curvature using midpoint curvature and trapezoidal heading integration, follows 40% of lateral player movement with the camera, and shares one depth projection with scenery and traffic: `screenT = (1 - z) / (1 + 4z)`. Player screen depth is **0.855**, corresponding to `PLAYER_DEPTH ~= 0.0328`. `PATH_UNIT = 240 m`. Steering selects authored straight, mild-turn or strong-turn sprites, with left turns mirrored. Body geometry is never sheared, sliced or rotated to imitate yaw. Road dashes are 6 m long with 6 m gaps, kerbs alternate every 4 m, and ground bands alternate every 7 m. All road paint samples `path + screenToDepth(t) * PATH_UNIT`; its motion follows simulated distance and freezes at rest. Scene effects use simulation time and heading follows distance travelled, so pausing freezes the scene. Continuous roadside barriers sit at the same normalized wall position as physics.
+The renderer integrates upcoming curvature using midpoint curvature and trapezoidal heading integration, follows 40% of lateral player movement with the camera, and shares one depth projection with scenery and traffic: `screenT = (1 - z) / (1 + 4z)`. Player screen depth is **0.855**, corresponding to `PLAYER_DEPTH ~= 0.0328`. `PATH_UNIT = 240 m`. Steering selects authored straight, mild-turn or strong-turn sprites for the eight atlas vehicles, with left turns mirrored; the six procedural vehicles only shift sideways slightly. Body geometry is never sheared, sliced or rotated to imitate yaw. Road dashes are 6 m long with 6 m gaps, kerbs alternate every 4 m, and ground bands alternate every 7 m. All road paint samples `path + screenToDepth(t) * PATH_UNIT`; its motion follows simulated distance and freezes at rest. Scene effects use simulation time and heading follows distance travelled, so pausing freezes the scene. Continuous roadside barriers sit at the same normalized wall position as physics.
 
 ## Fuel
 
@@ -58,29 +69,43 @@ The renderer integrates upcoming curvature using midpoint curvature and trapezoi
 - Continuous drain per second: `vehicle.consumption × (0.45 + speed / 190)`.
 - Pickup: green canister, adding **32** fuel up to the cap.
 - First canister spawns after **4 s**; following canisters spawn every **7–10 s**.
-- Empty fuel immediately ends the run with a dry-tank/rear-traffic message.
+- Each 1000 m checkpoint adds **15** fuel.
+- Empty fuel immediately ends the run (`endReason` `'fuel'`) with a dry-tank/rear-traffic message.
+
+## Score and checkpoints
+
+- Score pays **per metre**, scaled by the pace of the kilometre being driven: `multiplier = clamp(averageKmh / 100, 0.2, 3.5)`, where `averageKmh = kmMetres / kmTime * 3.6` over the current kilometre. An average of 100 km/h pays 1 point per metre, a crawl pays down to 0.2, and a flat-out kilometre up to 3.5.
+- Every **1000 m** (`CHECKPOINT`) is a checkpoint: it adds fuel, fires a `checkpoint` event and **resets `kmTime` and `kmMetres`**, so the next kilometre starts a fresh average.
+- **Coins** are earned from score, not directly from distance: `race.coins = floor(score / 25)`. See [vehicles and economy](03-vehicles-and-economy.md) for settlement.
+- The HUD shows points and the live multiplier (`×1.0`); the game-over screen shows points, distance, coins and the saved best score (`bestScore`).
 
 ## Traffic and entity movement
 
-- First traffic spawn: **1.6 s** after starting.
-- Subsequent interval: `2.4 - difficulty * 1.5 + random * 0.4` seconds, with `difficulty = clamp(time / 180, 0, 1)`. This ramps from 2.4-2.8 s to 0.9-1.3 s over three minutes of active play.
-- Traffic and pickups can spawn in any of the five lanes; traffic uses the complete eight-vehicle catalog. Double waves choose distinct lanes and leave at least three lanes open within that wave.
-- Spawn depth `z = 1.1`. Traffic has an independent world speed. A persistent random cruise preference sets its target to `playerMax * (0.34 + 0.16*difficulty + cruise*(0.18 + 0.14*difficulty))`, capped at 85% of the traffic vehicle maximum. This stays at or below 82% of the player vehicle maximum. Existing cars approach their updated target at up to 3 km/h/s. Its depth changes by `(trafficSpeed - playerSpeed) / 3.6 * dt / PATH_UNIT`; pickups use traffic speed zero. Braking lets traffic pull away rather than freezing it.
+Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s of active play); it freezes while paused.
+
+- First traffic wave: **1.6 s** after starting.
+- Subsequent interval: `1.5 - 0.95 * intensity + random * 0.3` seconds (1.5–1.8 s at the start, 0.55–0.85 s at full intensity).
+- A wave has **1** car in a random lane; with probability `0.25 + 0.6 * intensity` a second car in a different lane; and, when `intensity > 0.4`, with probability `0.55 * intensity` a third car in another free lane. At most three lanes are used, so at least two of the five stay open. A car is added only if its lane is clear at the spawn point. At most **16** traffic cars exist at once (`MAX_TRAFFIC`).
+- Traffic uses the complete 14-vehicle catalog for its looks. Fuel canisters can spawn in any lane.
+- Spawn depth `z = 1.1`. Traffic has an independent world speed. A persistent random cruise preference sets its target to `playerMax * (0.34 + 0.16*intensity + cruise*(0.18 + 0.14*intensity))`, capped at 85% of the traffic vehicle maximum. This stays at or below 82% of the player vehicle maximum. Existing cars approach their updated target at up to 3 km/h/s. Its depth changes by `(trafficSpeed - playerSpeed) / 3.6 * dt / PATH_UNIT`; pickups use traffic speed zero. Braking lets traffic pull away rather than freezing it.
+- **Lane changes:** a car reconsiders its lane every 2.5–7 s (the first time after 1.5–5.5 s) and skips about 20% of those considerations; a car blocked by a slower leader less than 0.26 depth ahead considers a change at once (after a 2 s cooldown). It moves to an adjacent lane at 0.9 lanes/s, only into a clear gap, never while it is within **0.14 depth** of the player's plane, and never into a lane within 1.3 lane widths of the player while it is nearer than 0.6 depth.
+- **Following:** a car within 0.1 depth behind another car in an overlapping lane brakes (up to 60 km/h/s) to match that car's speed.
+- **Separation:** a final hard pass keeps cars in overlapping lanes at least **0.03 depth** apart and caps the follower's speed to its leader's, so traffic never overlaps.
 - Entities are removed below `z = -0.15` or beyond `z = 1.5`; collected fuel disappears immediately.
 
-## Collision and game over
+## Collision, pickups and game over
 
-Collision testing occurs when an unpassed entity crosses the player contact band **PLAYER_DEPTH +/- 0.018**, using its previous and current depth to avoid skipping a contact. A hit requires `abs(player.x - laneCenter(entity.lane))` below **0.114** for a motorcycle or **0.162** for other player vehicles. An entity is marked passed after its first contact so it cannot repeatedly damage or refuel the player.
+Contact testing occurs when an unpassed entity crosses the player contact band **PLAYER_DEPTH +/- 0.018**, using its previous and current depth to avoid skipping a contact. A hit requires `abs(player.x - laneCenter(entity.lane))` below **0.114** for a motorcycle or **0.162** for other player vehicles. An entity is marked passed after its first contact so it cannot repeatedly refuel or crash the player.
 
-- Standard vehicles retain **42%** of speed after an impact; the SUV retains **70%**.
-- Traffic and barrier impacts grant **1.3 s** of invulnerability. Further contacts during that interval do not compound the speed loss.
-- Touching traffic above **50 km/h** is a fatal crash: the run ends with a "Você bateu!" screen (second chance still available once). At or below 50 km/h it is an ordinary impact. Barrier impacts are never fatal.
-- Traffic changes lanes occasionally (into a clear gap, never just ahead of the player), follows the car ahead at a safe distance and never overlaps other traffic.
-- Stopping does not end a run. Fuel exhaustion ends it and offers the existing second chance.
+- A fuel canister adds **32** fuel up to 100 and disappears.
+- Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** (localized), the reason line shows the crash speed, and the one free second chance is still offered.
+- While the 3 s second-chance invincibility lasts, traffic and barrier contacts do not end the run (the barrier still places the car back on the road).
+- Stopping does not end a run. **Running out of fuel** ends it (`'fuel'`, "Pane seca!" message) and also offers the second chance.
+- Traffic changes lanes and follows the car ahead, so a gap that looks open can close; no speed makes touching a car safe.
 
 ## Second chance
 
-Exactly **one free continuation per run**. It preserves distance, elapsed simulation time and earned coins; clears entities; sets speed to **90 km/h**; raises fuel to at least **45**; and grants **3 s** of invulnerability. It does not require or simulate watching an ad. Starting a new run resets this allowance.
+Exactly **one free continuation per run**, after any ending. It preserves distance, score, elapsed simulation time and earned coins; clears entities; sets speed to **90 km/h**; raises fuel to at least **45**; moves the car back to at most `abs(x) = 0.6`; and grants **3 s** of invincibility. It does not require or simulate watching an ad. Starting a new run resets this allowance.
 
 ## Light and weather
 
@@ -91,7 +116,7 @@ Exactly **one free continuation per run**. It preserves distance, elapsed simula
 | Night | 95–155 s |
 | Dawn | 155–180 s |
 
-The final **10 s** of each phase smoothly interpolate into the next palette with `u²(3−2u)`. Weather changes every **38 s** through **clear → rain → clear → fog**, with a **5 s** intensity blend. The first five seconds start clear rather than inheriting fog from the previous conceptual cycle.
+The final **10 s** of each phase smoothly interpolate into the next palette with `u²(3−2u)`. Weather changes every **38 s** through **clear → rain → clear → fog**, with a **5 s** intensity blend. The first five seconds start clear rather than inheriting fog from the previous conceptual cycle. In code the names are `day | sunset | night | dawn` and `clear | rain | fog` (`environment(time)` in `src/game/environment.ts`).
 
 Rain changes road color, adds particles and reduces grip. Fog obscures the road. Night changes light intensity and adds headlights/taillight effects. Environment state is communicated through the scene rather than another HUD panel.
 
@@ -101,4 +126,4 @@ Hiding the page pauses a running game and clears input. Desktop blur also pauses
 
 ## Reference and scope
 
-The accelerator/brake/steering control model follows the original [Top Gear / Top Racer instruction manual](https://www.retrogames.cz/manualy/SNES/Top_Gear_-_SNES_-_Manual.pdf). Acceleration, grip and speed-loss constants here are independently tuned for this game's vehicles and five-lane endless road; they are not extracted or verified original-game physics values.
+The accelerator/brake/steering control model follows the original [Top Gear / Top Racer instruction manual](https://www.retrogames.cz/manualy/SNES/Top_Gear_-_SNES_-_Manual.pdf). Acceleration, grip, off-road and score constants here are independently tuned for this game's vehicles and five-lane endless road; they are not extracted or verified original-game physics values.

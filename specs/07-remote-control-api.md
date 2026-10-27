@@ -1,6 +1,6 @@
 # 07 — Remote control and API contracts
 
-[Specification index](README.md) · Sources: [remote.js](../src/remote.js), [signaling.js](../src/signaling.js), [cloud.js](../src/cloud.js)
+[Specification index](README.md) · Sources: [net/remote.ts](../src/net/remote.ts), [server/signaling.ts](../src/server/signaling.ts), [server/cloud.ts](../src/server/cloud.ts), [server.ts](../server.ts), [worker/index.ts](../worker/index.ts), [ui/remote-dialog.ts](../src/ui/remote-dialog.ts), [ui/controller-page.ts](../src/ui/controller-page.ts)
 
 ## Pairing flow
 
@@ -30,7 +30,7 @@ The host polls every **450 ms** before an answer and **110 ms** afterward. It ap
 
 Steering must be finite and is clamped to [-1, 1]. Action flags only accept boolean `true`. Start/pause are edge-triggered by the app; phone buttons hold their command for 700 ms to survive polling. Direction/pedals remain held until release or input clearing.
 
-The host detects stale compatibility input after **1.8 s**. The app also has a **2 s** remote-input watchdog. Failure/disconnection clears remote controls and pauses a running game. A new QR is the supported reconnection path; refreshing an already used controller link is not an automatic rejoin.
+The client reports its link state as `Direct connection` (WebRTC channel open) or `Compatibility connection` (HTTPS); the host detects stale compatibility input after **1.8 s**. The app also has a **2 s** remote-input watchdog. Failure/disconnection clears remote controls and pauses a running game. A new QR is the supported reconnection path; refreshing an already used controller link is not an automatic rejoin.
 
 ## Room lifecycle and authorization
 
@@ -56,7 +56,7 @@ All JSON responses are `no-store`. Fields below describe current implemented con
 | `POST /api/rooms/:id/input` | Joined controller Bearer; `{ input: { ... } }` | `{ ok: true }`, optionally `throttled: true` |
 | `DELETE /api/rooms/:id` | Host Bearer | `{ ok: true }` |
 
-Offer/answer request text is limited to 24,000 characters, with the serialized field limited to 20,000. Input text is limited to 1,000. Typical errors: 400 invalid input/JSON, 403 wrong role/token/origin, 405 unsupported method, 409 already answered, 410 missing/expired room, 413 excessive size, 503 service failure. If a browser gets HTML instead of JSON, show a sign-in/reopen-link explanation.
+Offer/answer request text is limited to 24,000 characters, with the serialized field limited to 20,000. Input text is limited to 1,000. Typical errors (JSON `{ "error": "<English message>" }`, e.g. `Invalid offer.`, `Invalid code.`, `Room expired. Generate a new QR code.`, `Room already occupied. Generate a new QR code.`): 400 invalid input/JSON, 403 wrong role/token/origin, 404 unknown route or room, 405 unsupported method, 409 already answered, 410 missing/expired room, 413 excessive size, 503 service failure. Server messages are English; the client shows its own translated text for the common cases. If a browser gets HTML instead of JSON, show a sign-in/reopen-link explanation.
 
 ## Progress endpoints
 
@@ -69,9 +69,11 @@ Missing identity returns 401; origin mismatch 403; malformed progress 400; unsup
 
 ## Supporting and legacy routes
 
-- Hosted `/health` returns `ok`, `transport: "webrtc"` and `cloudBackup: true`. The transport label is a capability label; it does not mean a particular session is using WebRTC.
-- Local `/health` reports local availability; local `/network` reports a detected LAN host.
-- The Node server retains `/relay`, a legacy WebSocket protocol (`host`, `join`, `input`, `connected`, `disconnected`) with its own ephemeral rooms. The current menu/phone flow uses the HTTP/WebRTC contracts above.
-- Local `/qr` is a legacy server QR endpoint; the current UI bundles QR generation in the browser.
+- `GET /runtime-config.json` (Node and Worker, `no-store`) returns the public runtime config `{ "coins": number | null }`; see [architecture](06-architecture-and-data.md).
+- Hosted `/health` returns `ok`, `transport: "webrtc"` and `cloudBackup: true`. The transport label is a capability label; it does not mean a particular session is using WebRTC. The game reads `cloudBackup` to show the backup buttons.
+- Local `/health` returns only `{ ok: true }`; local `/network` reports a detected LAN host (`{ host }`), which the pairing dialog uses in place of `localhost` in the QR link.
+- The Node server retains `/relay`, a legacy WebSocket protocol with its own ephemeral rooms (client messages `host`, `join` with `room` and `token`, `input`; server messages `room`, `connected`, `disconnected`, `error`, `input`). Rooms are 8-hex-digit ids with an 18-byte token, expire after 1 hour, accept one controller, rate-limit inputs to one per 25 ms and reject cross-origin upgrades; payloads are limited to 1024 bytes. **The current game does not use it:** `src/net/remote.ts` pairs only through the HTTP/WebRTC contracts above.
+- Local `/qr?text=` is a legacy server QR endpoint (PNG, text up to 2048 characters); the current UI renders the QR in the browser (`src/qr.ts`).
+- The hosted Worker serves only the routes above plus the embedded static assets; the Node server also serves static files from `www/`.
 
 Do not log or embed service-access credentials in browser code. HTTPS fallback solves basic restricted-network operation; TURN remains an optional low-latency enhancement.
