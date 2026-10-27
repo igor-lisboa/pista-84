@@ -65,7 +65,12 @@ export class Garage {
       <p>${t('garage.disclaimer')}</p>`;
 
     const grid = byId('garageGrid');
-    for (const car of CARS) grid.append(this.carCard(car));
+    const carsByPrice = [...CARS].sort((a, b) =>
+      a.purchase.kind === b.purchase.kind
+        ? a.purchase.price - b.purchase.price
+        : a.purchase.kind === 'coins' ? -1 : 1,
+    );
+    for (const car of carsByPrice) grid.append(this.carCard(car));
     const paints = byId('paints');
     for (const paint of PAINTS) paints.append(this.paintButton(paint));
 

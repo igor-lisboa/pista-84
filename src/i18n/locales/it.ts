@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const it: Messages = {
+  'over.coinConversion': '{score} pt → {coins} monete',
+  'over.coinRate': '{points} pt = 1 moneta. Arrotondato per difetto a monete intere.',
   'menu.edition': 'ARCADE BRASILIANO · VOL. 03',
   'menu.kicker': 'ACCENDI IL MOTORE. TROVA LA TUA STRADA.',
   'menu.tagline': 'La strada non finisce qui.',

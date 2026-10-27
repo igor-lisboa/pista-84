@@ -113,6 +113,9 @@ function blendPalette(from: Palette, to: Palette, mix: number): Palette {
 /** Number of depth samples used to integrate the road curvature. */
 const SAMPLES = 160;
 const HORIZON_RATIO = 0.275;
+// One camera for every device. CSS contains this frame without cropping or stretching.
+const FRAME_WIDTH = 960;
+const FRAME_HEIGHT = 720;
 /** Half road width (as a fraction of canvas width) at the horizon and its growth towards the camera. */
 const ROAD_HALF_MIN = 0.018;
 const ROAD_HALF_SLOPE = 0.67;
@@ -190,14 +193,22 @@ const isFuel = (vehicle: SceneVehicle): vehicle is FuelEntity => 'type' in vehic
 /** Lane a vehicle is steering towards; preview cars and pickups stay in their lane. */
 const targetLaneOf = (vehicle: SceneVehicle): number => ('targetLane' in vehicle ? vehicle.targetLane : vehicle.lane);
 
-/** [x, y, width, height, colour] of each block of the fuel can, in sprite units relative to its base. */
-const FUEL_CAN_BLOCKS: readonly (readonly [number, number, number, number, string])[] = [
-  [-15, -39, 30, 37, '#234d3e'],
-  [-12, -36, 24, 30, '#b8d68f'],
-  [-8, -43, 16, 8, '#dce4b3'],
-  [-5, -40, 10, 3, '#47663f'],
-  [-2, -31, 4, 19, '#52764b'],
-  [-9, -24, 18, 5, '#52764b'],
+/** Pixel gas pump: red body, white meter, black hose and a separate nozzle. */
+const FUEL_PUMP_BLOCKS: readonly (readonly [number, number, number, number, string])[] = [
+  [-18, -44, 30, 42, '#172137'],
+  [-15, -41, 24, 36, '#d9473f'],
+  [-15, -41, 24, 3, '#ff8261'],
+  [-12, -35, 18, 13, '#fff2d5'],
+  [-9, -32, 12, 5, '#243b4c'],
+  [-10, -17, 14, 3, '#fff2d5'],
+  [12, -33, 7, 4, '#172137'],
+  [17, -31, 5, 24, '#172137'],
+  [11, -10, 10, 5, '#172137'],
+  [21, -39, 5, 13, '#172137'],
+  [17, -42, 9, 5, '#d7e2e6'],
+  [14, -44, 5, 5, '#d7e2e6'],
+  [-21, -5, 36, 6, '#172137'],
+  [-18, -4, 30, 2, '#d7e2e6'],
 ];
 
 export class Renderer {
@@ -219,15 +230,11 @@ export class Renderer {
     this.resize();
   }
 
-  /** Matches the backing store to the element's aspect ratio at a fixed pixel-art resolution. */
+  /** Keeps the same road, sight distance and vehicle proportions on every screen. */
   resize(): void {
-    const box = this.canvas.getBoundingClientRect();
-    if (!box.width || !box.height) return;
-    const width = box.width < 600 ? 480 : 960;
-    const height = Math.round((width * box.height) / box.width);
-    if (this.canvas.width !== width || this.canvas.height !== height) {
-      this.canvas.width = width;
-      this.canvas.height = height;
+    if (this.canvas.width !== FRAME_WIDTH || this.canvas.height !== FRAME_HEIGHT) {
+      this.canvas.width = FRAME_WIDTH;
+      this.canvas.height = FRAME_HEIGHT;
     }
     this.ctx.imageSmoothingEnabled = false;
   }
@@ -281,12 +288,13 @@ export class Renderer {
       path,
       scroll: path / PATH_UNIT,
       speed,
-      fast: clamp((speed - 55) / 200, 0, 1),
+      // 150 km/h reaches the old flat-out effects; keep building all the way to 350.
+      fast: clamp((speed - 35) / 115, 0, 2.75),
       env,
       palette: blendPalette(PALETTES[env.from], PALETTES[env.to], env.mix),
       horizon,
       roadH: h - horizon,
-      sceneScale: w < 600 ? w / 405 : Math.min(w, h * 1.25) / 550,
+      sceneScale: Math.min(w, h * 1.25) / 550,
       wanted,
       bendNow,
       input,
@@ -314,7 +322,7 @@ export class Renderer {
   }
 
   private shakeOffset(f: FrameContext): [number, number] {
-    const rumble = (f.race.offroad ? 2.8 : 0) + Math.max(0, f.speed - 210) / 90 + this.hitShake * 7;
+    const rumble = (f.race.offroad ? 2.8 : 0) + Math.max(0, f.speed - 85) / 65 + this.hitShake * 7;
     const shakeX = Math.sin(f.clock * 91) * rumble;
     const shakeY = Math.cos(f.clock * 77) * rumble * 0.7;
     return [Math.round(shakeX), Math.round(shakeY)];
@@ -621,12 +629,12 @@ export class Renderer {
     const { x, y, s } = this.placeVehicle(f, pickup.lane, t);
     const bob = Math.sin(f.clock * 5 + pickup.lane) * 2 * s;
     c.globalAlpha = 0.35 + 0.15 * Math.sin(f.clock * 6);
-    c.fillStyle = '#8ae3be';
+    c.fillStyle = '#ffc96b';
     c.beginPath();
     c.ellipse(x, y - 18 * s + bob, 30 * s, 32 * s, 0, 0, Math.PI * 2);
     c.fill();
     c.globalAlpha = 1;
-    for (const [dx, dy, width, height, color] of FUEL_CAN_BLOCKS) {
+    for (const [dx, dy, width, height, color] of FUEL_PUMP_BLOCKS) {
       this.rect(x + dx * s, y + dy * s + bob, width * s, height * s, color);
     }
   }
@@ -722,7 +730,7 @@ export class Renderer {
     c.lineWidth = Math.max(1, w / 480);
     const vx = this.road(0);
     const vy = horizon + roadH * 0.06;
-    for (let i = 0; i < 26; i++) {
+    for (let i = 0; i < Math.round(26 + Math.max(0, fast - 1) * 18); i++) {
       const angle = (hash(i + 3) - 0.5) * Math.PI * 0.95 + Math.PI / 2;
       const phase = (path / 35 + hash(i)) % 1;
       const r0 = 0.12 + phase ** 2 * 0.9;
@@ -731,7 +739,7 @@ export class Renderer {
       const cx = Math.cos(angle);
       const cy = Math.sin(angle);
       if (cy < 0.15) continue;
-      c.globalAlpha = fast * 0.5 * Math.min(1, phase * 3) * (1 - phase * 0.3);
+      c.globalAlpha = Math.min(0.8, fast * 0.5) * Math.min(1, phase * 3) * (1 - phase * 0.3);
       c.strokeStyle = env.night > 0.5 ? '#c8d8ff' : '#ffffff';
       c.beginPath();
       c.moveTo(vx + cx * reach * r0, vy + cy * reach * r0);
@@ -751,7 +759,7 @@ export class Renderer {
     const { w, h, fast } = f;
     const edgeShade = c.createRadialGradient(w / 2, h * 0.6, h * 0.35, w / 2, h * 0.6, Math.max(w, h) * 0.75);
     edgeShade.addColorStop(0, '#00000000');
-    edgeShade.addColorStop(1, `rgba(4,8,24,${0.2 + fast * 0.42})`);
+    edgeShade.addColorStop(1, `rgba(4,8,24,${Math.min(0.82, 0.2 + fast * 0.3)})`);
     c.fillStyle = edgeShade;
     c.fillRect(0, 0, w, h);
     if (f.race.offroad && f.speed > 25) {

@@ -6,6 +6,8 @@
 
 Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 2.2 in the simulation). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
+The garage lists coin cars in ascending price order, followed by premium cars in ascending BRL price order. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
+
 | ID | Display name | Shape | Max | Acceleration | Consumption | Handling | How it is unlocked |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
 | `fusca` | Fusca 76 | bug | 155 | 26 | 0.72 | 1.00 | Owned from the start (0) |
@@ -13,15 +15,15 @@ Maximum speed is km/h; acceleration is the base coefficient for the tapered auto
 | `gol` | Gol Bolinha | box | 185 | 36 | 0.90 | 1.12 | 420 coins |
 | `palio` | Palio 98 | box | 180 | 34 | 0.82 | 1.08 | 350 coins |
 | `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 260 coins |
-| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | **PREMIUM:** R$ 29,90 |
 | `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 850 coins |
-| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | **PREMIUM:** R$ 19,90 |
 | `kombi` | Kombi 78 | van | 130 | 15 | 1.00 | 0.70 | 220 coins |
 | `uno` | Uno com Escada | box | 150 | 30 | 0.70 | 1.05 | 120 coins |
 | `chevette` | Chevette 82 | box | 160 | 32 | 0.78 | 1.05 | 240 coins |
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
 | `opala` | Opala SS | sedan | 215 | 40 | 1.50 | 0.95 | 900 coins |
 | `maverick` | Maverick GT | muscle | 240 | 52 | 1.70 | 1.05 | 1600 coins |
+| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | **PREMIUM:** R$ 29,90 |
+| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | **PREMIUM:** R$ 19,90 |
 
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }` or `{ kind: 'cash', price, currency: 'BRL' }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
@@ -31,7 +33,7 @@ The two PREMIUM cars (Veloce GT and Raio 1000) can **only** be bought with real 
 
 ### Art
 
-The first eight cars use the authored atlas (with mild and strong turn frames). The six newer cars (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS, Maverick GT) have no atlas art and are drawn by procedural pixel sprites in `src/render/sprites.ts`; see [art and audio](05-art-and-audio.md).
+All fourteen cars use authored straight, mild-turn and strong-turn sprites. The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 

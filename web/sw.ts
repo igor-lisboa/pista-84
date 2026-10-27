@@ -19,7 +19,7 @@ interface ServiceWorkerScope {
 const scope = self as unknown as ServiceWorkerScope;
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v10`;
+const CACHE = `${CACHE_PREFIX}v15`;
 const ASSETS = [
   '/',
   '/index.html',
@@ -31,6 +31,7 @@ const ASSETS = [
   '/apple-touch-icon.png',
   '/assets/vehicle-atlas-v1.png',
   '/assets/vehicle-turns-v2.png',
+  '/assets/vehicle-classics-v2.png',
   '/app.js',
   '/runtime-config.json',
 ];

@@ -13,7 +13,7 @@ import {
   laneCenter,
   roadBend,
 } from './road.ts';
-import { paceMultiplier } from './scoring.ts';
+import { POINTS_PER_COIN, paceMultiplier } from './scoring.ts';
 import {
   MAX_TRAFFIC,
   SPAWN_PROBE_SPEED,
@@ -57,10 +57,11 @@ const OFFROAD_TRACTION = 0.1;
 const OFFROAD_DRAG = 5.5;
 const STEER_RESPONSE = 22;
 const BARRIER_BOUNCE = 0.16;
-/** Score points that make one coin. */
-const POINTS_PER_COIN = 25;
 const CHECKPOINT_FUEL = 15;
 const FUEL_PICKUP = 32;
+const IDLE_FUEL_BURN = 0.04;
+const DRIVING_FUEL_BURN = 0.45;
+const DRIVING_FUEL_SPEED = 40;
 const SECOND_CHANCE_SPEED = 90;
 const SECOND_CHANCE_FUEL = 45;
 const SECOND_CHANCE_INVINCIBLE = 3;
@@ -213,7 +214,8 @@ export class Race {
 
     const grip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.22 : 0.1);
     const rolling = clamp(this.speed / 90, 0, 1);
-    const load = clamp((this.speed / 180) ** 2, 0, 3);
+    // Corners need attention at ordinary highway speeds and braking at extreme speeds.
+    const load = clamp((this.speed / 120) ** 2, 0, 6);
     this.steer += (clamp(input.steer ?? 0, -1, 1) - this.steer) * (1 - Math.exp(-dt * STEER_RESPONSE));
     this.drift =
       (roadBend(this.path + PATH_UNIT * PLAYER_DEPTH, this.roadSeed) * load * 0.9 * VEHICLE_SCALE) /
@@ -264,7 +266,9 @@ export class Race {
 
   /** Returns false when the tank ran dry. */
   private burnFuel(dt: number): boolean {
-    this.fuel = Math.max(0, this.fuel - dt * this.car.consumption * (0.45 + this.speed / 190));
+    // The engine keeps sipping at rest; smoothly reach the existing driving rate by 40 km/h.
+    const baseBurn = IDLE_FUEL_BURN + (DRIVING_FUEL_BURN - IDLE_FUEL_BURN) * clamp(this.speed / DRIVING_FUEL_SPEED, 0, 1);
+    this.fuel = Math.max(0, this.fuel - dt * this.car.consumption * (baseBurn + this.speed / 190));
     if (this.fuel > 0) return true;
     this.finish('fuel');
     return false;

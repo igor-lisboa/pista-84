@@ -140,6 +140,10 @@ export class InputController {
         element.addEventListener('mousedown', (event) => press('mouse', event));
         window.addEventListener('mouseup', () => release('mouse'));
       }
+      // Safari may still interpret rapid taps as zoom when only pointerdown is cancelled.
+      // Cancel the native touch completion too, including on Pointer Events browsers.
+      element.addEventListener('touchend', (event) => event.preventDefault(), { passive: false });
+      element.addEventListener('dblclick', (event) => event.preventDefault());
       element.addEventListener('contextmenu', (event) => event.preventDefault());
     }
   }

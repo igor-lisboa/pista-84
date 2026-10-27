@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run build",
     "dev": "node server.ts",
+    "prestart": "npm run build",
     "start": "node server.ts",
     "build": "node scripts/build.ts",
     "vercel-build": "npm run build",

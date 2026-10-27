@@ -19,10 +19,10 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 - Red/white shoulder strips, white road edges and dashed lane separators.
 - Layered pixel city with windows, rooftops, antennae and landmark towers; pixel-cluster clouds and shaded conifers.
 - City/tree caches avoid rebuilding complex static details each frame.
-- Camera offset keeps lateral driving readable near the edges. Portrait and landscape preserve the world aspect ratio.
+- Camera offset keeps lateral driving readable near the edges. A fixed 960 x 720 camera is uniformly fitted with object-fit: contain, preserving the complete gameplay frame in portrait, landscape and square windows.
 - Rain, fog and night remain dynamic rather than fixed into the artwork.
-- Road projection spans 240 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/render/billboards.ts`; these are offline house ads, with no ad-network integration or tracking.
-- Speed effects scale with `fast = clamp((speed - 55) / 200, 0, 1)`: radial speed streaks, a tighter edge vignette and a small bob of the player's car. Screen shake combines a constant off-road rumble, a rumble above 210 km/h, and a decaying impact shake with a red flash on a crash; the off-road entry adds a brief shake and dust tint.
+- Road projection spans 104 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/render/billboards.ts`; these are offline house ads, with no ad-network integration or tracking.
+- Speed effects use fast = clamp((speed - 35) / 115, 0, 2.75), reaching the previous flat-out intensity at 150 km/h and building through 350 km/h. Streak count/length, bounded vignette opacity, car bob, rumble above 85 km/h and filtered wind noise reinforce speed; impact and off-road feedback remain.
 
 ## Vehicle artwork
 
@@ -34,9 +34,9 @@ Rendering uses nearest-neighbor scaling and disabled Canvas image smoothing. Cus
 
 Turn poses: [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png) adds 16 transparent frames for the eight atlas models. Full generation prompt and built-in imagegen provenance: [turn-sprites-v2.md](../docs/turn-sprites-v2.md). Straight and turning frames preserve each source frame's aspect ratio using uniform scaling.
 
-### Procedural sprites (the six newer vehicles)
+### Classic vehicle atlas
 
-Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT have **no atlas art**. They are drawn once into a transparent **128×80** canvas by `src/render/sprites.ts` (rects and polygons with a body/dark/mid/light livery, tail lights that brighten when braking) and cached per car, paint, brake state and offset; the cache is cleared when it grows past its limit. Shared four-wheeler and bike painters are specialised per model: Kombi (two-tone paint, split rear window, engine-lid vents), Uno (roof ladder), Chevette (round lamps, sloping hatch), Opala (long trunk, chrome bumper, tail-light bar), Maverick (fastback glass, black stripe, triple tail lights, twin pipes). Steering shifts these sprites sideways by a few pixels instead of using turn frames. The same procedural sprites remain the load-failure fallback for the eight atlas cars. Authored atlas art for the six newer vehicles is pending (ART-01).
+Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png with 18 transparent authored sprites: straight, gentle right turn and hard right turn for every model. Left turns mirror the authored poses. They share the original atlas renderer, alpha cropping, paint remapping and uniform scaling. The hand-composed sprites remain an asset-loading fallback. Prompts, crop layout, camera behavior and review instructions: [vehicle-classics-v2.md](../docs/vehicle-classics-v2.md).
 
 Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
 
@@ -48,7 +48,7 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking uses band-pass noise (centre `brakeBase + speed × 1.5`) while the run is active, the brake is held and speed exceeds 15 km/h. Engine level follows the running state.
+Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking combines louder band-pass noise with a triangle-wave tyre squeal. The noise centre follows the vehicle brake base plus speed times 1.5; squeal pitch follows brake base times 1.35 plus speed times 2, with slight pitch movement. Both respond in 25 ms, fade with speed below 25 km/h, and stop below 2 km/h, on release or pause. The sound toggle controls the full mix. Engine level follows the running state.
 
 | Vehicle ID | Engine base Hz | Speed ratio | Waveform | Filter base Hz | Brake base Hz |
 | --- | ---: | ---: | --- | ---: | ---: |

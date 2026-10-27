@@ -68,11 +68,7 @@ Open `ios/App/App.xcodeproj`, set the final application identity/team, resolve S
 
 ## ART-01 — Authored atlas art for the six newer vehicles
 
-**P2; art production.** Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT are drawn by procedural pixel sprites (`src/render/sprites.ts`) and have no authored straight, mild-turn or strong-turn frames or paint-remap data.
-
-Produce transparent atlas tiles and 12 turn frames in the style of `vehicle-atlas-v1.png` and `vehicle-turns-v2.png`, add their regions, base paints and hues to `sprites.ts`, and keep the procedural sprites as the load-failure fallback. Record provenance and prompts in `docs/`.
-
-**Accept:** all 14 vehicles use authored art for straight and both turn poses, mirrored left turns and custom paints; the sprite completeness browser tests cover all 14; no clipping or regression in garage thumbnails.
+**Implemented.** All fourteen vehicles now have authored straight, gentle-turn and hard-turn sprites, mirrored left turns and runtime paint remapping. The six classic vehicles use vehicle-classics-v2.png; procedural art remains an asset-loading fallback. All 18 new cells have transparent borders, and browser checks compare cropped poses to reject sideways translations. See [provenance, prompts and review captures](../docs/vehicle-classics-v2.md).
 
 ## I18N-01 — Translation review
 
@@ -100,4 +96,4 @@ Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per veh
 
 ## Dependency order
 
-Run physical/balance QA alongside native tool provisioning. ART-01 and I18N-01 are independent content work. Address ECO-01 before COM-01. Configure providers before ADS-01. NET-01 is optimization; NET-02 is a separate functional lifetime limitation. Do not mark purchases, ads or store releases delivered merely because their future API contracts are documented here.
+Run physical/balance QA alongside native tool provisioning. ART-01 is implemented; I18N-01 remains independent content work. Address ECO-01 before COM-01. Configure providers before ADS-01. NET-01 is optimization; NET-02 is a separate functional lifetime limitation. Do not mark purchases, ads or store releases delivered merely because their future API contracts are documented here.

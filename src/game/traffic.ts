@@ -52,6 +52,12 @@ const NEAR_PLAYER_DEPTH = 0.6;
 const NEAR_PLAYER_LANES = 1.3;
 const BLOCKED_DEPTH = 0.26;
 
+// A bounded palette keeps paint caches reusable while varying every model independently.
+export const TRAFFIC_PAINTS = [
+  '#eee8d5', '#9aa6b2', '#465365', '#c34448', '#e1ae42',
+  '#3f83c4', '#4e9984', '#b17bc0', '#db7845', '#68b7c0',
+] as const;
+
 export const trafficIntensity = (time: number): number => clamp(time / TRAFFIC_RAMP, 0, 1);
 
 /** Cruising speed of an NPC, bounded by both the player's and its own top speed. */
@@ -60,7 +66,9 @@ export function trafficSpeed(playerCar: CarSpec, trafficCar: CarSpec, intensity:
 }
 
 export function createTraffic(lane: number, playerCar: CarSpec, intensity: number, random: Random): TrafficEntity {
-  const car = CARS[Math.floor(random() * CARS.length)]!;
+  const model = CARS[Math.floor(random() * CARS.length)]!;
+  const color = TRAFFIC_PAINTS[Math.floor(random() * TRAFFIC_PAINTS.length)]!;
+  const car = { ...model, color };
   const cruise = random();
   return {
     type: 'traffic',

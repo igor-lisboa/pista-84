@@ -2,7 +2,7 @@
 
 Generated using the built-in imagegen tool, with `web/assets/vehicle-atlas-v1.png` as the vehicle/style reference and a transparent background. The project artifact is [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png). The original atlas is preserved for straight poses.
 
-The new sheet contains 16 complete sprites: mild and strong right turn poses for each of the eight original vehicles. The six vehicles added in 1.4 (Kombi, Uno, Chevette, CG 125, Opala, Maverick) have no authored turn frames yet; they use the procedural sprites in `src/render/sprites.ts`, which shift sideways slightly when steering. The game mirrors those poses for left turns and scales each complete frame uniformly. It does not shear or rotate a rear sprite. Cell bounds are defined in `src/render/sprites.ts` (`TURN_ROWS`) to preserve all wheels, mirrors and bodywork; the generated sheet is 1254 by 1254 pixels with alpha transparency.
+The new sheet contains 16 complete sprites: mild and strong right turn poses for each of the eight original vehicles. The six vehicles added in 1.4 (Kombi, Uno, Chevette, CG 125, Opala, Maverick) now have their own authored straight and turn frames in [vehicle-classics-v2.png](../web/assets/vehicle-classics-v2.png); see [vehicle-classics-v2.md](vehicle-classics-v2.md). The game mirrors those poses for left turns and scales each complete frame uniformly. It does not shear or rotate a rear sprite. Cell bounds are defined in `src/render/sprites.ts` (`TURN_ROWS`) to preserve all wheels, mirrors and bodywork; the generated sheet is 1254 by 1254 pixels with alpha transparency.
 
 ## Generation prompt
 

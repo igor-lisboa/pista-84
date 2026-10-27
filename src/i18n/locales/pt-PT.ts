@@ -2,6 +2,8 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  'over.coinConversion': '{score} pts → {coins} moedas',
+  'over.coinRate': '{points} pts = 1 moeda. Só são creditadas moedas inteiras.',
   'menu.remote': 'TELEMÓVEL COMO COMANDO',
   'menu.tagline': 'A estrada não acaba aqui.',
   'menu.kicker': 'LIGUE O MOTOR. ENCONTRE O SEU CAMINHO.',

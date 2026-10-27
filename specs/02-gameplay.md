@@ -55,19 +55,19 @@ Every **1600 m** section randomly selects a left bend, right bend or entirely st
 Road path advances in metres at the same rate as distance. Curvature at the player plane creates outward drift:
 
 ```text
-load = clamp((speed / 180)^2, 0, 3)
+load = clamp((speed / 120)^2, 0, 6)
 drift = roadBend(path + PATH_UNIT * PLAYER_DEPTH, roadSeed)
         * load * 0.9 * VEHICLE_SCALE / sqrt(handling) / grip
 x += (smoothedSteer * steeringAuthority - drift) * dt
 ```
 
-The renderer integrates upcoming curvature using midpoint curvature and trapezoidal heading integration, follows 40% of lateral player movement with the camera, and shares one depth projection with scenery and traffic: `screenT = (1 - z) / (1 + 4z)`. Player screen depth is **0.855**, corresponding to `PLAYER_DEPTH ~= 0.0328`. `PATH_UNIT = 240 m`. Steering selects authored straight, mild-turn or strong-turn sprites for the eight atlas vehicles, with left turns mirrored; the six procedural vehicles only shift sideways slightly. Body geometry is never sheared, sliced or rotated to imitate yaw. Road dashes are 6 m long with 6 m gaps, kerbs alternate every 4 m, and ground bands alternate every 7 m. All road paint samples `path + screenToDepth(t) * PATH_UNIT`; its motion follows simulated distance and freezes at rest. Scene effects use simulation time and heading follows distance travelled, so pausing freezes the scene. Continuous roadside barriers sit at the same normalized wall position as physics.
+The renderer integrates upcoming curvature using midpoint curvature and trapezoidal heading integration, follows 40% of lateral player movement with the camera, and shares one depth projection with scenery and traffic: `screenT = (1 - z) / (1 + 4z)`. Player screen depth is **0.855**, corresponding to `PLAYER_DEPTH ~= 0.0328`. `PATH_UNIT = 104 m`. Steering selects authored straight, mild-turn or strong-turn sprites for all fourteen vehicles, with left turns mirrored. The 960 x 720 camera is uniformly fitted on every screen shape, retaining the same road visibility and vehicle proportions. Body geometry is never sheared, sliced or rotated to imitate yaw. Road dashes are 6 m long with 6 m gaps, kerbs alternate every 4 m, and ground bands alternate every 7 m. All road paint samples `path + screenToDepth(t) * PATH_UNIT`; its motion follows simulated distance and freezes at rest. Scene effects use simulation time and heading follows distance travelled, so pausing freezes the scene. Continuous roadside barriers sit at the same normalized wall position as physics.
 
 ## Fuel
 
 - Capacity: **100**; fuel cannot become negative or exceed capacity.
-- Continuous drain per second: `vehicle.consumption × (0.45 + speed / 190)`.
-- Pickup: green canister, adding **32** fuel up to the cap.
+- Continuous drain per second: `vehicle.consumption × (0.04 + 0.41 × clamp(speed / 40, 0, 1) + speed / 190)`. At rest the engine consumes `0.04 × consumption` tank percentage points per second (CG 125: 0.96% per minute; Fusca: 1.728%; Maverick: 4.08%). This rises smoothly to the previous driving rate by 40 km/h. Only a running race burns fuel; pause, menus and game over freeze it.
+- Pickup: red gas-pump symbol with a white meter, black hose/nozzle and amber glow, adding **32** fuel up to the cap.
 - First canister spawns after **4 s**; following canisters spawn every **7–10 s**.
 - Each 1000 m checkpoint adds **15** fuel.
 - Empty fuel immediately ends the run (`endReason` `'fuel'`) with a dry-tank/rear-traffic message.
@@ -77,7 +77,7 @@ The renderer integrates upcoming curvature using midpoint curvature and trapezoi
 - Score pays **per metre**, scaled by the pace of the kilometre being driven: `multiplier = clamp(averageKmh / 100, 0.2, 3.5)`, where `averageKmh = kmMetres / kmTime * 3.6` over the current kilometre. An average of 100 km/h pays 1 point per metre, a crawl pays down to 0.2, and a flat-out kilometre up to 3.5.
 - Every **1000 m** (`CHECKPOINT`) is a checkpoint: it adds fuel, fires a `checkpoint` event and **resets `kmTime` and `kmMetres`**, so the next kilometre starts a fresh average.
 - **Coins** are earned from score, not directly from distance: `race.coins = floor(score / 25)`. See [vehicles and economy](03-vehicles-and-economy.md) for settlement.
-- The HUD shows points and the live multiplier (`×1.0`); the game-over screen shows points, distance, coins and the saved best score (`bestScore`).
+- The HUD shows points and the live multiplier (`×1.0`); every game-over screen shows points, distance, coins and the saved best score (`bestScore`), plus the score-to-coins conversion and the shared rate of **25 points = 1 coin**, rounded down to whole coins. The result panel scrolls on short screens so its conversion and actions remain reachable.
 
 ## Traffic and entity movement
 
@@ -86,7 +86,7 @@ Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s
 - First traffic wave: **1.6 s** after starting.
 - Subsequent interval: `1.5 - 0.95 * intensity + random * 0.3` seconds (1.5–1.8 s at the start, 0.55–0.85 s at full intensity).
 - A wave has **1** car in a random lane; with probability `0.25 + 0.6 * intensity` a second car in a different lane; and, when `intensity > 0.4`, with probability `0.55 * intensity` a third car in another free lane. At most three lanes are used, so at least two of the five stay open. A car is added only if its lane is clear at the spawn point. At most **16** traffic cars exist at once (`MAX_TRAFFIC`).
-- Traffic uses the complete 14-vehicle catalog for its looks. Fuel canisters can spawn in any lane.
+- Traffic uses the complete 14-vehicle catalog for its looks. Each spawn independently picks a body color from the ten-color `TRAFFIC_PAINTS` palette, applied to a copy of the model so factory/garage colors and performance stay unchanged. Paint remains fixed for that entity and works with straight and turning frames. Fuel canisters can spawn in any lane.
 - Spawn depth `z = 1.1`. Traffic has an independent world speed. A persistent random cruise preference sets its target to `playerMax * (0.34 + 0.16*intensity + cruise*(0.18 + 0.14*intensity))`, capped at 85% of the traffic vehicle maximum. This stays at or below 82% of the player vehicle maximum. Existing cars approach their updated target at up to 3 km/h/s. Its depth changes by `(trafficSpeed - playerSpeed) / 3.6 * dt / PATH_UNIT`; pickups use traffic speed zero. Braking lets traffic pull away rather than freezing it.
 - **Lane changes:** a car reconsiders its lane every 2.5–7 s (the first time after 1.5–5.5 s) and skips about 20% of those considerations; a car blocked by a slower leader less than 0.26 depth ahead considers a change at once (after a 2 s cooldown). It moves to an adjacent lane at 0.9 lanes/s, only into a clear gap, never while it is within **0.14 depth** of the player's plane, and never into a lane within 1.3 lane widths of the player while it is nearer than 0.6 depth.
 - **Following:** a car within 0.1 depth behind another car in an overlapping lane brakes (up to 60 km/h/s) to match that car's speed.

@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  'over.coinConversion': '{score}点 → {coins}コイン',
+  'over.coinRate': '{points}点 = 1コイン。端数は切り捨てます。',
   'menu.edition': 'ブラジリアン・アーケード VOL.03',
   'menu.kicker': 'エンジン始動。自分の道を見つけよう。',
   'menu.tagline': '道はここで終わらない。',

@@ -60,8 +60,64 @@ test('landscape phone keeps the pedals inside the viewport', async ({ page }) =>
   await expect(page.locator('#raceUI')).toBeVisible();
   const size = await page.locator('#game').evaluate((canvas: HTMLCanvasElement) => ({
     ratio: canvas.width / canvas.height,
-    ratioCss: canvas.clientWidth / canvas.clientHeight,
+    fit: getComputedStyle(canvas).objectFit,
   }));
-  expect(Math.abs(size.ratio - size.ratioCss)).toBeLessThan(0.02);
+  expect(size.ratio).toBeCloseTo(4 / 3);
+  expect(size.fit).toBe('contain');
   await expect(page.locator('[data-control="accelerate"]')).toBeVisible();
+});
+
+test('landscape HUD fits small phones and leaves the driving controls clear', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#start').tap();
+  for (const viewport of [{ width: 568, height: 320 }, { width: 667, height: 375 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    const boxes = await page.evaluate(() => {
+      const rect = (selector: string) => {
+        const box = document.querySelector(selector)!.getBoundingClientRect();
+        return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+      };
+      return {
+        hud: ['.hud-speed', '.hud-trip', '.fuel', '#pause'].map(rect),
+        controls: ['.steering', '.pedals'].map(rect),
+        width: window.visualViewport!.width,
+        height: window.visualViewport!.height,
+        scrollWidth: document.documentElement.scrollWidth,
+      };
+    });
+    expect(boxes.scrollWidth).toBe(viewport.width);
+    for (const hud of boxes.hud) {
+      expect(hud.left).toBeGreaterThanOrEqual(0);
+      expect(hud.right).toBeLessThanOrEqual(boxes.width);
+      expect(hud.top).toBeGreaterThanOrEqual(0);
+      expect(hud.bottom).toBeLessThanOrEqual(boxes.height);
+      for (const control of boxes.controls) {
+        expect(hud.bottom <= control.top || hud.right <= control.left || hud.left >= control.right).toBe(true);
+      }
+    }
+    expect(boxes.hud[1]!.top).toBeGreaterThanOrEqual(boxes.hud[0]!.bottom);
+    expect(boxes.hud[2]!.left).toBeGreaterThan(boxes.width / 2);
+  }
+});
+
+test('rapid steering taps keep the viewport at its original scale and release the controls', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#start').tap();
+  const initialScale = await page.evaluate(() => window.visualViewport!.scale);
+  for (const name of ['left', 'right']) {
+    const button = page.locator(`[data-control="${name}"]`);
+    await button.tap();
+    await button.tap();
+    await expect(button).not.toHaveClass(/pressed/);
+  }
+  expect(await page.evaluate(() => window.visualViewport!.scale)).toBe(initialScale);
+  // Check native gesture defaults too: desktop emulation alone may not perform Safari's zoom.
+  const prevented = await page.locator('[data-control="left"]').evaluate((button) => {
+    const end = new Event('touchend', { bubbles: true, cancelable: true });
+    const doubleClick = new MouseEvent('dblclick', { bubbles: true, cancelable: true });
+    button.dispatchEvent(end);
+    button.dispatchEvent(doubleClick);
+    return { end: end.defaultPrevented, doubleClick: doubleClick.defaultPrevented };
+  });
+  expect(prevented).toEqual({ end: true, doubleClick: true });
 });

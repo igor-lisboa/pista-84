@@ -1,5 +1,7 @@
 // Source language: every key is defined here, and the other locales fall back to it.
 export const ptBR = {
+  'over.coinConversion': '{score} pts → {coins} moedas',
+  'over.coinRate': '{points} pts = 1 moeda. Apenas moedas inteiras são creditadas.',
   'menu.edition': 'ARCADE BRASILEIRO · VOL. 03',
   'menu.kicker': 'LIGUE O MOTOR. ENCONTRE SEU CAMINHO.',
   'menu.tagline': 'A estrada não termina aqui.',

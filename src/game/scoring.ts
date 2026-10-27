@@ -2,6 +2,8 @@ import { clamp } from './math.ts';
 
 /** Average speed (km/h) of a kilometre that pays exactly one point per metre. */
 export const PAR_SPEED = 100;
+/** Shared by the race payout and the end-of-game conversion display. */
+export const POINTS_PER_COIN = 25;
 const MIN_MULTIPLIER = 0.2;
 const MAX_MULTIPLIER = 3.5;
 

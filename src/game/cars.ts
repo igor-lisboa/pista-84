@@ -40,15 +40,16 @@ export const CARS: readonly CarSpec[] = [
   { id: 'gol', name: 'Gol Bolinha', color: '#669df4', max: 185, accel: 36, consumption: 0.9, handling: 1.12, purchase: { kind: 'coins', price: 420 }, shape: 'box' },
   { id: 'palio', name: 'Palio 98', color: '#f08364', max: 180, accel: 34, consumption: 0.82, handling: 1.08, purchase: { kind: 'coins', price: 350 }, shape: 'box' },
   { id: 'moto', name: 'Moto urbana', color: '#ddd8cf', max: 175, accel: 48, consumption: 0.6, handling: 1.4, purchase: { kind: 'coins', price: 260 }, shape: 'bike' },
-  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 64, consumption: 1.65, handling: 1.15, purchase: { kind: 'cash', price: 29.9, currency: 'BRL' }, shape: 'sport' },
   { id: 'suv', name: 'Bruto 4×4', color: '#c2a177', max: 195, accel: 22, consumption: 1.35, handling: 0.8, purchase: { kind: 'coins', price: 850 }, shape: 'suv' },
-  { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.4, handling: 1.5, purchase: { kind: 'cash', price: 19.9, currency: 'BRL' }, shape: 'bike' },
   { id: 'kombi', name: 'Kombi 78', color: '#7ad0c8', max: 130, accel: 15, consumption: 1, handling: 0.7, purchase: { kind: 'coins', price: 220 }, shape: 'van' },
   { id: 'uno', name: 'Uno com Escada', color: '#f1efe6', max: 150, accel: 30, consumption: 0.7, handling: 1.05, purchase: { kind: 'coins', price: 120 }, shape: 'box' },
   { id: 'chevette', name: 'Chevette 82', color: '#d9573b', max: 160, accel: 32, consumption: 0.78, handling: 1.05, purchase: { kind: 'coins', price: 240 }, shape: 'box' },
   { id: 'cg125', name: 'CG 125', color: '#d33a3a', max: 130, accel: 40, consumption: 0.4, handling: 1.45, purchase: { kind: 'coins', price: 140 }, shape: 'bike' },
   { id: 'opala', name: 'Opala SS', color: '#2f6fb8', max: 215, accel: 40, consumption: 1.5, handling: 0.95, purchase: { kind: 'coins', price: 900 }, shape: 'sedan' },
   { id: 'maverick', name: 'Maverick GT', color: '#f08a24', max: 240, accel: 52, consumption: 1.7, handling: 1.05, purchase: { kind: 'coins', price: 1600 }, shape: 'muscle' },
+  // Premium cars (real money only) always close the list.
+  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 64, consumption: 1.65, handling: 1.15, purchase: { kind: 'cash', price: 29.9, currency: 'BRL' }, shape: 'sport' },
+  { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.4, handling: 1.5, purchase: { kind: 'cash', price: 19.9, currency: 'BRL' }, shape: 'bike' },
 ];
 
 export const PAINTS: readonly Paint[] = [

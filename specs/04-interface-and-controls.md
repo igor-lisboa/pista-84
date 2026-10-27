@@ -59,7 +59,7 @@ Input must not override typing in form fields. Keyboard controls do not act thro
 - Support independent simultaneous touches: steering and a pedal can be held together.
 - Use Pointer Events and pointer capture where available; fall back to touch/mouse listeners otherwise.
 - Track touch/pointer identity; release, cancellation and lost capture clear the corresponding held action.
-- Control buttons suppress browser context menus and gesture scrolling; a release must not leave an input stuck.
+- Control buttons suppress browser context menus, gesture scrolling and double-tap zoom; a release must not leave an input stuck. Native touch completion is cancelled even on Pointer Events browsers to prevent Safari double-tap zoom. The surrounding app uses `touch-action: manipulation`.
 - Touch feedback visually marks held buttons.
 
 ## Tilt behavior and Safari
@@ -72,7 +72,7 @@ Permission rejection, missing sensors and unsupported audio/fullscreen must leav
 
 ## Responsive layout and focus
 
-Use actual `visualViewport.height` when available and safe-area insets for notches/home indicators. Canvas backing resolution follows its displayed aspect ratio instead of cropping a wide road into portrait. Internal render width is 480 on displays narrower than 600 CSS pixels, otherwise 960; backing height follows the viewport ratio.
+Use actual `visualViewport.height` when available and safe-area insets for notches/home indicators. The fixed 960 x 720 camera is uniformly contained in every viewport without stretching or cropping. On short landscape screens, speed and trip information stack at the upper left while fuel and pause sit at the upper right; the bend warning sits below the left stack. HUD panels stay above the steering buttons and pedals, with horizontal safe-area insets respected.
 
 Layouts cover portrait, landscape and short landscape menus. Hidden race/menu layers must not intercept taps. Hiding the document pauses the game. Touch-device browser-chrome blur alone does not pause it. Wake lock is best-effort, not a requirement to play. `prefers-reduced-motion` disables CSS transitions and animations.
 

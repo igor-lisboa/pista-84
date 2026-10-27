@@ -1,3 +1,5 @@
+import { shade } from './color.ts';
+import { paintProceduralCar } from './procedural-cars.ts';
 import type { CarLook } from '../game/index.ts';
 
 // Rear-view pixel sprites. Authored atlas tiles are used when loaded; every vehicle also has a
@@ -16,12 +18,13 @@ const SPRITE_CACHE_LIMIT = 150;
 const PAINT_CACHE_LIMIT = 80;
 const ALPHA_THRESHOLD = 80;
 const DEFAULT_BODY_COLOR = '#efce5e';
-const ATLAS_TILE_COUNT = 8;
-const TURN_TILE_COUNT = 16;
+const ATLAS_TILE_COUNT = 14;
+const TURN_TILE_COUNT = 28;
 const TURN_SHEET_SIZE = 1254;
 
 const DEFAULT_ATLAS_URL = './assets/vehicle-atlas-v1.png';
 const DEFAULT_TURN_ATLAS_URL = './assets/vehicle-turns-v2.png';
+const DEFAULT_CLASSICS_ATLAS_URL = './assets/vehicle-classics-v2.png';
 
 const ATLAS_REGIONS: Readonly<Record<string, Region>> = {
   fusca: [0, 0.15, 0.25, 0.34],
@@ -44,6 +47,12 @@ const BASE_PAINTS: Readonly<Record<string, string>> = {
   gt: '#e76368',
   suv: '#c2a177',
   superbike: '#af94ec',
+  kombi: '#7ad0c8',
+  uno: '#f1efe6',
+  chevette: '#d9573b',
+  cg125: '#d33a3a',
+  opala: '#2f6fb8',
+  maverick: '#f08a24',
 };
 
 /** Hue (0..1) of the paintable body area of each atlas tile. */
@@ -56,6 +65,12 @@ const BASE_HUES: Readonly<Record<string, number>> = {
   gt: 0,
   suv: 0.14,
   superbike: 0.76,
+  kombi: 0.51,
+  uno: 0.12,
+  chevette: 0.055,
+  cg125: 0,
+  opala: 0.61,
+  maverick: 0.065,
 };
 
 const HUE_TOLERANCE = 0.13;
@@ -128,14 +143,6 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [channel(0), channel(8), channel(4)];
 }
 
-function shade(hex: string, factor: number): string {
-  const v = hex.replace('#', '');
-  const channels = [0, 2, 4].map((i) => {
-    const value = Math.min(255, Math.max(0, Math.round(parseInt(v.slice(i, i + 2), 16) * factor)));
-    return value.toString(16).padStart(2, '0');
-  });
-  return `#${channels.join('')}`;
-}
 
 // ---------------------------------------------------------------------------
 // Public queries
@@ -266,8 +273,43 @@ function buildTurnRegions(): Record<string, Region> {
 
 const TURN_REGIONS = buildTurnRegions();
 
-export async function loadSprites(url = DEFAULT_ATLAS_URL, turnUrl = DEFAULT_TURN_ATLAS_URL): Promise<boolean> {
-  await Promise.all([loadAtlas(url, ATLAS_REGIONS, atlasTiles), loadAtlas(turnUrl, TURN_REGIONS, turnTiles)]);
+// Authored gutters, not equal slices: roofs, ladders and tyres remain inside each crop.
+const CLASSIC_IDS = ['kombi', 'uno', 'chevette', 'cg125', 'opala', 'maverick'] as const;
+const CLASSIC_ROWS = [
+  [0, 284, 548, 770, 1036, 1280, 1536],
+  [0, 284, 548, 770, 1036, 1280, 1536],
+  [0, 284, 548, 772, 1036, 1280, 1536],
+] as const;
+const CLASSIC_COLUMNS = [0, 320, 662, 1024] as const;
+const CLASSIC_REGIONS: Record<string, Region> = {};
+for (let row = 0; row < CLASSIC_IDS.length; row++) {
+  for (let pose = 0; pose < 3; pose++) {
+    const rows = CLASSIC_ROWS[pose]!;
+    CLASSIC_REGIONS[`${CLASSIC_IDS[row]}:${pose}`] = [
+      CLASSIC_COLUMNS[pose]! / 1024,
+      rows[row]! / 1536,
+      (CLASSIC_COLUMNS[pose + 1]! - CLASSIC_COLUMNS[pose]!) / 1024,
+      (rows[row + 1]! - rows[row]!) / 1536,
+    ];
+  }
+}
+
+export async function loadSprites(
+  url = DEFAULT_ATLAS_URL,
+  turnUrl = DEFAULT_TURN_ATLAS_URL,
+  classicsUrl = DEFAULT_CLASSICS_ATLAS_URL,
+): Promise<boolean> {
+  const classics = new Map<string, HTMLCanvasElement>();
+  await Promise.all([
+    loadAtlas(url, ATLAS_REGIONS, atlasTiles),
+    loadAtlas(turnUrl, TURN_REGIONS, turnTiles),
+    loadAtlas(classicsUrl, CLASSIC_REGIONS, classics),
+  ]);
+  for (const [key, tile] of classics) {
+    const [id, pose] = key.split(':');
+    if (pose === '0') atlasTiles.set(id!, tile);
+    else turnTiles.set(key, tile);
+  }
   atlasLoaded = atlasTiles.size === ATLAS_TILE_COUNT;
   return spritesReady();
 }
@@ -289,7 +331,12 @@ function recolorTile(original: HTMLCanvasElement, car: CarLook): HTMLCanvasEleme
     if (p[i + 3]! < ALPHA_THRESHOLD) continue;
     const [h, s, l] = rgbToHsl(p[i]!, p[i + 1]!, p[i + 2]!);
     const diff = Math.min(Math.abs(h - baseHue), 1 - Math.abs(h - baseHue));
-    const paintable = diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS;
+    const x = ((i / 4) % canvas.width) / canvas.width;
+    const y = Math.floor(i / 4 / canvas.width) / canvas.height;
+    // The Uno's white body needs a neutral mask; keep its ladder, plate and bumpers intact.
+    const whiteBody = car.id === 'uno' && s < 0.15 && l > 0.55 && y > 0.25 && y < 0.72
+      && !(y > 0.59 && x > 0.28 && x < 0.72);
+    const paintable = whiteBody || (diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
     if (!paintable) continue;
     const rgb = hslToRgb(target[0], target[1] * 0.85 + 0.1, l);
     p[i] = rgb[0];
@@ -411,10 +458,6 @@ function paintBike(p: Painter, car: CarLook, l: Livery): void {
   p.rect(51, 8, 27, 13, superbike ? body : '#eee5d1');
   p.rect(54, 19, 22, 8, '#141f32');
   p.rect(54, 20, 22, 3, '#7db3c5');
-  if (car.id === 'cg125') {
-    p.rect(50, 13, 28, 3, '#3b4350');
-    p.rect(54, 16, 20, 2, '#59626f');
-  }
   if (superbike) {
     p.poly([[43, 32], [49, 27], [53, 45], [48, 55], [40, 53]], body);
     p.poly([[80, 28], [87, 32], [88, 53], [79, 56], [75, 44]], mid);
@@ -558,70 +601,6 @@ function paintSuvDetails(p: Painter, l: Livery): void {
   p.rect(96, 49, 8, 13, tail);
 }
 
-/** Volkswagen Kombi: two-tone paint, split rear window, engine-lid vents and a white V. */
-function paintKombi(p: Painter, l: Livery, f: Frame): void {
-  const { dark, mid, tail } = l;
-  const white = '#f3efe3';
-  p.rect(f.roofL + 2, f.roofY, f.roofR - f.roofL - 4, 7, white);
-  p.poly([[f.left + 4, 40], [64, 53], [f.right - 4, 40], [f.right - 12, 40], [64, 49], [f.left + 12, 40]], white);
-  p.rect(f.left + 8, 56, f.right - f.left - 16, 5, mid);
-  for (let i = 0; i < 7; i++) p.rect(46 + i * 6, 57, 3, 3, dark);
-  p.rect(f.left + 4, 44, 7, 15, tail);
-  p.rect(f.right - 11, 44, 7, 15, tail);
-  p.rect(61, 20, 6, 18, white);
-}
-
-/** Fiat Uno with the roof ladder every Brazilian handyman knows. */
-function paintUno(p: Painter, l: Livery, f: Frame): void {
-  const rail = '#9aa6ad';
-  const top = 2;
-  p.rect(f.roofL + 1, top, 3, f.roofY + 2, rail);
-  p.rect(f.roofR - 4, top, 3, f.roofY + 2, rail);
-  for (let x = f.roofL + 4; x < f.roofR - 4; x += 6) p.rect(x, top + 1, 2, 9, '#c9d2d6');
-  p.rect(f.roofL, f.roofY + 1, 4, 3, '#2e3a47');
-  p.rect(f.roofR - 4, f.roofY + 1, 4, 3, '#2e3a47');
-  p.rect(f.left + 4, 50, 8, 13, l.tail);
-  p.rect(f.right - 12, 50, 8, 13, l.tail);
-}
-
-/** Chevrolet Chevette: round tail lamps and a gently sloping hatch. */
-function paintChevette(p: Painter, l: Livery): void {
-  p.poly([[40, 24], [88, 24], [84, 36], [44, 36]], '#1a354d');
-  p.poly([[44, 26], [84, 26], [81, 33], [47, 33]], '#6b9dad');
-  p.rect(27, 51, 12, 10, '#ffbd8a');
-  p.rect(89, 51, 12, 10, '#ffbd8a');
-  p.rect(29, 53, 8, 6, l.tail);
-  p.rect(91, 53, 8, 6, l.tail);
-  p.rect(52, 62, 24, 2, '#c9d2d6');
-}
-
-/** Chevrolet Opala: long trunk, low roof, chrome bumper and a wide tail-light bar. */
-function paintOpala(p: Painter, l: Livery): void {
-  p.rect(44, 28, 40, 9, '#1a354d');
-  p.rect(46, 30, 36, 4, '#6b9dad');
-  p.rect(22, 49, 84, 8, '#431e3a');
-  p.rect(24, 51, 36, 4, l.tail);
-  p.rect(68, 51, 36, 4, l.tail);
-  p.rect(60, 49, 8, 8, l.dark);
-  p.rect(18, 64, 92, 4, '#dfe6ea');
-  p.rect(20, 65, 88, 1, '#ffffff');
-}
-
-/** Ford Maverick GT: fastback glass, black racing stripe, triple tail lights and twin pipes. */
-function paintMaverick(p: Painter, l: Livery): void {
-  p.rect(58, 26, 12, 40, '#161b24');
-  p.poly([[46, 27], [82, 27], [92, 38], [36, 38]], '#1a354d');
-  p.poly([[50, 29], [78, 29], [86, 36], [42, 36]], '#6b9dad');
-  for (let i = 0; i < 3; i++) {
-    p.rect(14 + i * 7, 49, 5, 10, l.tail);
-    p.rect(93 + i * 7, 49, 5, 10, l.tail);
-  }
-  p.rect(30, 68, 9, 5, '#2b3340');
-  p.rect(89, 68, 9, 5, '#2b3340');
-  p.rect(32, 69, 5, 2, '#b8c4cc');
-  p.rect(91, 69, 5, 2, '#b8c4cc');
-}
-
 function paintFourWheeler(p: Painter, car: CarLook, l: Livery): void {
   const f = createFrame(car);
   paintCarBase(p, l, f);
@@ -632,11 +611,6 @@ function paintFourWheeler(p: Painter, car: CarLook, l: Livery): void {
   if (car.id === 'palio') paintPalio(p, l);
   if (car.shape === 'sport') paintSportDetails(p, l);
   if (car.shape === 'suv') paintSuvDetails(p, l);
-  if (car.id === 'kombi') paintKombi(p, l, f);
-  if (car.id === 'uno') paintUno(p, l, f);
-  if (car.id === 'chevette') paintChevette(p, l);
-  if (car.id === 'opala') paintOpala(p, l);
-  if (car.id === 'maverick') paintMaverick(p, l);
   p.rect(f.left - 3, 37, 7, 5, l.mid);
   p.rect(f.right - 4, 37, 7, 5, l.dark);
 }
@@ -651,8 +625,10 @@ function sprite(car: CarLook, brake: boolean, turn: number): HTMLCanvasElement {
   const painter = createPainter(c);
   const livery = createLivery(car, brake);
   c.translate(turn * 3, 0);
-  if (car.shape === 'bike') paintBike(painter, car, livery);
-  else paintFourWheeler(painter, car, livery);
+  if (!paintProceduralCar(c, car, brake)) {
+    if (car.shape === 'bike') paintBike(painter, car, livery);
+    else paintFourWheeler(painter, car, livery);
+  }
   if (spriteCache.size > SPRITE_CACHE_LIMIT) spriteCache.clear();
   spriteCache.set(key, canvas);
   return canvas;
@@ -670,7 +646,7 @@ const TURNING_BRAKE_LAMPS = [0.1, 0.58] as const;
 export function drawCar(ctx: Ctx, x: number, y: number, scale: number, car: CarLook, brake = false, turn = 0): void {
   const pose = steeringPose(turn);
   const tile = atlasLoaded ? paintedTile(car, pose) : null;
-  // Procedural cars have no authored turn poses, so they lean by shifting a few pixels instead.
+  // The procedural art remains a fallback if the authored assets are unavailable.
   const image = tile || sprite(car, brake, Math.sign(turn) * pose);
   const leaning = !!tile && pose > 0;
   const dimensions = atlasLoaded ? spriteDimensions(car) : { width: SPRITE_WIDTH, height: SPRITE_HEIGHT };

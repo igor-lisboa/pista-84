@@ -20,13 +20,14 @@ Requires Node.js **24** (the validated environment, including the SQL tests with
 
 ```powershell
 npm install
-npm run build
 npm start
 ```
 
 Open **http://localhost:4173**. The terminal also shows the network address for accessing the game from your phone. Use `PORT` to change the port.
 
-Edit `src/` and `web/` and run `npm run build` again. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/app.ts` and `web/sw.ts` into `www/app.js` and `www/sw.js`) and the Worker.
+`npm start` and `npm run dev` build the game before launching the local server. After editing `src/` or `web/`, stop the server with Ctrl+C and start it again, or run `npm run build` to refresh the assets while it is running. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/app.ts` and `web/sw.ts` into `www/app.js` and `www/sw.js`) and the Worker.
+
+If startup reports **port 4173 is already in use**, an existing server is still running. Open http://localhost:4173, stop that server with Ctrl+C before starting another, or set a different `PORT` in `.env`.
 
 ## Local configuration (.env)
 
@@ -114,7 +115,7 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **54 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 16 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), so run `npm run build` first.
+- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **57 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 23 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), and builds the assets automatically.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves the game, `/runtime-config.json`, pairing (`/api/rooms`), backup (`/api/progress`) and `/health`. Sites provisions the D1 binding `DB` and applies the migrations in `drizzle/`. Preserve the project ID in `.openai/hosting.json`.

@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const fr: Messages = {
+  'over.coinConversion': '{score} pts → {coins} pièces',
+  'over.coinRate': '{points} pts = 1 pièce. Arrondi au nombre entier inférieur.',
   'menu.edition': 'ARCADE BRÉSILIEN · VOL. 03',
   'menu.kicker': 'DÉMARREZ LE MOTEUR. TROUVEZ VOTRE ROUTE.',
   'menu.tagline': 'La route ne s’arrête pas ici.',

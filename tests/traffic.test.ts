@@ -6,11 +6,31 @@ import {
   MAX_TRAFFIC,
   Race,
   TRAFFIC_RAMP,
+  TRAFFIC_PAINTS,
+  createTraffic,
   trafficIntensity,
   trafficOf,
   trafficSpeed,
 } from '../src/game/index.ts';
-import { fuelCan, quietRace, seededRandom, step, trafficCar } from './support/game.ts';
+import { car, fuelCan, quietRace, seededRandom, step, trafficCar } from './support/game.ts';
+
+test('highway models spawn in varied paints without changing catalog colors or performance', () => {
+  const defaults = CARS.map((car) => ({ ...car }));
+  const random = seededRandom(321);
+  const colors = new Map<string, Set<string>>();
+  for (let i = 0; i < 2000; i++) {
+    const traffic = createTraffic(0, CARS[0]!, 0, random);
+    const model = CARS.find((car) => car.id === traffic.car.id)!;
+    assert.ok(TRAFFIC_PAINTS.some((paint) => paint === traffic.car.color));
+    assert.notEqual(traffic.car, model);
+    assert.deepEqual({ ...traffic.car, color: model.color }, model);
+    if (!colors.has(model.id)) colors.set(model.id, new Set());
+    colors.get(model.id)!.add(traffic.car.color);
+  }
+  assert.equal(colors.size, CARS.length);
+  for (const [id, paints] of colors) assert.ok(paints.size >= 5, id);
+  assert.deepEqual(CARS, defaults);
+});
 
 /** Runs one spawn wave on an empty road and reports what appeared. */
 function spawnWave(race: Race): void {
@@ -106,7 +126,7 @@ test('existing traffic accelerates gradually and difficulty freezes while paused
   race.time = 90;
   race.trafficTimer = 1000;
   race.fuelTimer = 1000;
-  const npc = CARS[5]!;
+  const npc = car('gt');
   const cruise = 0.5;
   const speed = trafficSpeed(race.car, npc, 0, cruise);
   const entity = { ...trafficCar({ lane: 2, z: 0.2, speed, spec: npc }), cruise };

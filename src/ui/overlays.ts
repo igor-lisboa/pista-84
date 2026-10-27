@@ -1,4 +1,5 @@
 import type { EndReason, Race, SaveData } from '../game/index.ts';
+import { POINTS_PER_COIN } from '../game/index.ts';
 import { t, type MessageKey } from '../i18n/index.ts';
 import { byId, formatInteger, formatKm } from './dom.ts';
 
@@ -57,6 +58,10 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
         <span>${formatInteger(race.score)} ${t('hud.pts')}</span>
         <span>${formatKm(race.distance)} km</span>
         <span>◈ ${race.coins}</span>
+      </div>
+      <div class="result-conversion">
+        <strong>${t('over.coinConversion', { score: formatInteger(race.score), coins: formatInteger(race.coins) })}</strong>
+        <small>${t('over.coinRate', { points: POINTS_PER_COIN })}</small>
       </div>
       <p>${t('over.record', { n: formatInteger(save.bestScore) })}</p>
       <button id="restart" class="primary"><span>${t('over.again')}</span><b>▶</b></button>

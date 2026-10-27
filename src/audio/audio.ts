@@ -35,7 +35,8 @@ export const AUDIO_PROFILES: Readonly<Record<string, EngineProfile>> = {
 const EFFECTS_VOLUME = 0.11;
 const MUSIC_VOLUME = 0.32;
 const ENGINE_LEVEL = 0.2;
-const BRAKE_LEVEL = 0.14;
+const BRAKE_LEVEL = 0.42;
+const BRAKE_SQUEAL_LEVEL = 0.18;
 
 type AudioContextConstructor = typeof AudioContext;
 const contextConstructor = (): AudioContextConstructor | undefined =>
@@ -56,6 +57,10 @@ export class AudioEngine {
   private engineFilter: BiquadFilterNode | null = null;
   private brakeFilter: BiquadFilterNode | null = null;
   private brakeGain: GainNode | null = null;
+  private brakeTone: OscillatorNode | null = null;
+  private brakeToneGain: GainNode | null = null;
+  private windFilter: BiquadFilterNode | null = null;
+  private windGain: GainNode | null = null;
   private wantedMusic: MusicMode = 'menu';
 
   /** Turns audio on or off, creating the audio graph on first use. Returns the new state. */
@@ -107,7 +112,13 @@ export class AudioEngine {
     this.engine!.frequency.setTargetAtTime(profile.base + race.speed * profile.ratio, now, 0.08);
     this.engineFilter!.frequency.value = profile.filter + race.speed * 2;
     this.brakeFilter!.frequency.value = profile.brake + race.speed * 1.5;
-    this.brakeGain!.gain.setTargetAtTime(running && braking && race.speed > 15 ? BRAKE_LEVEL : 0, now, 0.04);
+    const brakePower = running && braking && race.speed > 2 ? Math.min(1, race.speed / 25) : 0;
+    this.brakeGain!.gain.setTargetAtTime(brakePower * BRAKE_LEVEL, now, 0.025);
+    this.brakeTone!.frequency.setTargetAtTime(profile.brake * 1.35 + race.speed * 2 + Math.sin(now * 31) * 16, now, 0.025);
+    this.brakeToneGain!.gain.setTargetAtTime(brakePower * BRAKE_SQUEAL_LEVEL, now, 0.025);
+    const air = Math.max(0, Math.min(1, (race.speed - 40) / 310));
+    this.windFilter!.frequency.setTargetAtTime(450 + air * 2600, now, 0.12);
+    this.windGain!.gain.setTargetAtTime(running ? 0.035 * air + 0.12 * air * air : 0, now, 0.12);
   }
 
   private ensureContext(): AudioContext {
@@ -147,6 +158,21 @@ export class AudioEngine {
     source.connect(this.brakeFilter);
     this.brakeFilter.connect(this.brakeGain);
     this.brakeGain.connect(this.effects);
+    // A tonal tyre squeal remains audible above the engine, wind and soundtrack.
+    this.brakeTone = ctx.createOscillator();
+    this.brakeTone.type = 'triangle';
+    this.brakeToneGain = ctx.createGain();
+    this.brakeToneGain.gain.value = 0;
+    this.brakeTone.connect(this.brakeToneGain);
+    this.brakeToneGain.connect(this.effects);
+    this.brakeTone.start();
+    this.windFilter = ctx.createBiquadFilter();
+    this.windFilter.type = 'lowpass';
+    this.windGain = ctx.createGain();
+    this.windGain.gain.value = 0;
+    source.connect(this.windFilter);
+    this.windFilter.connect(this.windGain);
+    this.windGain.connect(this.effects);
     source.start();
     return ctx;
   }

@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  'over.coinConversion': '{score} pts → {coins} coins',
+  'over.coinRate': '{points} pts = 1 coin. Rounded down to whole coins.',
   'menu.edition': 'BRAZILIAN ARCADE · VOL. 03',
   'menu.kicker': 'START THE ENGINE. FIND YOUR ROAD.',
   'menu.tagline': 'The road does not end here.',

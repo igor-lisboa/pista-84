@@ -270,7 +270,24 @@ function handleRelayClient(socket: WebSocket): void {
   socket.on('error', () => {});
 }
 
-attachRelay(new WebSocketServer({server, path: RELAY_PATH, maxPayload: MAX_RELAY_PAYLOAD}));
+let startupFailed = false;
+function reportServerError(error: NodeJS.ErrnoException): void {
+  // ws forwards HTTP listener errors too, so report each startup failure only once.
+  if (startupFailed) return;
+  startupFailed = true;
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use. Stop the existing game server with Ctrl+C, or choose another PORT in .env.`);
+    console.error(`If the game is already running, open http://localhost:${port}.`);
+  } else {
+    console.error(`Could not start PISTA 84: ${error.message}`);
+  }
+  process.exitCode = 1;
+}
+
+server.on('error', reportServerError);
+const relay = new WebSocketServer({server, path: RELAY_PATH, maxPayload: MAX_RELAY_PAYLOAD});
+relay.on('error', reportServerError);
+attachRelay(relay);
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`PISTA 84 · Local: http://localhost:${port}`);

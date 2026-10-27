@@ -56,7 +56,8 @@ export const EDGE = 0.96;
 /** Distance between checkpoints, in metres. */
 export const CHECKPOINT = 1000;
 /** Metres represented by the visible road. */
-export const PATH_UNIT = 240;
+// A closer chase camera: at 150 km/h the road approaches as fast as the old 350 km/h view.
+export const PATH_UNIT = 104;
 
 export const LANE_COUNT = 5;
 export const LANE_WIDTH = 1.86 / LANE_COUNT;

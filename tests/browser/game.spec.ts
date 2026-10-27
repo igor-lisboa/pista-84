@@ -134,6 +134,12 @@ test.describe('garage', () => {
     await page.reload();
     await page.locator('#garageNav').click();
 
+    await expect(page.locator('.car-card h3')).toHaveText([
+      'Fusca 76', 'Uno com Escada', 'CG 125', 'Brasília 80', 'Kombi 78', 'Chevette 82',
+      'Moto urbana', 'Palio 98', 'Gol Bolinha', 'Bruto 4×4', 'Opala SS', 'Maverick GT',
+      'Raio 1000', 'Veloce GT',
+    ]);
+
     const brasilia = page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Brasília 80' }) });
     await brasilia.getByRole('button').click();
     await expect(brasilia.getByRole('button')).toHaveText('SELECIONADO');
@@ -266,7 +272,12 @@ test('every vehicle has complete, distinct straight, mild and strong turn sprite
             }
           }
         }
-        return { id: car.id, pixels, clipped, drawCalls, rotations, width: right - left, height: bottom - top, signature: canvas.toDataURL() };
+        // Compare cropped artwork so a sideways translation cannot pass as a turning pose.
+        const crop = document.createElement('canvas');
+        crop.width = right - left + 1;
+        crop.height = bottom - top + 1;
+        crop.getContext('2d')!.drawImage(canvas, left, top, crop.width, crop.height, 0, 0, crop.width, crop.height);
+        return { id: car.id, pixels, clipped, drawCalls, rotations, width: right - left, height: bottom - top, signature: crop.toDataURL() };
       }),
     );
     return { reports, poses: [0, 0.1, 0.45, 0.8, -1].map(steeringPose) };
@@ -281,11 +292,43 @@ test('every vehicle has complete, distinct straight, mild and strong turn sprite
       expect(frame.drawCalls, id).toBe(1);
       expect(frame.rotations, id).toBe(0);
     }
-    // Atlas cars have authored turn poses; procedural cars lean through a pixel offset instead.
-    expect(new Set(frames.map((frame) => frame.signature)).size, id).toBeGreaterThanOrEqual(2);
+    // Every vehicle has separate authored straight, mild and hard turn artwork.
+    expect(new Set(frames.slice(0, 3).map((frame) => frame.signature)).size, id).toBe(3);
     expect(Math.abs(frames[2]!.width - frames[3]!.width), id).toBeLessThanOrEqual(2);
     expect(frames[2]!.height, id).toBe(frames[3]!.height);
   }
+});
+
+test('portrait, landscape and square preserve the complete gameplay camera on resize', async ({ page }) => {
+  await page.goto('/');
+  await loadHarness(page);
+  await page.evaluate(async () => {
+    await window.Pista.loadSprites();
+  });
+  const frames: string[] = [];
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 720 }, { width: 720, height: 720 }]) {
+    await page.setViewportSize(viewport);
+    const frame = await page.evaluate(() => {
+      const canvas = document.createElement('canvas');
+      canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:contain';
+      document.body.append(canvas);
+      const renderer = new window.Pista.Renderer(canvas);
+      const race = new window.Pista.Race(undefined, () => 0.25);
+      race.start();
+      race.speed = 150;
+      race.path = 700;
+      renderer.draw(race, 1);
+      renderer.resize();
+      renderer.draw(race, 1);
+      const report = { width: canvas.width, height: canvas.height, fit: getComputedStyle(canvas).objectFit, pixels: canvas.toDataURL() };
+      canvas.remove();
+      return report;
+    });
+    expect([frame.width, frame.height]).toEqual([960, 720]);
+    expect(frame.fit).toBe('contain');
+    frames.push(frame.pixels);
+  }
+  expect(new Set(frames).size).toBe(1);
 });
 
 test('an environment balance overrides stored and cloud balances while purchases still spend coins', async ({ browser }) => {
@@ -301,8 +344,8 @@ test('an environment balance overrides stored and cloud balances while purchases
   await page.reload();
   await expect(page.locator('#wallet')).toContainText('10.000');
   await page.locator('#garageNav').click();
-  await page.locator('.car-card').nth(1).getByRole('button').click();
-  await expect(page.locator('#wallet')).toContainText('9.820');
+  await page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Uno com Escada' }) }).getByRole('button').click();
+  await expect(page.locator('#wallet')).toContainText('9.880');
   await page.locator('#cloudRestore').click();
   await expect(page.locator('#wallet')).toContainText('10.000');
   await page.reload();

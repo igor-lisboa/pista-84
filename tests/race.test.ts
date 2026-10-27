@@ -21,6 +21,21 @@ import { car, fuelCan, quietRace, step, trafficCar } from './support/game.ts';
 const rightBendPath = (): number =>
   Array.from({ length: 1000 }, (_, i) => 420 + i * 20).find((d) => roadCurve(d, 0) > 55)!;
 
+test('highway speeds require corner correction and extreme speeds keep increasing the load', () => {
+  const drift = [60, 120, 150, 350].map((speed) => {
+    const race = quietRace(car('gt'));
+    race.speed = speed;
+    race.path = rightBendPath();
+    race.roadSeed = 0;
+    race.update(0.001);
+    return Math.abs(race.drift);
+  });
+  assert.ok(drift[1]! > drift[0]! * 3.9);
+  assert.ok(drift[2]! > drift[1]! * 1.5);
+  assert.ok(drift[3]! > drift[2]! * 3);
+  assert.ok(drift[1]! > 0.24, '120 km/h should require active correction on a strong bend');
+});
+
 test('start, acceleration, distance and fuel are simulated', () => {
   const race = quietRace();
   step(race, 2, { accelerate: true });
@@ -111,6 +126,27 @@ test('vehicles differ in acceleration and fuel consumption', () => {
   for (const race of [slow, fast]) step(race, 1, { accelerate: true });
   assert.ok(fast.speed > slow.speed);
   assert.ok(fast.fuel < slow.fuel);
+});
+
+test('every car slowly consumes fuel at rest according to its consumption rating, and pause stops it', () => {
+  for (const spec of CARS) {
+    const race = quietRace(spec);
+    for (let i = 0; i < 1200; i++) race.update(0.05);
+    const used = 100 - race.fuel;
+    assert.ok(used > 0 && used < 5, `${spec.id} should slowly use fuel at idle`);
+    assert.ok(Math.abs(used - spec.consumption * 2.4) < 1e-8, spec.id);
+    assert.equal(race.speed, 0);
+    assert.equal(race.distance, 0);
+    race.status = 'paused';
+    const fuel = race.fuel;
+    for (let i = 0; i < 100; i++) race.update(0.05);
+    assert.equal(race.fuel, fuel, spec.id);
+    race.status = 'running';
+    race.speed = 100;
+    const before = race.fuel;
+    race.update(0.05);
+    assert.ok(before - race.fuel > (used / 60) * 0.05 * 10, `${spec.id} uses far less fuel at idle than driving`);
+  }
 });
 
 test('the Veloce GT tops out at 350 km/h', () => {
