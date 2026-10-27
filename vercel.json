@@ -1,8 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "outputDirectory": "www",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "www" }
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",
