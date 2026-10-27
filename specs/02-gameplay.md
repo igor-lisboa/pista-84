@@ -74,7 +74,8 @@ Collision testing occurs when an unpassed entity crosses the player contact band
 
 - Standard vehicles retain **42%** of speed after an impact; the SUV retains **70%**.
 - Traffic and barrier impacts grant **1.3 s** of invulnerability. Further contacts during that interval do not compound the speed loss.
-- There is no cumulative health pool or fatal traffic collision. After a collision the player can accelerate again.
+- Touching traffic above **50 km/h** is a fatal crash: the run ends with a "Você bateu!" screen (second chance still available once). At or below 50 km/h it is an ordinary impact. Barrier impacts are never fatal.
+- Traffic changes lanes occasionally (into a clear gap, never just ahead of the player), follows the car ahead at a safe distance and never overlaps other traffic.
 - Stopping does not end a run. Fuel exhaustion ends it and offers the existing second chance.
 
 ## Second chance

@@ -13,7 +13,7 @@ Maximum speed is km/h; acceleration is the base coefficient for the tapered auto
 | `gol` | Gol Bolinha | box | 185 | 36 | 0.90 | 1.12 | 42% | 420 |
 | `palio` | Palio 98 | box | 180 | 34 | 0.82 | 1.08 | 42% | 350 |
 | `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 42% | 260 |
-| `gt` | Veloce GT | sport | 285 | 60 | 1.65 | 1.15 | 42% | 1200 |
+| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | 42% | 1200 |
 | `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 70% | 850 |
 | `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | 42% | 1500 |
 

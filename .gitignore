@@ -7,7 +7,7 @@ playwright-report/
 *.tar.gz
 .sites/
 www/
-worker/generated-assets.js
+worker/generated-assets.ts
 dist/
 android/.gradle/
 android/local.properties

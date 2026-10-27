@@ -1,15 +1,16 @@
-# PISTA 84 — direção de arte 1.3
+# PISTA 84 — direção de arte 1.4
 
 Referência: imagem enviada pelo usuário nesta conversa, usada como direção visual; não incluída como asset no jogo.
 
 ## Resultado integrado
 
-- Câmera de perseguição com horizonte a 25,5% da tela, veículos maiores, com teto e traseira visíveis.
+- Câmera de perseguição com horizonte a 27,5% da tela, veículos maiores, com teto e traseira visíveis.
 - Cidade em camadas, nuvens em clusters de pixels, coníferas com sombras e acostamento azul/branco.
-- Atlas transparente com oito veículos; renderização sem suavização e recortes por limites de alpha. As pinturas continuam funcionando por remapeamento de cor no runtime.
-- Sprites antigos permanecem como fallback se o PNG não puder carregar. O atlas final é `web/assets/vehicle-atlas-v1.png` e tem alpha real.
-- Skyline e árvores são código Canvas original, com cache para evitar redesenhar milhares de janelas por frame.
-- `docs/screenshots/reference-scene.png` é uma composição determinística feita pelo renderer real, com esportivo vermelho, esportivo amarelo, Fusca e hatch azul. Não é um mockup gerado.
+- Atlas transparente com oito veículos (`web/assets/vehicle-atlas-v1.png`) e folha de curvas com 16 poses (`vehicle-turns-v2.png`, veja [turn-sprites-v2.md](turn-sprites-v2.md)); renderização sem suavização e recortes por limites de alpha. As pinturas continuam funcionando por remapeamento de cor no runtime.
+- **Seis veículos novos sem arte de atlas** (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS e Maverick GT): usam sprites pixel art procedurais de 128×80 desenhados em Canvas por `src/render/sprites.ts` (Kombi bicolor com janela traseira dividida, Uno com escada no teto, Chevette com lanternas redondas, Opala com porta-malas longo, Maverick com faixa preta e três lanternas). Os mesmos sprites procedurais servem de fallback para os oito carros do atlas se o PNG não puder carregar. Arte autoral de atlas para esses seis veículos continua pendente (ART-01 no [roadmap](../specs/09-roadmap.md)).
+- Skyline e árvores são código Canvas original (`src/render/scenery.ts`), com cache para evitar redesenhar milhares de janelas por frame.
+- `docs/screenshots/reference-scene.png` é uma composição determinística feita pelo renderer real (`node scripts/reference-shot.ts`), com esportivo vermelho, esportivo amarelo, Fusca e hatch azul. Não é um mockup gerado.
+- **Interface 1.4 (pôr do sol arcade):** fundo roxo-escuro, amarelo-sol, rosa e ciano; fontes Bungee (títulos) e Chakra Petch (texto) via Google Fonts, com fallback de sistema; contornos duros, sombras deslocadas sem desfoque e uma faixa quadriculada no topo do menu. O HUD é só uma barra superior (velocidade à esquerda; distância, pontos e checkpoint no centro; combustível e pausa à direita). Os cantos inferiores ficam para os controles de toque.
 
 ## Proveniência e ferramenta
 

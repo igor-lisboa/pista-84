@@ -1,6 +1,6 @@
 # PISTA 84 — specifications moved
 
-The canonical game definitions are now in the workspace-root [specs folder](../specs/README.md).
+The canonical game definitions are in the repository-root [specs folder](../specs/README.md) (baseline application **1.4.0**).
 
 - [Gameplay rules](../specs/02-gameplay.md)
 - [Vehicles, paints and economy](../specs/03-vehicles-and-economy.md)

@@ -1,0 +1,100 @@
+import type { Messages } from '../types.ts';
+
+// European Portuguese: only the strings that differ from pt-BR.
+export const ptPT: Messages = {
+  'menu.remote': 'TELEMÓVEL COMO COMANDO',
+  'menu.tagline': 'A estrada não acaba aqui.',
+  'menu.kicker': 'LIGUE O MOTOR. ENCONTRE O SEU CAMINHO.',
+  'menu.yourCar': 'A SUA MÁQUINA',
+  'menu.settings': 'Definições',
+
+  'hud.canvas': 'Corrida em estrada com curvas',
+  'hud.brake': 'TRAVÃO',
+  'hud.accelerate': 'ACELERAR',
+  'hud.pause': 'Pausar corrida',
+  'hud.offroad': '⚠ FORA DA ESTRADA',
+
+  'over.crashKicker': 'NA ESTRADA NÃO HÁ SEGUNDAS OPORTUNIDADES',
+  'over.second': 'SEGUNDA OPORTUNIDADE GRATUITA',
+  'over.again': 'CORRER OUTRA VEZ',
+  'over.record': 'Recorde: {n} pts · quanto mais rápido cada km, mais pontos.',
+
+  'reason.fuel': 'Sem combustível! O trânsito apanhou-o.',
+  'reason.traffic': 'Bateu noutro carro a {speed} km/h!',
+  'reason.wall': 'Bateu na barreira a {speed} km/h!',
+
+  'over.crashTitle': 'BATEU!',
+
+  'set.label': 'À SUA MANEIRA',
+  'set.title': 'Definições',
+
+  'pause.options': 'DEFINIÇÕES',
+
+  'set.soundOn': '♪ Som ligado',
+  'set.fullscreen': '⛶ Ecrã inteiro',
+  'set.install': '↧ Instalar jogo',
+  'set.tiltOn': '⌁ Desativar direção por inclinação',
+  'set.tiltOff': '⌁ Ativar direção por inclinação',
+  'set.calibrate': '◎ Calibrar posição do volante',
+  'set.sensor': 'No telemóvel, os botões de direção funcionam sem permissão de sensores.',
+  'set.keys': '← → / A D · Direção<br>↑ / W · Acelerar<br>↓ / S / Espaço · Travão<br>P / Esc · Pausar<br><br>Mantenha o acelerador premido para ganhar velocidade. Solte para abrandar ou use o travão. Apanhe combustível e evite o trânsito: qualquer embate em carros ou barreiras termina a corrida. Sair da estrada faz a velocidade cair.',
+
+  'toast.storage': 'Progresso disponível apenas nesta sessão: armazenamento bloqueado.',
+  'toast.audio': 'Áudio indisponível neste navegador. A corrida continua normalmente.',
+  'toast.safari': 'No Safari, use Adicionar ao ecrã principal para jogar sem as barras.',
+  'toast.fullscreen': 'Jogue no ecrã atual ou adicione o jogo ao ecrã principal.',
+
+  'tilt.noSensor': 'Sensor indisponível. Use os botões de direção.',
+  'tilt.denied': 'Permissão de movimento recusada. Os botões continuam a funcionar.',
+  'tilt.silent': 'Sem sinal do sensor. Continue com os botões de direção.',
+  'tilt.hold': 'Segure numa posição confortável: será o centro do volante.',
+
+  'garage.cloudUp': 'Guardar progresso atual na nuvem ↑',
+  'garage.cloudDown': 'Repor progresso da nuvem ↓',
+  'garage.cloudNote': 'Cópia de segurança da sua conta. Repor substitui o progresso deste aparelho.',
+  'garage.export': 'Exportar progresso ↓',
+  'garage.import': 'Importar progresso ↑',
+  'garage.badFile': 'Ficheiro de progresso inválido.',
+  'garage.bigFile': 'Ficheiro demasiado grande.',
+  'garage.cloudNone': 'Nenhuma cópia guardada na sua conta.',
+  'garage.cloudRestored': 'Progresso da nuvem reposto.',
+  'garage.cloudSaved': 'Progresso guardado na sua conta.',
+  'garage.cloudFail': 'Não foi possível guardar.',
+  'garage.paintTitle': 'Uma cor para a sua história.',
+  'garage.inUse': 'EM USO',
+  'garage.apply': 'APLICAR',
+  'garage.cloudUnavailable': 'Cópia de segurança indisponível.',
+
+  'remote.title': 'Comando no telemóvel',
+  'remote.label': 'O ECRÃ É SEU. O VOLANTE TAMBÉM.',
+  'remote.help': 'No telemóvel, abra a ligação no Safari e entre com a mesma conta deste jogo privado. Depois, toque em “Iniciar corrida” no comando. Os botões funcionam sem sensor.',
+  'remote.connected': 'Telemóvel ligado. {detail}',
+  'remote.lost': 'Sinal interrompido. Mantenha o Safari aberto no telemóvel.',
+  'remote.scan': 'Leia com a câmara do telemóvel. Tem 10 minutos para ligar.',
+  'remote.open': 'Abrir comando neste aparelho ↗',
+  'remote.qrAlt': 'Código QR do comando',
+  'remote.preparing': 'A preparar o seu código QR…',
+  'remote.again': 'GERAR NOVO CÓDIGO QR',
+  'remote.native': 'Abra a versão web para ligar o comando.',
+
+  'ctl.title': 'COMANDO',
+  'ctl.connecting': 'A ligar ao seu ecrã…',
+  'ctl.note': 'Mantenha o Safari aberto. Se o telemóvel bloquear, a corrida pausa.',
+  'ctl.connected': 'Ligado. Boa viagem!',
+  'ctl.lost': 'Sinal interrompido. Verifique a ligação.',
+  'ctl.badLink': 'Ligação incompleta. Leia um novo código QR no ecrã principal.',
+
+  'tag.fusca': 'O clássico brasileiro',
+  'tag.gol': 'Pequeno. Valente. Nacional.',
+  'tag.suv': 'Força em cada quilómetro',
+
+  'paint.night': 'Preto grafite',
+
+  'toast.error': 'Erro: {m}',
+
+  'garage.premium': 'PREMIUM · DINHEIRO REAL',
+  'garage.storeUnavailable': 'As compras com dinheiro real ainda não estão disponíveis neste aparelho.',
+  'garage.balance': 'O seu saldo: {coins} · Cada 25 pontos de pontuação valem 1 moeda.',
+  'garage.disclaimer': 'Os carros comuns desbloqueiam-se com moedas ganhas pela pontuação. Os carros PREMIUM só podem ser comprados com dinheiro real.',
+  'fb.offroad': 'RELVA! VOLTE AO ASFALTO',
+};

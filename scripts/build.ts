@@ -1,0 +1,125 @@
+import {cp, mkdir, readdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {extname} from 'node:path';
+import {build} from 'esbuild';
+import {runtimeConfig} from './env.ts';
+
+interface GeneratedAsset {
+  body: string;
+  type: string;
+  binary: boolean;
+}
+
+const WEB_DIR = 'web';
+const WWW_DIR = 'www';
+const SERVER_OUT = 'dist/server/index.js';
+const GENERATED_ASSETS = 'worker/generated-assets.ts';
+const BROWSER_TARGET = 'es2019';
+
+const CONTENT_TYPES: Record<string, string> = {
+  html: 'text/html; charset=utf-8',
+  css: 'text/css; charset=utf-8',
+  js: 'text/javascript; charset=utf-8',
+  json: 'application/json',
+  map: 'application/json',
+  webmanifest: 'application/manifest+json',
+  svg: 'image/svg+xml',
+  png: 'image/png',
+};
+const BINARY_EXTENSIONS = new Set(['png']);
+
+/** Copies `web/` to `www/`, skipping TypeScript sources (they are bundled separately). */
+async function copyStaticFiles(): Promise<void> {
+  await rm(WWW_DIR, {recursive: true, force: true});
+  await cp(WEB_DIR, WWW_DIR, {
+    recursive: true,
+    filter: (source) => !source.endsWith('.ts'),
+  });
+}
+
+async function bundleClient(): Promise<void> {
+  await build({
+    entryPoints: ['src/app.ts'],
+    outfile: `${WWW_DIR}/app.js`,
+    bundle: true,
+    format: 'esm',
+    platform: 'browser',
+    target: BROWSER_TARGET,
+    minify: true,
+    sourcemap: true,
+  });
+}
+
+async function bundleServiceWorker(): Promise<void> {
+  await build({
+    entryPoints: [`${WEB_DIR}/sw.ts`],
+    outfile: `${WWW_DIR}/sw.js`,
+    bundle: true,
+    format: 'iife',
+    platform: 'browser',
+    target: BROWSER_TARGET,
+    minify: true,
+  });
+}
+
+async function writeRuntimeConfig(): Promise<void> {
+  await writeFile(`${WWW_DIR}/runtime-config.json`, JSON.stringify(runtimeConfig));
+}
+
+async function collectAssets(
+  dir: string,
+  prefix: string,
+  assets: Record<string, GeneratedAsset>,
+): Promise<void> {
+  for (const entry of await readdir(dir, {withFileTypes: true})) {
+    const path = `${dir}/${entry.name}`;
+    const publicPath = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) {
+      await collectAssets(path, publicPath, assets);
+      continue;
+    }
+    const extension = extname(entry.name).slice(1);
+    const binary = BINARY_EXTENSIONS.has(extension);
+    assets[publicPath] = {
+      body: await readFile(path, binary ? 'base64' : 'utf8'),
+      type: CONTENT_TYPES[extension] || 'text/plain',
+      binary,
+    };
+  }
+}
+
+async function generateWorkerAssets(): Promise<void> {
+  const assets: Record<string, GeneratedAsset> = {};
+  await collectAssets(WWW_DIR, '', assets);
+  const source =
+    'export const assets: Record<string, {body: string; type: string; binary: boolean}> = ' +
+    `${JSON.stringify(assets)};\n`;
+  await writeFile(GENERATED_ASSETS, source);
+}
+
+async function bundleWorker(): Promise<void> {
+  await build({
+    entryPoints: ['worker/index.ts'],
+    outfile: SERVER_OUT,
+    bundle: true,
+    format: 'esm',
+    platform: 'browser',
+    target: BROWSER_TARGET,
+    define: {__PISTA_CONFIG__: JSON.stringify(runtimeConfig)},
+    minify: true,
+  });
+}
+
+async function main(): Promise<void> {
+  await mkdir('dist/server', {recursive: true});
+  await mkdir('dist/.openai', {recursive: true});
+  await copyStaticFiles();
+  await bundleClient();
+  await bundleServiceWorker();
+  await writeRuntimeConfig();
+  await generateWorkerAssets();
+  await bundleWorker();
+  await cp('.openai/hosting.json', 'dist/.openai/hosting.json');
+  console.log('PISTA 84: web/native assets in www/; Worker in dist/server/index.js');
+}
+
+await main();
