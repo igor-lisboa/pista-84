@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: './tests/browser',
   timeout: 45_000,
   expect: {timeout: 10_000},
+  // Limit simultaneous emulated browsers so rendering load does not distort timed driving checks.
+  workers: 4,
   projects: [
     {name: 'chromium', use: {browserName: 'chromium'}},
     {name: 'webkit', use: {browserName: 'webkit'}},

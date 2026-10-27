@@ -19,6 +19,9 @@ body[data-view=menu] .vignette{background:linear-gradient(90deg,#160a30f2 0%,#16
 .kicker{font:700 11px var(--body);letter-spacing:3px;color:var(--cyan);text-transform:uppercase}
 .label{font:700 11px var(--body);color:var(--cyan);letter-spacing:3px;text-transform:uppercase}
 .gold{color:var(--sun)}
+.ui-icon{display:inline-block;width:24px;height:24px;flex:none;vertical-align:middle}
+[data-icon]{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.curve-arrow.turn-left{transform:scaleX(-1)}
 /* ---------- main menu ---------- */
 .main-menu{position:absolute;inset:0;padding:30px clamp(24px,7vw,120px);display:flex;flex-direction:column;pointer-events:none}
 .main-menu:before{content:'';position:absolute;left:0;right:0;top:0;height:14px;background:repeating-conic-gradient(var(--cream) 0 25%,var(--ink) 0 50%) 0 0/14px 14px}
@@ -53,27 +56,28 @@ body[data-view=menu] .vignette{background:linear-gradient(90deg,#160a30f2 0%,#16
 .keyboard-hint{font-size:10px;letter-spacing:2px}
 /* ---------- race HUD: top bar only; the bottom corners belong to the touch controls ---------- */
 .race-ui{position:absolute;inset:0;pointer-events:none;touch-action:none}
-.hud{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:12px}
+.hud{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:grid;grid-template-columns:196px minmax(0,1fr) 196px;align-items:start;gap:12px;font-variant-numeric:tabular-nums}
 .hud strong{display:block;font-family:var(--display);font-weight:400}
 .hud em{font:700 11px var(--body);font-style:normal;color:var(--cyan);letter-spacing:1px}
-.hud-speed{padding:6px 14px 8px;min-width:150px;text-align:right}
+.hud-speed{padding:6px 14px 8px;min-width:0;height:88px;text-align:right;display:grid;align-content:center}
 .hud-speed em{text-shadow:none}
-.hud-speed strong{font-size:38px;line-height:1;color:var(--sun);text-shadow:3px 3px 0 var(--hot-d)}
-.hud-trip{justify-self:center;padding:6px 14px 8px;min-width:190px;text-align:center}
+.hud-speed strong{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:6px;white-space:nowrap;font-size:38px;line-height:1;color:var(--sun);text-shadow:3px 3px 0 var(--hot-d)}
+.hud-trip{justify-self:center;padding:4px 14px;min-width:0;width:260px;max-width:100%;height:88px;text-align:center;overflow:hidden}
 .hud-trip strong{font-size:22px;line-height:1.1}
-.trip-score{display:block;font:700 13px var(--body);letter-spacing:1px;color:var(--sun);margin-top:2px}
-.goal{position:relative;height:8px;margin-top:6px;background:#000a;border:2px solid var(--cream)}
+.trip-score{display:block;font:700 13px/18px var(--body);font-variant-numeric:tabular-nums;letter-spacing:.3px;color:var(--sun);margin-top:2px;height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud-trip strong{white-space:nowrap}
+.goal{position:relative;height:6px;margin-top:4px;background:#000a;border:2px solid var(--cream)}
 .goal i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--sun) 0 6px,var(--hot) 6px 12px)}
 .goal b{position:absolute;top:-6px;width:3px;height:16px;background:var(--cyan);display:none}
-.goal-label{display:block;margin-top:4px;font:700 10px var(--body);letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
-.hud-side{display:flex;gap:10px;align-items:flex-start}
-.fuel{padding:6px 10px 8px;width:128px}
+.goal-label{display:block;margin-top:4px;font:700 10px/12px var(--body);height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.hud-side{display:flex;gap:10px;align-items:stretch;justify-content:flex-end;min-width:0}
+.fuel{padding:6px 10px 8px;width:128px;height:88px;display:grid;align-content:center}
 .fuel small{display:flex;justify-content:space-between;font:700 12px var(--body)}
 .fuel-track{margin-top:5px;height:12px;border:2px solid var(--cream);background:#000a;padding:1px}
 .fuel-track i{display:block;width:100%;height:100%;background:repeating-linear-gradient(90deg,currentColor 0 7px,#0000 7px 9px)}
-.pause-button{pointer-events:auto;width:48px;height:48px;border:3px solid var(--cream);background:var(--ink2);box-shadow:3px 3px 0 #000b;font-size:20px;font-family:var(--display)}
+.pause-button{pointer-events:auto;flex:none;display:grid;place-items:center;width:48px;height:88px;border:3px solid var(--cream);background:var(--ink2);box-shadow:3px 3px 0 #000b;font-size:20px;font-family:var(--display)}
 .pause-button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000b}
-.curve-hint{position:absolute;left:max(18px,env(safe-area-inset-left));top:104px;background:#160a30d9;border:3px solid var(--cream);box-shadow:4px 4px 0 #000b;padding:4px 12px;display:grid;justify-items:center}
+.curve-hint{position:absolute;left:max(18px,env(safe-area-inset-left));top:116px;background:#160a30d9;border:3px solid var(--cream);box-shadow:4px 4px 0 #000b;padding:4px 12px;display:grid;justify-items:center}
 .curve-hint span{font-size:34px;color:var(--sun);line-height:1}
 .curve-hint small{font:700 10px var(--body);letter-spacing:2px}
 .curve-hint.sharp{border-color:var(--hot);color:var(--hot);animation:pulse .4s infinite alternate}
@@ -91,10 +95,10 @@ body[data-tilt=on] .steering{display:none}
 .pedals button[data-control=accelerate]{background:var(--sun);color:var(--ink);border-color:var(--ink);outline:3px solid var(--cream);outline-offset:-3px}
 .pedals button[data-control=accelerate].pressed{background:#ffe27a}
 /* ---------- overlays, feedback, toast ---------- */
-.feedback{position:absolute;left:50%;top:24%;transform:translateX(-50%);pointer-events:none;color:var(--sun);font:400 20px var(--display);text-shadow:3px 3px 0 var(--ink);opacity:0;transition:opacity .15s;white-space:nowrap}
+.feedback{position:absolute;left:50%;top:24%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);text-align:center;pointer-events:none;color:var(--sun);font:400 20px var(--display);text-shadow:3px 3px 0 var(--ink);opacity:0;transition:opacity .15s}
 .feedback.show{opacity:1}
-.overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;align-items:safe center;padding:20px;background:#160a30d9;overflow-y:auto;overscroll-behavior:contain}
-.overlay-card{width:380px;max-width:100%;text-align:center;background:var(--ink2);border:4px solid var(--cream);box-shadow:8px 8px 0 #000b;padding:26px 24px 20px}
+.overlay{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:#160a30d9;overflow-y:auto;overscroll-behavior:contain}
+.overlay-card{flex:none;width:380px;max-width:100%;min-width:0;margin-block:auto;text-align:center;background:var(--ink2);border:4px solid var(--cream);box-shadow:5px 5px 0 #000b;padding:26px 24px 20px;overflow-wrap:anywhere}
 .overlay .kicker{display:block}
 .overlay h2{font:400 48px/1 var(--display);margin:14px 0;color:var(--sun);text-shadow:4px 4px 0 var(--hot-d)}
 .overlay p{font-size:14px;line-height:1.5;color:var(--cream);margin:8px 0}
@@ -107,34 +111,43 @@ body[data-tilt=on] .steering{display:none}
 .result-conversion{padding:10px 8px;border-block:2px solid var(--line);overflow-wrap:anywhere}
 .result-conversion strong{display:block;color:var(--sun);font:700 16px var(--body)}
 .result-conversion small{display:block;margin-top:4px;color:var(--muted);font:600 12px/1.4 var(--body)}
+.coin-packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}
+.coin-pack{display:grid;gap:12px;padding:20px;border:3px solid var(--cream);background:var(--ink2);text-align:center}
+.coin-pack strong{font:400 24px var(--display);color:var(--sun)}
+.coin-pack span{font-size:20px}.shop-status{border-left:4px solid var(--sun);padding-left:12px}
 .crash .overlay-card{border-color:var(--hot)}
 .crash h2{color:var(--hot);text-shadow:4px 4px 0 var(--ink)}
-#toast{position:fixed;bottom:max(25px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:25;background:var(--sun);color:var(--ink);border:3px solid var(--ink);max-width:90%;padding:12px 18px;font:700 13px var(--body);display:none;text-align:center;box-shadow:4px 4px 0 #000b}
+#toast{position:fixed;bottom:max(25px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:25;background:var(--sun);color:var(--ink);border:3px solid var(--ink);width:max-content;max-width:calc(100% - 32px);padding:12px 18px;font:700 13px var(--body);display:none;text-align:center;box-shadow:4px 4px 0 #000b}
 /* ---------- dialogs: garage, options, phone controller ---------- */
-dialog{background:var(--ink);color:var(--text);border:4px solid var(--cream);box-shadow:10px 10px 0 #000b;border-radius:0;padding:30px;width:min(920px,calc(100% - 30px));max-height:calc(var(--app-height,100dvh) - 35px);overflow:auto;overscroll-behavior:contain}
+dialog{position:fixed;inset:0;margin:auto;background:var(--ink);color:var(--text);border:4px solid var(--cream);box-shadow:5px 5px 0 #000b;border-radius:0;padding:30px;width:min(920px,calc(100% - 32px));max-width:calc(100% - 32px);max-height:calc(var(--app-height,100dvh) - 32px);min-width:0;overflow:auto;overscroll-behavior:contain}
+#modalBody{min-width:0}#modalBody>h1,#modalBody>.label{padding-right:44px;overflow-wrap:anywhere}
 dialog::backdrop{background:#0d0620d9}
 .close{position:absolute;right:12px;top:10px;width:42px;height:42px;font:400 24px var(--display);color:var(--cream);background:var(--hot);border:3px solid var(--ink);box-shadow:3px 3px 0 #000b}
 dialog h1{font:400 44px/1 var(--display);margin:8px 0 14px;color:var(--cream);text-shadow:3px 3px 0 var(--hot)}
 dialog h1 span{color:var(--sun)}
 dialog h3{font:400 18px var(--display);margin:8px 0}
 dialog p{font-size:14px;color:var(--muted);line-height:1.55}
-.garage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
-.car-card{border:3px solid var(--line);background:var(--panel);padding:12px;box-shadow:4px 4px 0 #000a}
+.garage-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:14px;margin:20px 0}
+.car-card{display:flex;flex-direction:column;min-width:0;border:3px solid var(--line);background:var(--panel);padding:12px;box-shadow:4px 4px 0 #000a}
+.car-card>div{display:flex;flex-direction:column;flex:1;min-width:0}
 .car-card.active{border-color:var(--sun)}
-.car-card canvas{width:100%;height:85px;object-fit:contain;image-rendering:pixelated}
-.car-card h3{font-size:15px}
-.car-card p{font-size:12px;min-height:38px;margin:4px 0 8px}
-.car-card dl{font-size:12px;line-height:1.9;margin:0 0 10px}
-.car-card dl>div{display:flex;align-items:baseline;justify-content:space-between;gap:7px}
+.car-card canvas{flex:none;width:100%;height:85px;object-fit:contain;image-rendering:pixelated}
+.car-card h3{font-size:15px;line-height:1.3;height:2.6em;flex:none;margin:8px 0;overflow-wrap:anywhere;overflow:hidden}
+.car-card p{font-size:12px;height:4.65em;flex:none;line-height:1.55;overflow:hidden;margin:4px 0 8px}
+.car-card dl{font-size:12px;line-height:1.9;margin:0 0 8px;font-variant-numeric:tabular-nums}
+.car-card dl>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:7px}
 .car-card dt{color:var(--muted)}
-.car-card dd{margin:0;color:var(--sun);font-weight:700}
-.car-card button{width:100%;padding:11px 3px;background:var(--sun);color:var(--ink);font:400 12px var(--display);border:3px solid var(--ink);box-shadow:0 4px 0 var(--sun-d);outline:2px solid var(--cream);outline-offset:-5px}
-.car-card button:disabled{background:var(--ink3);color:var(--muted);box-shadow:none;outline:0}
+.car-card dd{margin:0;color:var(--sun);font-weight:700;white-space:nowrap;text-align:right}
+.car-badge{min-height:30px;font:700 10px/1.4 var(--body);color:var(--cyan);margin-top:auto;overflow-wrap:anywhere}
+.car-card button{display:flex;justify-content:center;align-items:center;flex:none;width:100%;height:72px;padding:8px 4px;text-align:center;overflow-wrap:anywhere;background:var(--sun);color:var(--ink);font:400 11px/1.4 var(--display);border:3px solid var(--ink);box-shadow:0 4px 0 var(--sun-d);outline:2px solid var(--cream);outline-offset:-5px}
+.car-card button:disabled{opacity:1;background:var(--ink3);color:var(--muted);box-shadow:none;outline:0}
 .paint-shop{border-top:3px dashed var(--line);margin-top:20px;padding-top:15px}
-#paints{display:flex;flex-wrap:wrap;gap:10px}
-.paint-option{border:3px solid var(--line);background:var(--panel);padding:10px 12px;display:flex;gap:10px;align-items:center;text-align:left;font-size:13px}
+#paints{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.paint-option{min-width:0;min-height:76px;width:100%;border:3px solid var(--line);background:var(--panel);padding:10px;display:flex;gap:10px;align-items:center;text-align:left;font-size:13px}
 .paint-option.active{border-color:var(--sun)}
-.paint-option i{width:22px;height:28px;border:2px solid var(--cream)}
+.paint-option:disabled{opacity:1;color:var(--muted);cursor:default}
+.paint-option i{flex:none;width:22px;height:28px;border:2px solid var(--cream)}
+.paint-option>span{min-width:0;overflow-wrap:anywhere}
 .paint-option small{display:block;font-size:10px;margin-top:3px;color:var(--sun);letter-spacing:1px}
 .backup-tools{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .backup-tools button,.backup-tools label{border:3px solid var(--line);background:var(--panel);padding:10px 14px;font-weight:700;cursor:pointer}
@@ -186,16 +199,17 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .kicker{font-size:9px;letter-spacing:1.5px}.tagline{font-size:13px;margin-top:16px}
  .menu-actions{gap:10px}.menu-button{font-size:12px;padding:13px 15px}.primary{font-size:19px;min-height:56px}
  .selected-car canvas{width:90px;height:55px}.menu-bottom{font-size:10px;gap:15px}
- .hud{left:12px;right:12px;top:max(12px,env(safe-area-inset-top));gap:8px}
- .hud-speed{min-width:0;padding:4px 10px 6px}.hud-speed strong{font-size:27px}
- .hud-trip{min-width:0;padding:4px 8px 6px}.hud-trip strong{font-size:16px}.trip-score{font-size:11px}.goal-label{display:none}
- .fuel{width:84px;padding:4px 7px 6px}.fuel small{font-size:11px}
- .pause-button{width:42px;height:42px}
+ .hud{left:12px;right:12px;top:max(12px,env(safe-area-inset-top));gap:6px;grid-template-columns:108px minmax(0,1fr) 108px}
+ .hud-speed{padding:4px 6px;height:72px}.hud-speed strong{font-size:24px;gap:4px}.hud em{font-size:9px;letter-spacing:0}
+ .hud-trip{width:100%;padding:4px 6px;height:72px}.hud-trip strong{font-size:15px}.trip-score{font-size:10px}.goal-label{display:none}
+ .hud-side{gap:6px}.fuel{width:66px;padding:4px 6px;height:72px}.fuel small{font-size:10px;align-items:center}.fuel .ui-icon{width:14px;height:14px}
+ .pause-button{width:36px;height:72px}.pause-button .ui-icon{width:20px;height:20px}
  .touch-controls{left:14px;right:14px;gap:10px;bottom:max(20px,env(safe-area-inset-bottom))}
  .steering,.pedals{gap:9px}.steering button{width:72px;height:72px;font-size:40px}
  .pedals button{width:86px;height:112px;font-size:11px}.pedals button[data-control=brake]{height:84px}
- .curve-hint{left:12px;top:84px;padding:3px 9px}.curve-hint span{font-size:28px}
- .garage-grid{grid-template-columns:repeat(2,1fr)}
+ .curve-hint{left:12px;top:96px;padding:3px 9px}.curve-hint span{font-size:28px}
+ .garage-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.car-card{padding:8px}.car-card h3{font-size:13px}.car-card dl{font-size:11px}.car-card button{font-size:10px}
+ #paints{grid-template-columns:repeat(2,minmax(0,1fr))}.paint-option{font-size:12px}
  dialog{padding:24px 14px}dialog h1{font-size:34px}
  .overlay h2{font-size:38px}.feedback{font-size:15px}
  #toast{width:calc(100% - 45px);max-width:400px}
@@ -220,9 +234,9 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .hud-speed{grid-column:1;grid-row:1;width:100%}
  .hud-trip{grid-column:1;grid-row:2;width:100%;min-width:0;overflow-wrap:anywhere}
  .hud-side{grid-column:3;grid-row:1 / span 2;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0}
- .hud-speed{padding:2px 10px 4px;min-width:0}.hud-speed strong{font-size:22px}
- .hud-trip{padding:2px 10px 4px}.hud-trip strong{font-size:15px}.trip-score{font-size:10px}.goal{margin-top:3px;height:6px}.goal-label{display:none}
- .fuel{width:96px;padding:2px 8px 4px}.pause-button{width:36px;height:36px}
+ .hud-speed{padding:2px 10px 4px;min-width:0;height:36px}.hud-speed strong{font-size:22px}
+ .hud-trip{padding:2px 10px 4px;height:50px}.hud-trip strong{font-size:15px}.trip-score{font-size:10px;height:14px;line-height:14px}.goal{margin-top:3px;height:6px}.goal-label{display:none}
+ .fuel{width:96px;height:44px;padding:2px 8px 4px}.pause-button{width:36px;height:44px}
  .hud em{font-size:9px}
 }
 @media(max-height:690px) and (orientation:portrait){
@@ -231,3 +245,18 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .selected-car canvas{height:45px}.tagline{margin-top:10px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(max-width:360px) and (orientation:portrait){
+ .hud{grid-template-columns:100px minmax(0,1fr) 100px}.hud-speed strong{font-size:22px}.hud-trip strong{font-size:13px}
+ .trip-score{white-space:normal;height:24px;line-height:12px}
+ .hud-side{gap:6px}.fuel{width:60px}.pause-button{width:34px}
+}
+/* Preserve physical driving positions when interface text reads right to left. */
+.hud,.touch-controls,.controller-pedals,.controller-toolbar{direction:ltr}
+html[dir=rtl] .close{right:auto;left:12px}
+html[dir=rtl] #modalBody>h1,html[dir=rtl] #modalBody>.label{padding-right:0;padding-left:44px}
+html[dir=rtl] .car-card dd{direction:ltr;text-align:left}
+html:lang(hi),html:lang(bn),html:lang(ur),html:lang(am),html:lang(zh){
+ --body:'Noto Sans','Nirmala UI','Nyala','Microsoft YaHei','Hiragino Sans','Segoe UI',system-ui,sans-serif;
+ --display:var(--body);
+}
+html:lang(hi) .logo,html:lang(bn) .logo,html:lang(ur) .logo,html:lang(am) .logo,html:lang(zh) .logo{font-family:'Bungee','Impact',sans-serif}

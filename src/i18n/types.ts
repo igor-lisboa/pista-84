@@ -6,6 +6,7 @@ export type MessageKey = keyof typeof ptBR;
 /** A locale may translate only some keys; missing ones fall back to pt-BR. */
 export type Messages = Partial<Record<MessageKey, string>>;
 
-export type Lang = 'pt-BR' | 'en' | 'pt-PT' | 'fr' | 'it' | 'ja' | 'de';
+export type Lang = 'pt-BR' | 'en' | 'pt-PT' | 'fr' | 'it' | 'ja' | 'de'
+  | 'es' | 'hi' | 'zh-CN' | 'id' | 'ur' | 'bn' | 'ru' | 'am';
 
 export type MessageVars = Readonly<Record<string, string | number>>;

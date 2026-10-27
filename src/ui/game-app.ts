@@ -18,6 +18,7 @@ import { byId, formatInteger, formatKm } from './dom.ts';
 import { Garage } from './garage.ts';
 import { Hud } from './hud.ts';
 import { InputController } from './input.ts';
+import { applyIcons } from './icons.ts';
 import { Notifications } from './notifications.ts';
 import { showGameOver, showPause } from './overlays.ts';
 import { RemoteDialog, type RemoteHost } from './remote-dialog.ts';
@@ -98,13 +99,18 @@ export class GameApp implements RemoteHost {
       notify: this.notifications,
       persist: () => this.persist(),
       changeLanguage: (lang) => this.changeLanguage(lang),
-      installPrompt: () => this.installPrompt,
+      installPrompt: () => {
+        const prompt = this.installPrompt;
+        this.installPrompt = null;
+        return prompt;
+      },
     });
     this.remoteDialog = new RemoteDialog(this);
   }
 
   /** Wires the DOM, starts the frame loop and the service worker. */
   mount(): void {
+    applyIcons();
     applyStatic();
     this.refresh();
     this.input.bindButtons();
@@ -116,6 +122,10 @@ export class GameApp implements RemoteHost {
 
     byId('start').onclick = () => this.start();
     byId('garageNav').onclick = () => this.openGarage();
+    byId('coinsNav').onclick = () => {
+      this.openModal();
+      this.garage.renderCoinShop();
+    };
     byId('garageOpen').onclick = () => this.openGarage();
     byId('settingsNav').onclick = () => this.openSettings();
     byId('remoteNav').onclick = () => void this.remoteDialog.open();
@@ -225,7 +235,8 @@ export class GameApp implements RemoteHost {
       restart: () => this.start(),
       toMenu: () => this.backToMenu(),
       secondChance: () => {
-        if (!this.race.resume()) return;
+        if (!this.race.resume(this.save)) return;
+        this.persist();
         this.previousStatus = 'running';
         this.input.clear();
         this.setView('race');
@@ -265,7 +276,7 @@ export class GameApp implements RemoteHost {
 
     this.renderer.draw(race, this.clock, drive);
     this.audio.setMusic(race.status === 'running' ? 'race' : 'menu');
-    this.audio.update(race, drive.brake === true);
+    this.audio.update(race, drive.brake === true, drive.accelerate === true);
     this.hud.update(race, this.bestDistanceAtStart, now);
   }
 
@@ -331,7 +342,7 @@ export class GameApp implements RemoteHost {
 
   private refresh(): void {
     byId('best').textContent = `${formatKm(this.save.best)} km`;
-    byId('wallet').textContent = `◈ ${formatInteger(this.save.coins)}`;
+    byId('wallet').textContent = t('coins.amount', { n: formatInteger(this.save.coins) });
     byId('carName').textContent = this.race.car.name.toUpperCase();
     this.paintFeaturedCar();
   }
@@ -381,6 +392,7 @@ export class GameApp implements RemoteHost {
   }
 
   private bindWindowEvents(): void {
+    window.addEventListener('appinstalled', () => { this.installPrompt = null; });
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       this.installPrompt = event as Event & InstallPrompt;

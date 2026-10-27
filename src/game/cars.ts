@@ -58,6 +58,18 @@ export const PAINTS: readonly Paint[] = [
   { id: 'cherry', color: '#e87582', price: 60 },
   { id: 'cream', color: '#e7dbb0', price: 60 },
   { id: 'night', color: '#75818c', price: 90 },
+  { id: 'scarlet', color: '#c82c3c', price: 90 },
+  { id: 'royal', color: '#2852b8', price: 90 },
+  { id: 'forest', color: '#267052', price: 90 },
+  { id: 'sunflower', color: '#efbd32', price: 90 },
+  { id: 'tangerine', color: '#e77728', price: 90 },
+  { id: 'violet', color: '#8545b8', price: 90 },
+  { id: 'white', color: '#f1f0e8', price: 120 },
+  { id: 'black', color: '#202431', price: 120 },
+  { id: 'silver', color: '#b3bcc5', price: 120 },
+  { id: 'turquoise', color: '#25aaa1', price: 90 },
+  { id: 'rose', color: '#d94e94', price: 90 },
+  { id: 'wine', color: '#772c46', price: 120 },
 ];
 
 export const DEFAULT_CAR_ID = 'fusca';

@@ -1,7 +1,8 @@
 import type { EndReason, Race, SaveData } from '../game/index.ts';
-import { POINTS_PER_COIN } from '../game/index.ts';
+import { POINTS_PER_COIN, SECOND_CHANCE_PRICE } from '../game/index.ts';
 import { t, type MessageKey } from '../i18n/index.ts';
 import { byId, formatInteger, formatKm } from './dom.ts';
+import { icon } from './icons.ts';
 
 export interface PauseActions {
   resume(): void;
@@ -33,7 +34,7 @@ export function showPause(actions: PauseActions): void {
     <div class="overlay-card">
       <span class="kicker">${t('pause.kicker')}</span>
       <h2>${t('pause.title')}</h2>
-      <button id="resume" class="primary"><span>${t('pause.resume')}</span><b>▶</b></button>
+      <button id="resume" class="primary"><span>${t('pause.resume')}</span>${icon('play')}</button>
       <div class="overlay-actions">
         <button id="pauseSettings" class="secondary">${t('pause.options')}</button>
         <button id="toMenu" class="secondary">${t('pause.menu')}</button>
@@ -57,15 +58,16 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
       <div class="result-stats">
         <span>${formatInteger(race.score)} ${t('hud.pts')}</span>
         <span>${formatKm(race.distance)} km</span>
-        <span>◈ ${race.coins}</span>
+        <span>${t('coins.amount', { n: formatInteger(race.coins) })}</span>
       </div>
       <div class="result-conversion">
         <strong>${t('over.coinConversion', { score: formatInteger(race.score), coins: formatInteger(race.coins) })}</strong>
         <small>${t('over.coinRate', { points: POINTS_PER_COIN })}</small>
       </div>
       <p>${t('over.record', { n: formatInteger(save.bestScore) })}</p>
-      <button id="restart" class="primary"><span>${t('over.again')}</span><b>▶</b></button>
-      ${race.continued ? '' : `<button id="continue" class="secondary">${t('over.second')}</button>`}
+      <button id="restart" class="primary"><span>${t('over.again')}</span>${icon('play')}</button>
+      ${race.continued ? '' : `<button id="continue" class="secondary" ${save.coins < SECOND_CHANCE_PRICE ? 'disabled' : ''}>${t('over.second', { price: formatInteger(SECOND_CHANCE_PRICE) })}</button>
+        <p class="second-chance-balance">${t('over.secondBalance', { coins: formatInteger(save.coins) })}</p>`}
       <button id="toMenu" class="secondary">${t('over.menu')}</button>
     </div>`,
     crashed,

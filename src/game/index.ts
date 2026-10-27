@@ -7,3 +7,4 @@ export * from './road.ts';
 export * from './save.ts';
 export * from './scoring.ts';
 export * from './traffic.ts';
+export * from './vehicle-tuning.ts';

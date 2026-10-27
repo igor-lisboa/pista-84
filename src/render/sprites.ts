@@ -1,6 +1,7 @@
 import { shade } from './color.ts';
 import { paintProceduralCar } from './procedural-cars.ts';
 import type { CarLook } from '../game/index.ts';
+import { vehicleTuning } from '../game/vehicle-tuning.ts';
 
 // Rear-view pixel sprites. Authored atlas tiles are used when loaded; every vehicle also has a
 // procedural fallback drawn once to a transparent 128 x 80 canvas and cached.
@@ -165,16 +166,14 @@ export interface SpriteDimensions {
 }
 
 function sizeFactor(car: CarLook): number {
-  if (car.shape === 'bike') return 0.6;
-  if (car.shape === 'sport') return 1.12;
-  return 1;
+  return vehicleTuning(car).width;
 }
 
 /** Logical size of a car sprite in sprite pixels; ids without an atlas tile use the procedural size. */
 export function spriteDimensions(car: CarLook): SpriteDimensions {
   const tile = atlasTiles.get(car.id);
-  if (!tile) return { width: SPRITE_WIDTH, height: SPRITE_HEIGHT };
   const factor = sizeFactor(car);
+  if (!tile) return { width: 112 * factor, height: 112 * factor * SPRITE_HEIGHT / SPRITE_WIDTH };
   return { width: 112 * factor, height: (112 * factor * tile.height) / tile.width };
 }
 
@@ -338,7 +337,12 @@ function recolorTile(original: HTMLCanvasElement, car: CarLook): HTMLCanvasEleme
       && !(y > 0.59 && x > 0.28 && x < 0.72);
     const paintable = whiteBody || (diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
     if (!paintable) continue;
-    const rgb = hslToRgb(target[0], target[1] * 0.85 + 0.1, l);
+    // Dark and neutral paints must change brightness too, while retaining panel shading.
+    const lightness = target[2] < 0.35 ? l * target[2] / 0.5
+      : target[2] > 0.75 ? l + (target[2] - 0.5) * (1 - l)
+      : l * (0.7 + target[2] * 0.6);
+    const saturation = target[1] < 0.08 ? target[1] : target[1] * 0.85 + 0.1;
+    const rgb = hslToRgb(target[0], saturation, lightness);
     p[i] = rgb[0];
     p[i + 1] = rgb[1];
     p[i + 2] = rgb[2];
@@ -649,7 +653,7 @@ export function drawCar(ctx: Ctx, x: number, y: number, scale: number, car: CarL
   // The procedural art remains a fallback if the authored assets are unavailable.
   const image = tile || sprite(car, brake, Math.sign(turn) * pose);
   const leaning = !!tile && pose > 0;
-  const dimensions = atlasLoaded ? spriteDimensions(car) : { width: SPRITE_WIDTH, height: SPRITE_HEIGHT };
+  const dimensions = spriteDimensions(car);
   const height = dimensions.height * scale * (leaning ? 0.96 : 1);
   const width = (height * image.width) / image.height;
   ctx.save();

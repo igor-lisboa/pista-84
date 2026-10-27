@@ -249,7 +249,6 @@ export class Renderer {
     this.paintGuardRail(frame);
     this.paintDistanceFog(frame);
     this.paintGroundObjects(frame);
-    this.paintPlayer(frame);
     this.paintWeather(frame);
     this.paintSpeedStreaks(frame);
     c.restore();
@@ -546,7 +545,11 @@ export class Renderer {
 
   /** Everything standing on the ground shares one depth list so it overlaps correctly. */
   private paintGroundObjects(f: FrameContext): void {
-    const drawables = [...this.sceneryDrawables(f), ...this.vehicleDrawables(f)];
+    const drawables = [
+      ...this.sceneryDrawables(f),
+      ...this.vehicleDrawables(f),
+      { t: PLAYER_T, draw: () => this.paintPlayer(f) },
+    ];
     drawables.sort((a, b) => a.t - b.t);
     for (const drawable of drawables) drawable.draw();
   }
@@ -711,14 +714,17 @@ export class Renderer {
 
   private paintFog(f: FrameContext): void {
     const c = this.ctx;
-    const { w, h, horizon, roadH, env } = f;
+    const { w, h, horizon, env } = f;
     c.globalAlpha = env.fog;
-    const fog = c.createLinearGradient(0, horizon, 0, h);
-    fog.addColorStop(0, '#bdc9dbdc');
-    fog.addColorStop(0.5, '#b8c7d570');
-    fog.addColorStop(1, '#a0b7cf00');
+    const tint = blendColor('#bdc9db', '#617393', env.night);
+    const fog = c.createLinearGradient(0, 0, 0, h);
+    fog.addColorStop(0, `${tint}65`);
+    fog.addColorStop(Math.max(0.01, (horizon - 55) / h), `${tint}d0`);
+    fog.addColorStop(horizon / h, `${tint}ed`);
+    fog.addColorStop(0.64, `${tint}70`);
+    fog.addColorStop(1, `${tint}00`);
     c.fillStyle = fog;
-    c.fillRect(0, horizon, w, roadH);
+    c.fillRect(0, 0, w, h);
     c.globalAlpha = 1;
   }
 

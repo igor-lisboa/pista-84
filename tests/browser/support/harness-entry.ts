@@ -4,3 +4,5 @@ export { Renderer } from '../../../src/render/renderer.ts';
 export { drawCar, loadSprites, spriteDimensions, spritesReady, steeringPose } from '../../../src/render/sprites.ts';
 export { AudioEngine } from '../../../src/audio/audio.ts';
 export { showGameOver } from '../../../src/ui/overlays.ts';
+export { paintCarPreview } from '../../../src/ui/car-art.ts';
+export { Hud } from '../../../src/ui/hud.ts';

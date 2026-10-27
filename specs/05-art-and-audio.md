@@ -48,7 +48,7 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking combines louder band-pass noise with a triangle-wave tyre squeal. The noise centre follows the vehicle brake base plus speed times 1.5; squeal pitch follows brake base times 1.35 plus speed times 2, with slight pitch movement. Both respond in 25 ms, fade with speed below 25 km/h, and stop below 2 km/h, on release or pause. The sound toggle controls the full mix. Engine level follows the running state.
+Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking combines broad, lower-pitched friction noise with a quiet per-model tonal layer. The GT has no tonal squeal and a 680 Hz brake filter base. Envelopes respond in 60 ms and fade as the car stops. Music bus gain is 0.07 in menus and 0.0455 in races (previously 0.32); engine gain/filter open further while accelerating. The sound toggle controls the full mix.
 
 | Vehicle ID | Engine base Hz | Speed ratio | Waveform | Filter base Hz | Brake base Hz |
 | --- | ---: | ---: | --- | ---: | ---: |
@@ -57,9 +57,9 @@ Each of the **14** vehicles has its own engine base frequency, speed ratio, osci
 | gol | 54 | 0.80 | sawtooth | 720 | 1100 |
 | palio | 50 | 0.76 | triangle | 800 | 1000 |
 | moto | 95 | 1.40 | square | 1100 | 1500 |
-| gt | 27 | 1.10 | sawtooth | 1300 | 2200 |
+| gt | 27 | 1.10 | sawtooth | 1300 | 680 |
 | suv | 22 | 0.50 | sawtooth | 320 | 520 |
-| superbike | 125 | 1.80 | square | 1800 | 2500 |
+| superbike | 125 | 1.80 | square | 1800 | 1000 |
 | kombi | 33 | 0.55 | triangle | 420 | 600 |
 | uno | 58 | 0.85 | sawtooth | 760 | 1050 |
 | chevette | 48 | 0.78 | sawtooth | 700 | 950 |
@@ -81,3 +81,5 @@ Music is procedural: a lookahead scheduler (`src/audio/music.ts`) walks a 16-ste
 The menu loop plays whenever the race is not running; each time race music starts it picks one of the three race tracks at random and never the same one as the previous pick. Because pausing switches to the menu loop, resuming after a pause starts a different race track. Pickup, checkpoint, off-road, crash and game-over tones provide feedback (short oscillator beeps/thuds on the effects bus).
 
 The current soundtrack is a synthesized procedural loop set, not a catalog of composed/licensed songs. Audio hardware behavior and subjective mixing still require physical-device review.
+
+Model sizes, common-scale garage previews, skyline fog and updated audio mix: [vehicle-balance-v3.md](../docs/vehicle-balance-v3.md).

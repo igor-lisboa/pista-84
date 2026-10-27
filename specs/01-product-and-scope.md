@@ -22,7 +22,7 @@ The experience is a playable racing game with an initial menu, rather than a das
 | Topic | Current definition |
 | --- | --- |
 | Genre | Infinite runner expressed as road racing; no finish line or lap system |
-| Locale | Seven interface languages (pt-BR source, en, pt-PT, fr, it, ja, de), chosen in the options, defaulting to the browser language; localized number formatting |
+| Locale | Fifteen interface languages (pt-BR source, en, pt-PT, fr, it, ja, de), chosen in the options, defaulting to the browser language; localized number formatting |
 | Platforms | Desktop and mobile browsers; portrait and landscape layouts |
 | Input | Keyboard, on-screen controls, optional tilt, paired phone controller |
 | Main display | Responsive Canvas occupying the available application viewport |

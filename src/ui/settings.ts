@@ -8,7 +8,7 @@ import { TiltError, type InputController } from './input.ts';
 import type { Notifications } from './notifications.ts';
 
 export interface InstallPrompt {
-  prompt(): Promise<void>;
+  prompt(): Promise<unknown>;
 }
 
 export interface SettingsDeps {
@@ -25,9 +25,16 @@ export interface SettingsDeps {
 /** Options dialog: sound, tilt steering, fullscreen, install and language. */
 export class SettingsDialog {
   private readonly deps: SettingsDeps;
+  private installed = false;
+  private installing = false;
 
   constructor(deps: SettingsDeps) {
     this.deps = deps;
+    window.addEventListener('appinstalled', () => {
+      this.installed = true;
+      this.updateInstallButton();
+    });
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', () => this.updateInstallButton());
   }
 
   render(): void {
@@ -47,7 +54,8 @@ export class SettingsDialog {
         <button id="tilt">${input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff')}</button>
         <button id="calibrate" ${input.tiltEnabled ? '' : 'hidden'}>${t('set.calibrate')}</button>
         <button id="fullscreen">${t('set.fullscreen')}</button>
-        <button id="install" hidden>${t('set.install')}</button>
+        <button id="install" aria-describedby="installHelp">${t('set.install')}</button>
+        <p id="installHelp" role="status" hidden></p>
       </div>
       <p id="sensorStatus">${t('set.sensor')}</p>
       <p class="help-keys">${t('set.keys')}</p>
@@ -67,11 +75,46 @@ export class SettingsDialog {
     };
     byId('fullscreen').onclick = () => void this.toggleFullscreen();
 
-    const install = this.deps.installPrompt();
-    if (install) {
-      byId('install').hidden = false;
-      byId('install').onclick = () => void install.prompt();
-    }
+    this.updateInstallButton();
+    byId('install').onclick = () => void this.install();
+  }
+
+  private updateInstallButton(): void {
+    const button = document.querySelector<HTMLButtonElement>('#install');
+    if (!button) return;
+    const installed = this.installed || window.matchMedia('(display-mode: standalone)').matches
+      || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    button.disabled = installed || this.installing;
+    button.textContent = t(installed ? 'set.installed' : 'set.install');
+    if (installed) document.querySelector<HTMLElement>('#installHelp')?.setAttribute('hidden', '');
+  }
+
+  private async install(): Promise<void> {
+    if (this.installing) return;
+    const prompt = this.deps.installPrompt();
+    if (prompt) {
+      this.installing = true;
+      document.querySelector<HTMLElement>('#installHelp')?.setAttribute('hidden', '');
+      this.updateInstallButton();
+      try {
+        await prompt.prompt();
+      } catch {
+        this.showInstallHelp();
+      } finally {
+        this.installing = false;
+        this.updateInstallButton();
+      }
+    } else this.showInstallHelp();
+  }
+
+  private showInstallHelp(): void {
+    const help = document.querySelector<HTMLElement>('#installHelp');
+    if (!help) return;
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    help.textContent = t(ios ? 'set.installIos' : 'set.installBrowser');
+    help.hidden = false;
+    help.scrollIntoView({ block: 'nearest' });
   }
 
   private async toggleSound(): Promise<void> {

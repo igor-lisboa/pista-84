@@ -16,6 +16,45 @@ import {
   screenToDepth,
 } from '../src/game/index.ts';
 import { car, fuelCan, quietRace, step, trafficCar } from './support/game.ts';
+import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
+
+test('every vehicle smoothly loses pull above 70% and approaches its own top speed', () => {
+  for (const spec of CARS) {
+    let previous = Infinity;
+    for (let percent = 0; percent <= 100; percent++) {
+      const pull = vehicleAcceleration(spec, spec.max * percent / 100);
+      assert.ok(Number.isFinite(pull) && pull >= 0 && pull <= previous, spec.id);
+      if (percent < 100) assert.ok(pull > 0, `${spec.id} must still gain speed`);
+      previous = pull;
+    }
+    assert.equal(vehicleAcceleration(spec, spec.max), 0);
+    assert.equal(vehicleAcceleration(spec, spec.max + 10), 0);
+    const threshold = spec.max * 0.7;
+    assert.ok(Math.abs(vehicleAcceleration(spec, threshold - 0.001) - vehicleAcceleration(spec, threshold + 0.001)) < 0.001, spec.id);
+    // The last 15% offers much less pull than at the threshold.
+    const gains = [0.7, 0.85, 0.95].map(ratio => {
+      const race = quietRace(spec);
+      race.speed = spec.max * ratio;
+      const before = race.speed;
+      race.update(0.02, { accelerate: true });
+      return race.speed - before;
+    });
+    assert.ok(gains[1]! < gains[0]! * 0.5, `${spec.id}: fade after 70%`);
+    assert.ok(gains[2]! < gains[1]! * 0.35, `${spec.id}: gradual approach to maximum`);
+  }
+});
+
+test('vehicle profiles differ in both initial gain and high-speed endurance', () => {
+  const initialGains = CARS.map(spec => vehicleAcceleration(spec, 0));
+  assert.equal(new Set(initialGains).size, CARS.length);
+  const retainedPull = (id: string) => {
+    const spec = car(id);
+    return vehicleAcceleration(spec, spec.max * 0.9) / vehicleAcceleration(spec, spec.max * 0.7);
+  };
+  assert.ok(retainedPull('kombi') < retainedPull('fusca'));
+  assert.ok(retainedPull('fusca') < retainedPull('gol'));
+  assert.ok(retainedPull('gol') < retainedPull('gt'));
+});
 
 /** First road distance with a strong right-hand bend. */
 const rightBendPath = (): number =>
@@ -39,22 +78,22 @@ test('highway speeds require corner correction and extreme speeds keep increasin
 test('start, acceleration, distance and fuel are simulated', () => {
   const race = quietRace();
   step(race, 2, { accelerate: true });
-  assert.ok(race.speed > 75);
-  assert.ok(race.distance > 20);
+  assert.ok(race.speed > 10 && race.speed < 16);
+  assert.ok(race.distance > 3);
   assert.ok(race.fuel < 100);
 });
 
 test('braking reaches zero without ending the run; the accelerator restarts the car', () => {
   const race = quietRace();
   race.speed = 120;
-  step(race, 2, { brake: true });
+  step(race, 4, { brake: true });
   assert.equal(race.speed, 0);
   assert.equal(race.status, 'running');
   const path = race.path;
   step(race, 1);
   assert.equal(race.path, path);
   step(race, 1, { accelerate: true });
-  assert.ok(race.speed > 35);
+  assert.ok(race.speed > 5 && race.speed < 8);
   assert.ok(race.path > path);
 });
 
@@ -68,7 +107,7 @@ test('throttle, coast and brake give distinct speed changes and brake wins over 
   }) as [Race, Race, Race, Race];
   assert.ok(throttle.speed > 100);
   assert.ok(coast.speed < 100);
-  assert.ok(brake.speed < coast.speed - 30);
+  assert.ok(brake.speed < coast.speed - 8);
   assert.equal(brake.speed, both.speed);
 });
 
@@ -96,16 +135,48 @@ test('a fuel can restores 32, caps at 100 and is consumed once', () => {
   assert.ok(race.fuel < 100);
 });
 
-test('the second chance is allowed once and clears the road', () => {
+test('the second chance requires 1000 coins, debits once, and clears the road', () => {
   const race = new Race();
   race.start();
   race.finish('fuel');
   race.fuel = 0;
-  assert.equal(race.resume(), true);
+  const poor = { coins: 999 };
+  assert.equal(race.resume(poor), false);
+  assert.equal(poor.coins, 999);
+  assert.equal(race.status, 'over');
+  const wallet = { coins: 2000 };
+  assert.equal(race.resume(wallet), true);
+  assert.equal(wallet.coins, 1000);
   assert.equal(race.fuel, 45);
   assert.equal(race.invincible, 3);
   race.finish('fuel');
-  assert.equal(race.resume(), false);
+  assert.equal(race.resume(wallet), false);
+  assert.equal(wallet.coins, 1000);
+});
+
+test('Fusca acceleration builds gradually and sports cars accelerate and brake more strongly', () => {
+  const timeTo = (id: string, target: number): number => {
+    const race = quietRace(car(id));
+    for (let i = 0; i < 5000; i++) {
+      race.x = 0;
+      race.update(0.02, { accelerate: true });
+      if (race.speed >= target) return (i + 1) * 0.02;
+    }
+    throw new Error(`${id} did not reach ${target}`);
+  };
+  const fusca100 = timeTo('fusca', 100);
+  assert.ok(fusca100 > 16 && fusca100 < 22);
+  assert.ok(timeTo('fusca', car('fusca').max * 0.95) > fusca100 + 20);
+  assert.ok(timeTo('gt', 100) < 8);
+  const brake = (id: string): number => {
+    const race = quietRace(car(id));
+    race.speed = 100;
+    step(race, 1, { brake: true });
+    return race.speed;
+  };
+  assert.ok(brake('kombi') > brake('fusca'));
+  assert.ok(brake('fusca') > brake('gol'));
+  assert.ok(brake('gol') > brake('gt'));
 });
 
 test('pause freezes the simulation and reset clears the run', () => {

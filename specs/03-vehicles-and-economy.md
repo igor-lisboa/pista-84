@@ -4,7 +4,7 @@
 
 ## Complete vehicle catalog
 
-Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 2.2 in the simulation). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
+Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 0.25 with a quadratic taper near top speed). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
 The garage lists coin cars in ascending price order, followed by premium cars in ascending BRL price order. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
 
@@ -44,6 +44,18 @@ All fourteen cars use authored straight, mild-turn and strong-turn sprites. The 
 | `cherry` | Cereja | `#e87582` | 60 |
 | `cream` | Creme vintage | `#e7dbb0` | 60 |
 | `night` | Preto grafite | `#75818c` | 90 |
+| `scarlet` | Vermelho escarlate | `#c82c3c` | 90 |
+| `royal` | Azul royal | `#2852b8` | 90 |
+| `forest` | Verde floresta | `#267052` | 90 |
+| `sunflower` | Amarelo girassol | `#efbd32` | 90 |
+| `tangerine` | Laranja tangerina | `#e77728` | 90 |
+| `violet` | Roxo violeta | `#8545b8` | 90 |
+| `white` | Branco marfim | `#f1f0e8` | 120 |
+| `black` | Preto obsidiana | `#202431` | 120 |
+| `silver` | Prata metálico | `#b3bcc5` | 120 |
+| `turquoise` | Verde turquesa | `#25aaa1` | 90 |
+| `rose` | Rosa intenso | `#d94e94` | 90 |
+| `wine` | Vinho clássico | `#772c46` | 120 |
 
 A paint purchase is permanent for the casual save and works on every owned vehicle. Only one paint is selected at a time. Applying an owned paint is free. Original appearance comes from the atlas (or the procedural livery); catalog colors do not force the factory artwork to be recolored. Custom paint remaps body-color pixels while retaining shading and transparency.
 
@@ -62,3 +74,7 @@ A paint purchase is permanent for the casual save and works on every owned vehic
 A coin purchase requires enough coins, subtracts the catalog price once, adds ownership and selects the purchased item. Unaffordable or already selected actions are disabled. Vehicle/paint ownership, selection, wallet, distance and score records, sound preference and language persist in the browser and can be exported or manually backed up.
 
 The local save is editable and importable. These coins have no cash value and are not a secure commercial wallet. Verified payments, entitlements, receipt validation, refunds, ad rewards and removal of ads are **pending**: [ECO-01, COM-01 and ADS-01](09-roadmap.md).
+
+## Paid continuation and coin shop
+
+A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu Buy coins previews packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90. Real-money purchases remain unavailable pending a provider and verified server-side credit delivery. See [balance tuning](../docs/vehicle-balance-v3.md).

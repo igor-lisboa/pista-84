@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { loadHarness } from './support/harness.ts';
 
-test('moving brakes produce an audible squeal that stops at rest and when paused', async ({ page }) => {
+test('brake friction is audible, throttle stands out, and effects stop at rest or pause', async ({ page }) => {
   await page.goto('/');
   await loadHarness(page);
   const offlineSupported = await page.evaluate(() => Boolean(window.OfflineAudioContext ||
@@ -11,7 +11,7 @@ test('moving brakes produce an audible squeal that stops at rest and when paused
     const NativeContext = window.AudioContext;
     const OfflineContext = window.OfflineAudioContext ||
       (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext }).webkitOfflineAudioContext;
-    async function render(braking: boolean, speed: number, status: 'running' | 'paused' = 'running'): Promise<number> {
+    async function render(braking: boolean, speed: number, status: 'running' | 'paused' = 'running', accelerating = false): Promise<number> {
       // Render the actual sound graph, measuring high-frequency energy above the engine.
       const context = new OfflineContext(1, 16384, 44100);
       context.resume = async () => {};
@@ -23,7 +23,7 @@ test('moving brakes produce an audible squeal that stops at rest and when paused
       const audio = new window.Pista.AudioEngine();
       try {
         await audio.toggle();
-        audio.update({ car: window.Pista.CARS.find((car) => car.id === 'gt')!, speed, status }, braking);
+        audio.update({ car: window.Pista.CARS.find((car) => car.id === 'gt')!, speed, status }, braking, accelerating);
         const buffer = await context.startRendering();
         const samples = buffer.getChannelData(0);
         let energy = 0;
@@ -39,12 +39,14 @@ test('moving brakes produce an audible squeal that stops at rest and when paused
     return {
       coast: await render(false, 150),
       braking: await render(true, 150),
+      throttle: await render(false, 150, 'running', true),
       idle: await render(false, 0),
       stopped: await render(true, 0),
       paused: await render(true, 150, 'paused'),
     };
   });
-  expect(levels.braking).toBeGreaterThan(levels.coast * 2);
+  expect(levels.braking).toBeGreaterThan(levels.coast * 1.05);
+  expect(levels.throttle).toBeGreaterThan(levels.coast * 1.4);
   expect(levels.stopped).toBeLessThanOrEqual(levels.idle * 1.1);
   expect(levels.paused).toBeLessThan(levels.coast * 0.1);
 });

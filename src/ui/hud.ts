@@ -36,7 +36,7 @@ export class Hud {
     if (nowMs - this.lastRefresh <= REFRESH_MS) return;
     this.lastRefresh = nowMs;
 
-    this.speed.innerHTML = `${Math.round(race.speed).toString().padStart(3, '0')} <em>km/h</em>`;
+    this.speed.innerHTML = `${Math.round(race.speed).toString().padStart(3, '0')} <em>${t('hud.speedUnit')}</em>`;
     this.distance.innerHTML = `${formatKm(race.distance)} <em>km</em>`;
     const multiplier = paceMultiplier(race.kmMetres, race.kmTime).toFixed(1);
     this.score.textContent = `${formatInteger(race.score)} ${t('hud.pts')} · x${multiplier}`;
@@ -59,6 +59,6 @@ export class Hud {
     this.curveHint.hidden = Math.abs(bend) < CURVE_WARNING || race.status !== 'running';
     this.curveHint.classList.toggle('sharp', Math.abs(bend) > CURVE_SHARP && race.speed > SHARP_WARNING_SPEED);
     const arrow = this.curveHint.firstElementChild;
-    if (arrow) arrow.textContent = bend > 0 ? '↷' : '↶';
+    if (arrow) arrow.classList.toggle('turn-left', bend < 0);
   }
 }

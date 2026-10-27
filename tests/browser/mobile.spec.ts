@@ -26,8 +26,7 @@ test('phone layout: tap starts a race, controls are reachable and nothing scroll
 
   await page.locator('[data-control="accelerate"]').dispatchEvent('pointerdown', { pointerId: 1 });
   await page.locator('[data-control="right"]').dispatchEvent('pointerdown', { pointerId: 2 });
-  await page.waitForTimeout(600);
-  expect(await hudSpeed(page)).toBeGreaterThan(15);
+  await expect.poll(() => hudSpeed(page)).toBeGreaterThan(2);
   await page.locator('[data-control="accelerate"]').dispatchEvent('pointerup', { pointerId: 1 });
   await page.locator('[data-control="right"]').dispatchEvent('pointerup', { pointerId: 2 });
   await page.locator('#pause').tap();

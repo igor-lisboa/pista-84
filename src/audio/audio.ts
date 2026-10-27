@@ -1,4 +1,5 @@
 import type { Race } from '../game/index.ts';
+import { vehicleTuning } from '../game/vehicle-tuning.ts';
 import { MusicPlayer, type MusicMode } from './music.ts';
 import type { Waveform } from './tracks.ts';
 
@@ -21,9 +22,9 @@ export const AUDIO_PROFILES: Readonly<Record<string, EngineProfile>> = {
   gol: { base: 54, ratio: 0.8, wave: 'sawtooth', filter: 720, brake: 1100 },
   palio: { base: 50, ratio: 0.76, wave: 'triangle', filter: 800, brake: 1000 },
   moto: { base: 95, ratio: 1.4, wave: 'square', filter: 1100, brake: 1500 },
-  gt: { base: 27, ratio: 1.1, wave: 'sawtooth', filter: 1300, brake: 2200 },
+  gt: { base: 27, ratio: 1.1, wave: 'sawtooth', filter: 1300, brake: 680 },
   suv: { base: 22, ratio: 0.5, wave: 'sawtooth', filter: 320, brake: 520 },
-  superbike: { base: 125, ratio: 1.8, wave: 'square', filter: 1800, brake: 2500 },
+  superbike: { base: 125, ratio: 1.8, wave: 'square', filter: 1800, brake: 1000 },
   kombi: { base: 33, ratio: 0.55, wave: 'triangle', filter: 420, brake: 600 },
   uno: { base: 58, ratio: 0.85, wave: 'sawtooth', filter: 760, brake: 1050 },
   chevette: { base: 48, ratio: 0.78, wave: 'sawtooth', filter: 700, brake: 950 },
@@ -32,11 +33,11 @@ export const AUDIO_PROFILES: Readonly<Record<string, EngineProfile>> = {
   maverick: { base: 25, ratio: 1, wave: 'sawtooth', filter: 900, brake: 1300 },
 };
 
-const EFFECTS_VOLUME = 0.11;
-const MUSIC_VOLUME = 0.32;
-const ENGINE_LEVEL = 0.2;
-const BRAKE_LEVEL = 0.42;
-const BRAKE_SQUEAL_LEVEL = 0.18;
+const EFFECTS_VOLUME = 0.2;
+const MUSIC_VOLUME = 0.07;
+const ENGINE_LEVEL = 0.28;
+const BRAKE_LEVEL = 0.32;
+const BRAKE_SQUEAL_LEVEL = 0.06;
 
 type AudioContextConstructor = typeof AudioContext;
 const contextConstructor = (): AudioContextConstructor | undefined =>
@@ -101,21 +102,23 @@ export class AudioEngine {
   }
 
   /** Per-frame engine pitch and brake squeal. */
-  update(race: Pick<Race, 'status' | 'speed' | 'car'>, braking: boolean): void {
+  update(race: Pick<Race, 'status' | 'speed' | 'car'>, braking: boolean, accelerating = false): void {
     if (!this.enabled || !this.ctx) return;
     const now = this.ctx.currentTime;
     const running = race.status === 'running';
     const profile = AUDIO_PROFILES[race.car.id] ?? AUDIO_PROFILES.fusca!;
 
-    this.engineGain!.gain.setTargetAtTime(running ? ENGINE_LEVEL : 0, now, 0.08);
+    this.engineGain!.gain.setTargetAtTime(running ? ENGINE_LEVEL * (accelerating ? 1.5 : 0.8) : 0, now, 0.08);
+    this.musicBus!.gain.setTargetAtTime(this.wantedMusic === 'race' ? MUSIC_VOLUME * 0.65 : MUSIC_VOLUME, now, 0.12);
     this.engine!.type = profile.wave;
     this.engine!.frequency.setTargetAtTime(profile.base + race.speed * profile.ratio, now, 0.08);
-    this.engineFilter!.frequency.value = profile.filter + race.speed * 2;
+    this.engineFilter!.frequency.value = profile.filter + race.speed * 2 + (accelerating ? 350 : 0);
     this.brakeFilter!.frequency.value = profile.brake + race.speed * 1.5;
     const brakePower = running && braking && race.speed > 2 ? Math.min(1, race.speed / 25) : 0;
-    this.brakeGain!.gain.setTargetAtTime(brakePower * BRAKE_LEVEL, now, 0.025);
-    this.brakeTone!.frequency.setTargetAtTime(profile.brake * 1.35 + race.speed * 2 + Math.sin(now * 31) * 16, now, 0.025);
-    this.brakeToneGain!.gain.setTargetAtTime(brakePower * BRAKE_SQUEAL_LEVEL, now, 0.025);
+    const tuning = vehicleTuning(race.car);
+    this.brakeGain!.gain.setTargetAtTime(brakePower * BRAKE_LEVEL * (0.75 + tuning.braking / 140), now, 0.06);
+    this.brakeTone!.frequency.setTargetAtTime(profile.brake + race.speed * 0.65 + Math.sin(now * 17) * 5, now, 0.06);
+    this.brakeToneGain!.gain.setTargetAtTime(brakePower * BRAKE_SQUEAL_LEVEL * tuning.squeal, now, 0.06);
     const air = Math.max(0, Math.min(1, (race.speed - 40) / 310));
     this.windFilter!.frequency.setTargetAtTime(450 + air * 2600, now, 0.12);
     this.windGain!.gain.setTargetAtTime(running ? 0.035 * air + 0.12 * air * air : 0, now, 0.12);
@@ -152,13 +155,13 @@ export class AudioEngine {
     source.loop = true;
     this.brakeFilter = ctx.createBiquadFilter();
     this.brakeFilter.type = 'bandpass';
-    this.brakeFilter.Q.value = 2;
+    this.brakeFilter.Q.value = 0.8;
     this.brakeGain = ctx.createGain();
     this.brakeGain.gain.value = 0;
     source.connect(this.brakeFilter);
     this.brakeFilter.connect(this.brakeGain);
     this.brakeGain.connect(this.effects);
-    // A tonal tyre squeal remains audible above the engine, wind and soundtrack.
+    // Quiet per-model squeal layered over friction; the GT uses friction alone.
     this.brakeTone = ctx.createOscillator();
     this.brakeTone.type = 'triangle';
     this.brakeToneGain = ctx.createGain();

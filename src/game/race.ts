@@ -1,6 +1,7 @@
 import { CARS, type CarSpec } from './cars.ts';
 import { environment } from './environment.ts';
 import { clamp } from './math.ts';
+import { vehicleAcceleration, vehicleTuning } from './vehicle-tuning.ts';
 import {
   CHECKPOINT,
   EDGE,
@@ -50,8 +51,7 @@ export interface DriveInput {
 export const OFFROAD_LIMIT = 40;
 
 const MAX_STEP_SECONDS = 0.05;
-const ACCELERATION_GAIN = 2.2;
-const BRAKE_DECELERATION = 110;
+export const SECOND_CHANCE_PRICE = 1000;
 const OFFROAD_TRACTION = 0.1;
 /** Exponential drag rate on the grass: the car sheds most excess speed in about half a second. */
 const OFFROAD_DRAG = 5.5;
@@ -155,9 +155,10 @@ export class Race {
     this.endReason = reason;
   }
 
-  /** The single free second chance: refuel a little, clear the road, brief invincibility. */
-  resume(): boolean {
-    if (this.status !== 'over' || this.continued) return false;
+  /** One paid continuation per race; debit only when continuation can actually succeed. */
+  resume(wallet: { coins: number }): boolean {
+    if (this.status !== 'over' || this.continued || wallet.coins < SECOND_CHANCE_PRICE) return false;
+    wallet.coins -= SECOND_CHANCE_PRICE;
     this.continued = true;
     this.status = 'running';
     this.endReason = null;
@@ -207,9 +208,11 @@ export class Race {
     this.offroad = Math.abs(this.x) > EDGE;
     const speedRatio = clamp(this.speed / this.car.max, 0, 1);
     const traction = this.offroad ? OFFROAD_TRACTION : 1;
-    const acceleration = this.car.accel * ACCELERATION_GAIN * (1 - 0.45 * speedRatio) * traction;
+    const acceleration = vehicleAcceleration(this.car, this.speed) * traction;
     const coast = -(12 + this.speed * 0.025);
-    const force = input.brake ? -BRAKE_DECELERATION : input.accelerate ? acceleration : coast;
+    const brakingGrip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.25 : 0.15);
+    const deceleration = vehicleTuning(this.car).braking * brakingGrip;
+    const force = input.brake ? -deceleration : input.accelerate ? acceleration : coast;
     this.speed = clamp(this.speed + force * dt, 0, this.car.max);
 
     const grip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.22 : 0.1);
@@ -319,7 +322,8 @@ export class Race {
       Math.max(previousZ, entity.z) >= PLAYER_DEPTH - PICKUP_DEPTH_WINDOW;
     if (entity.passed || !crossed) return;
 
-    const reach = (this.car.shape === 'bike' ? 0.19 : 0.27) * VEHICLE_SCALE;
+    const bike = this.car.shape === 'bike';
+    const reach = (bike ? 0.19 : 0.27) * VEHICLE_SCALE * vehicleTuning(this.car).width / (bike ? 0.6 : 1);
     if (Math.abs(this.x - laneCenter(entity.lane)) >= reach) return;
 
     entity.passed = true;

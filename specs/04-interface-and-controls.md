@@ -35,11 +35,11 @@ Fourteen cards show model sprite, tagline, maximum speed, acceleration, consumpt
 
 ## Settings (Options)
 
-Language picker (a row of seven flag buttons, active one highlighted), a single sound toggle for music + engine + effects, optional tilt, calibration, fullscreen, installation where the browser provides an install prompt, compact control help and the version label. Sound state is saved (default **on**). Tilt is enabled per session, not automatically granted from a saved preference. Fullscreen failure must not block play; Safari can use Add to Home Screen instead.
+Language picker (a wrapping grid of fifteen SVG flag buttons, active one highlighted), a single sound toggle for music + engine + effects, optional tilt, calibration, fullscreen, an always-visible installation button (native prompt when available; Home Screen instructions otherwise; disabled when running as an installed app), compact control help and the version label. Sound state is saved (default **on**). Tilt is enabled per session, not automatically granted from a saved preference. Fullscreen failure must not block play; Safari can use Add to Home Screen instead.
 
 ## Languages
 
-Seven interface languages: **pt-BR** (source), **en**, **pt-PT**, **fr**, **it**, **ja**, **de**. The choice is made in Options, applied immediately without reload and saved as `lang` in the save. With no saved choice the language comes from `navigator.languages` (`pt` maps to pt-BR unless it is pt-PT; other tags match by base language); an unknown language falls back to English. Message keys are typed from the pt-BR table; a locale may omit keys and then falls back to pt-BR per key (pt-PT only overrides part of the table). Tests require every full locale (en, fr, it, ja, de) to translate every key with the same `{placeholders}` and forbid unknown keys. Static HTML is translated through `data-i18n` and `data-i18n-aria` attributes. The phone controller page also follows the browser language. Translations still need native-speaker review (I18N-01 in the [roadmap](09-roadmap.md)).
+Fifteen interface languages: **pt-BR** (source), **en**, **pt-PT**, **fr**, **it**, **ja**, **de**. The choice is made in Options, applied immediately without reload and saved as `lang` in the save. With no saved choice the language comes from `navigator.languages` (`pt` maps to pt-BR unless it is pt-PT; other tags match by base language); an unknown language falls back to English. Message keys are typed from the pt-BR table; a locale may omit keys and then falls back to pt-BR per key (pt-PT only overrides part of the table). Tests require every full locale (en, fr, it, ja, de) to translate every key with the same `{placeholders}` and forbid unknown keys. Static HTML is translated through `data-i18n` and `data-i18n-aria` attributes. The phone controller page also follows the browser language. Translations still need native-speaker review (I18N-01 in the [roadmap](09-roadmap.md)).
 
 ## Input mapping
 
@@ -83,3 +83,9 @@ Browsers only allow audio after a user gesture. Sound defaults to on in the save
 ## Phone-controller screen
 
 Dedicated controller layout: connection status, start, pause, steering wheel illustration, optional tilt/calibration, steering buttons, brake and accelerator. The wheel illustration reflects steering. Sensor permission is not needed for buttons. Blocking the phone or losing input pauses the main game. The private Site requires authorized login on both devices.
+
+## Alignment and icon update
+
+Player text uses no emoji; small SVG icons supply consistent controls. HUD card sizes remain stable as numbers change, phone popups are centred with scrollable content, and garage cards and paint options have aligned grids. See [interface-v4.md](../docs/interface-v4.md).
+
+The additional locales are es (Spain), hi, zh-CN, id, ur, bn, ru and am. All eight translate every source key. Urdu uses RTL text while physical driving controls remain LTR. Full locale scope and browser-detection behavior: [languages-v5.md](../docs/languages-v5.md).

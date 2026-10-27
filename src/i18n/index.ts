@@ -5,6 +5,14 @@ import { it } from './locales/it.ts';
 import { ja } from './locales/ja.ts';
 import { ptBR } from './locales/pt-BR.ts';
 import { ptPT } from './locales/pt-PT.ts';
+import { es } from './locales/es.ts';
+import { hi } from './locales/hi.ts';
+import { zhCN } from './locales/zh-CN.ts';
+import { id } from './locales/id.ts';
+import { ur } from './locales/ur.ts';
+import { bn } from './locales/bn.ts';
+import { ru } from './locales/ru.ts';
+import { am } from './locales/am.ts';
 import type { Lang, MessageKey, MessageVars, Messages } from './types.ts';
 
 export type { Lang, MessageKey, MessageVars } from './types.ts';
@@ -18,6 +26,14 @@ export const LANGS: Readonly<Record<Lang, string>> = {
   it: 'Italiano',
   ja: '日本語',
   de: 'Deutsch',
+  es: 'Español',
+  hi: 'हिन्दी',
+  'zh-CN': '简体中文',
+  id: 'Bahasa Indonesia',
+  ur: 'اردو',
+  bn: 'বাংলা',
+  ru: 'Русский',
+  am: 'አማርኛ',
 };
 
 const SOURCE_LANG: Lang = 'pt-BR';
@@ -31,6 +47,7 @@ export const LOCALES: Readonly<Record<Lang, Messages>> = {
   it,
   ja,
   de,
+  es, hi, 'zh-CN': zhCN, id, ur, bn, ru, am,
 };
 
 let current: Lang = SOURCE_LANG;
@@ -46,6 +63,8 @@ export function detectLang(preferred: readonly string[] = []): Lang {
     if (isLang(tag)) return tag;
     const base = tag.toLowerCase().split('-')[0];
     if (base === 'pt') return /^pt-pt$/i.test(tag) ? 'pt-PT' : 'pt-BR';
+    if (base === 'zh') return 'zh-CN';
+    if (base === 'in') return 'id';
     const match = (Object.keys(LANGS) as Lang[]).find((lang) => lang.toLowerCase() === base);
     if (match) return match;
   }
@@ -55,6 +74,7 @@ export function detectLang(preferred: readonly string[] = []): Lang {
 export function setLang(lang: Lang): void {
   current = lang;
   document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
 }
 
 /** Translates a key, filling `{name}` placeholders; falls back to pt-BR, then to the key itself. */

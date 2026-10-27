@@ -99,7 +99,7 @@ test('new races receive a new road seed while pause and second chance preserve i
   race.update(0.05);
   assert.equal(race.roadSeed, seed);
   race.finish('fuel');
-  race.resume();
+  race.resume({ coins: 1000 });
   assert.equal(race.roadSeed, seed);
   race.start();
   assert.notEqual(race.roadSeed, seed);

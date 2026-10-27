@@ -19,7 +19,7 @@ interface ServiceWorkerScope {
 const scope = self as unknown as ServiceWorkerScope;
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v15`;
+const CACHE = `${CACHE_PREFIX}v20`;
 const ASSETS = [
   '/',
   '/index.html',

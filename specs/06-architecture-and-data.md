@@ -55,7 +55,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/render/sprites.ts` | Atlas loading/trimming, paints, turn frames, procedural sprites |
 | `src/audio/audio.ts` | `AudioEngine`: 14 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data |
-| `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, seven locales |
+| `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
 | `src/ui/game-app.ts` | `GameApp`: owns save, race, renderer, audio and the menu/race/pause/over flow, autosave and platform plumbing |
 | `src/ui/hud.ts`, `overlays.ts`, `settings.ts`, `garage.ts` | Top-bar HUD, pause/result screens, options dialog, garage and backup |
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |

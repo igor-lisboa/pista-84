@@ -9,7 +9,7 @@
 | `ready` | Menu and animated scenery; no race simulation | Start → `running` |
 | `running` | Movement, fuel, distance, score, spawning and collisions update | Pause → `paused`; crash or empty tank → `over` |
 | `paused` | Simulation freezes and controls clear | Continue → `running`; menu/car change → `ready` |
-| `over` | Result overlay; run rewards settled | Restart → new `running`; free second chance → same `running`; menu → `ready` |
+| `over` | Result overlay; run rewards settled | Restart → new `running`; 1,000-coin second chance → same `running`; menu → `ready` |
 
 The interface view (`menu`, `race`, `overlay`, or phone controller) is distinct from the simulation state. Opening a modal during a run pauses it. Closing that modal does not silently resume the race. Changing a vehicle settles the previous run and resets it. Changing paint updates appearance without resetting the run.
 
@@ -22,8 +22,10 @@ A fresh run starts with **0 km/h**, **100 fuel**, **0 distance/time/score/coins*
 ```text
 speedRatio = clamp(speed / vehicle.max, 0, 1)
 traction = offRoad ? 0.1 : 1
-acceleration = vehicle.accel * 2.2 * (1 - 0.45 * speedRatio) * traction
-force = brake ? -110
+highSpeedProgress = max(0, (speedRatio - 0.7) / 0.3)
+taper = 1 / (1 + vehicleTuning.accelerationFalloff * highSpeedProgress^2)
+acceleration = vehicle.accel * vehicleTuning.accelerationGain * (1 - speedRatio^2) * taper * traction
+force = brake ? -vehicleBrakingRate * brakingGrip
       : accelerate ? acceleration
       : -(12 + speed * 0.025)
 speed = clamp(speed + force * dt, 0, vehicle.max)
@@ -33,6 +35,8 @@ distance += metres
 score += metres * paceMultiplier(kmMetres, kmTime)   // see Score and checkpoints
 runCoins = floor(score / 25)
 ```
+
+Each vehicle has a separately tuned acceleration gain and high-speed falloff in `src/game/vehicle-tuning.ts`. Extra taper begins smoothly at 70% of its maximum speed, without an abrupt change in acceleration. Classic/heavy cars lose more pull near their limit than sports cars. See [acceleration tuning](../docs/acceleration-v6.md) for measured simulation times.
 
 Lateral position `x` uses normalized road half-widths. Five traffic lanes use indices **-2, -1, 0, 1, 2**, width **0.372**, and centers **-0.744, -0.372, 0, 0.372, 0.744**. Four dashed dividers separate them between the solid road edges. Vehicle sprites, lateral authority, drift and collision widths scale by **0.6** to preserve lane-change proportions. Combined keyboard, touch, tilt and remote input clamps to **[-1, 1]**. Steering follows input exponentially (`1 - exp(-22 * dt)`) and returns smoothly to neutral. Lateral authority is `(1.35 - 0.25 * speedRatio) * clamp(speed / 90, 0, 1) * handling * grip * VEHICLE_SCALE`. Steering has no lateral authority when stopped. Releasing throttle coasts; braking has priority over simultaneous acceleration and can stop the car without ending the run.
 
@@ -98,7 +102,7 @@ Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s
 Contact testing occurs when an unpassed entity crosses the player contact band **PLAYER_DEPTH +/- 0.018**, using its previous and current depth to avoid skipping a contact. A hit requires `abs(player.x - laneCenter(entity.lane))` below **0.114** for a motorcycle or **0.162** for other player vehicles. An entity is marked passed after its first contact so it cannot repeatedly refuel or crash the player.
 
 - A fuel canister adds **32** fuel up to 100 and disappears.
-- Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** ("YOU CRASHED!", localized), the reason line shows the crash speed, and the one free second chance is still offered.
+- Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** ("YOU CRASHED!", localized), the reason line shows the crash speed, and the one 1,000-coin second chance is still offered.
 - While the 3 s second-chance invincibility lasts, traffic and barrier contacts do not end the run (the barrier still places the car back on the road).
 - Stopping does not end a run. **Running out of fuel** ends it (`'fuel'`, "Pane seca!" message) and also offers the second chance.
 - Traffic changes lanes and follows the car ahead, so a gap that looks open can close; no speed makes touching a car safe.
@@ -127,3 +131,5 @@ Hiding the page pauses a running game and clears input. Desktop blur also pauses
 ## Reference and scope
 
 The accelerator/brake/steering control model follows the original [Top Gear / Top Racer instruction manual](https://www.retrogames.cz/manualy/SNES/Top_Gear_-_SNES_-_Manual.pdf). Acceleration, grip, off-road and score constants here are independently tuned for this game's vehicles and five-lane endless road; they are not extracted or verified original-game physics values.
+
+Vehicle sizes, individual braking rates, audio mix, fog and paid continuation: [vehicle-balance-v3.md](../docs/vehicle-balance-v3.md).

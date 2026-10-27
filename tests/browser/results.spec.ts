@@ -15,11 +15,25 @@ test('all game-over reasons explain the actual score-to-coins payout, including 
         document.getElementById('overlay')!.hidden = false;
         showGameOver(race, defaultSave(), { restart() {}, secondChance() {}, toMenu() {} });
       }, { reason, score });
-      await expect(page.locator('.result-conversion strong')).toHaveText(`${Math.floor(score)} pts → ${Math.floor(score / 25)} moedas`);
+      await expect(page.locator('.result-conversion strong')).toHaveText(`${Math.floor(score)} pts = ${Math.floor(score / 25)} moedas`);
       await expect(page.locator('.result-conversion small')).toContainText('25 pts = 1 moeda');
       await expect(page.locator('.result-conversion small')).toContainText('moedas inteiras');
+      await expect(page.locator('#continue')).toBeDisabled();
+      await expect(page.locator('#continue')).toContainText('1.000');
     }
   }
+});
+
+test('the main menu opens coin packs and clearly marks real-money purchases unavailable', async ({ page }) => {
+  await page.goto('/');
+  const before = await page.locator('#wallet').textContent();
+  await page.locator('#coinsNav').click();
+  await expect(page.locator('.coin-pack')).toHaveCount(3);
+  await expect(page.locator('.shop-status')).toContainText('Compras indisponíveis');
+  for (const button of await page.locator('.coin-pack button').all()) await expect(button).toBeDisabled();
+  await expect(page.locator('.coin-pack span').first()).toContainText('9,90');
+  await page.locator('#closeModal').click();
+  await expect(page.locator('#wallet')).toHaveText(before!);
 });
 
 test('the end-of-game conversion and menu remain reachable on a short landscape phone', async ({ page }) => {

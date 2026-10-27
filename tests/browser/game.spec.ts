@@ -56,7 +56,7 @@ test('menu disappears in race; pause and return to menu keep usable flows', asyn
   await expect(page.locator('#settingsNav')).toBeHidden();
 
   await page.keyboard.down('ArrowUp');
-  await expect.poll(() => hudSpeed(page)).toBeGreaterThan(95);
+  await expect.poll(() => hudSpeed(page), { timeout: 15000 }).toBeGreaterThan(20);
   await page.keyboard.up('ArrowUp');
 
   await page.keyboard.press('p');
@@ -72,7 +72,7 @@ test('menu disappears in race; pause and return to menu keep usable flows', asyn
   await expect(page.locator('#restart')).toHaveCount(0);
 
   await page.keyboard.down('ArrowUp');
-  await expect.poll(() => hudSpeed(page)).toBeGreaterThan(25);
+  await expect.poll(() => hudSpeed(page), { timeout: 15000 }).toBeGreaterThan(25);
   await page.keyboard.up('ArrowUp');
   await page.keyboard.press('p');
   await page.locator('#toMenu').click();
@@ -95,12 +95,16 @@ test('the barrier ends the race with the crash screen', async ({ page }) => {
 });
 
 test('leaving the road drags the speed down to about 40 km/h', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pista84', JSON.stringify({ owned: ['fusca', 'gt'], selected: 'gt' }));
+    Math.random = () => 0.3;
+  });
   await page.goto('/');
   await page.locator('#start').click();
   await page.keyboard.down('ArrowUp');
-  await expect.poll(() => hudSpeed(page)).toBeGreaterThan(110);
+  await expect.poll(() => hudSpeed(page), { timeout: 30000 }).toBeGreaterThan(110);
   await page.keyboard.down('ArrowRight');
-  await expect(page.locator('#cpLabel')).toContainText('⚠', { timeout: 10000 });
+  await expect(page.locator('#cpLabel')).toContainText('FORA DA PISTA', { timeout: 10000 });
   await expect.poll(() => hudSpeed(page), { timeout: 5000 }).toBeLessThan(55);
   await page.keyboard.up('ArrowRight');
   await page.keyboard.up('ArrowUp');
@@ -123,6 +127,24 @@ test('the language can be switched in the options', async ({ page }) => {
 test.describe('garage', () => {
   // The service worker would bypass the stubbed runtime config below.
   test.use({ serviceWorkers: 'block' });
+
+  test('new paint purchases debit coins once and persist the selected color', async ({ page }) => {
+    await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
+    await page.addInitScript(() => {
+      if (!localStorage.getItem('pista84')) localStorage.setItem('pista84', JSON.stringify({ coins: 500, owned: ['fusca'], selected: 'fusca' }));
+    });
+    await page.goto('/');
+    await page.locator('#garageNav').click();
+    await page.getByRole('button', { name: /Preto obsidiana/ }).click();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
+    expect(saved.coins).toBe(380);
+    expect(saved.paint).toBe('black');
+    expect(saved.paints).toContain('black');
+    await page.reload();
+    await page.locator('#garageNav').click();
+    await expect(page.locator('.paint-option.active')).toHaveAttribute('aria-label', /Preto obsidiana/);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(380);
+  });
 
   test('garage purchases persist; premium cars cannot be bought with coins', async ({ page }) => {
     // A local .env may configure a balance; this test needs the stored one.
@@ -398,16 +420,20 @@ test('the road renders four lane dividers and five lanes using the race seed', a
   expect(result.lanes).toHaveLength(5);
 });
 
-test('fuel exhaustion gives one continuation; stopping alone keeps the race running', async ({ page }) => {
+test('fuel exhaustion offers one paid continuation and deducts 1000 coins', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ coins: 2000, owned: ['fusca'], selected: 'fusca' })));
+  await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
   await page.route('**/app.js', async (route) => {
     const response = await route.fetch();
-    const source = (await response.text()).replace('this.fuel=100', 'this.fuel=.15').replace(/Math\.max\(\w+,this\.fuel\)/, 'Math.max(.15,this.fuel)');
+    const source = (await response.text()).replaceAll('this.fuel=100', 'this.fuel=.02').replace(/Math\.max\(\w+,this\.fuel\)/g, 'Math.max(.02,this.fuel)');
     await route.fulfill({ response, body: source });
   });
   await page.goto('/');
   await page.locator('#start').click();
   await expect(page.locator('#restart')).toBeVisible();
+  await expect(page.locator('#continue')).toContainText('1.000');
   await page.locator('#continue').click();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(1000);
   await expect(page.locator('#restart')).toBeVisible();
   await expect(page.locator('#continue')).toHaveCount(0);
 });

@@ -11,7 +11,7 @@ import {
 } from '../game/index.ts';
 import { carTagline, paintName, t } from '../i18n/index.ts';
 import { createCarThumbnail } from './car-art.ts';
-import { byId, formatBrl } from './dom.ts';
+import { byId, formatBrl, formatInteger } from './dom.ts';
 import type { CashStore } from './store.ts';
 
 const MAX_IMPORT_BYTES = 100_000;
@@ -40,13 +40,34 @@ export class Garage {
     this.deps = deps;
   }
 
+  /** Package preview until a payment provider and verified credit delivery are configured. */
+  renderCoinShop(): void {
+    const packs = [
+      { coins: 1000, price: 9.9 },
+      { coins: 3000, price: 24.9 },
+      { coins: 7500, price: 49.9 },
+    ];
+    byId('modalBody').innerHTML = `
+      <span class="label">${t('shop.menu')}</span>
+      <h1>${t('shop.title')}</h1>
+      <p>${t('shop.balance', { coins: this.deps.save.coins })}</p>
+      <p class="shop-status" role="status">${t('shop.unavailable')}</p>
+      <div class="coin-packs">${packs.map((pack) => `
+        <article class="coin-pack">
+          <strong>${t('coins.amount', { n: formatInteger(pack.coins) })}</strong>
+          <span>${formatBrl(pack.price)}</span>
+          <button class="secondary" disabled>${t('shop.soon')}</button>
+        </article>`).join('')}
+      </div>`;
+  }
+
   render(): void {
     const { save } = this.deps;
     const cloud = this.deps.cloudEnabled();
     byId('modalBody').innerHTML = `
       <span class="label">${t('garage.label')}</span>
       <h1>${t('garage.title')}<span>.</span></h1>
-      <p>${t('garage.balance', { coins: `<b class="gold">◈ ${save.coins}</b>` })}</p>
+      <p>${t('garage.balance', { coins: `<b class="gold">${formatInteger(save.coins)}</b>` })}</p>
       <div class="garage-grid" id="garageGrid"></div>
       <section class="paint-shop">
         <h3>${t('garage.paintTitle')}</h3>
@@ -93,13 +114,13 @@ export class Garage {
     const body = document.createElement('div');
     body.innerHTML = `
       <h3>${car.name}</h3>
-      <p>${carTagline(car.id)}</p>
+      <p class="car-tagline">${carTagline(car.id)}</p>
       <dl>
-        <div><dt>${t('garage.max')}</dt><dd>${car.max} km/h</dd></div>
+        <div><dt>${t('garage.max')}</dt><dd>${car.max} ${t('hud.speedUnit')}</dd></div>
         <div><dt>${t('garage.accel')}</dt><dd>${car.accel}</dd></div>
         <div><dt>${t('garage.fuel')}</dt><dd>${car.consumption.toFixed(2)}×</dd></div>
-        ${premium && !owned ? `<div><dt></dt><dd>${t('garage.premium')}</dd></div>` : ''}
       </dl>
+      <div class="car-badge">${premium && !owned ? t('garage.premium') : ''}</div>
       <button></button>`;
     const button = body.querySelector('button')!;
     button.textContent = selected
@@ -150,8 +171,9 @@ export class Garage {
     const button = document.createElement('button');
     button.className = `paint-option ${selected ? 'active' : ''}`;
     button.disabled = selected || (!owned && save.coins < paint.price);
-    const state = selected ? t('garage.inUse') : owned ? t('garage.apply') : `◈ ${paint.price}`;
-    button.innerHTML = `<i style="background:${swatch}"></i><span>${paintName(paint.id)}<small>${state}</small></span>`;
+    const state = selected ? t('garage.inUse') : owned ? t('garage.apply') : t('coins.amount', { n: paint.price });
+    button.innerHTML = `<i aria-hidden="true" style="background:${swatch}"></i><span>${paintName(paint.id)}<small>${state}</small></span>`;
+    button.setAttribute('aria-label', `${paintName(paint.id)}: ${state}`);
     button.onclick = () => {
       if (!owned) {
         if (save.coins < paint.price) return;

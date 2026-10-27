@@ -2,7 +2,7 @@
 
 Brazilian pixel-art endless racing arcade game. It runs in the browser, installs as a PWA, uses your phone as a remote controller, and has native Android/iOS projects (Capacitor).
 
-Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 14 vehicles, heavier traffic, pace-based scoring, 7 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
+Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 14 vehicles, heavier traffic, pace-based scoring, 15 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
 
 ## Table of contents
 
@@ -61,7 +61,7 @@ After editing `.env`, restart `npm start`. To generate the web, native or hosted
 - **Coins come from score:** 1 coin for every 25 points. They are saved every 5 s of racing, on pause, at the end of the race and when returning to the menu.
 - **Progressive difficulty:** over the first four minutes (240 s) of a race, traffic becomes more frequent, gets more pairs and trios in different lanes (at least two lanes are always left free, with a maximum of 16 cars) and gradually speeds up. Opponent speed is capped at 82% of the player's maximum and 85% of the vehicle's own maximum. Cars change lanes when there is room, follow the car ahead and never overlap. Pausing also pauses this progression.
 - **Speed and distance use the same measure:** at a constant 120 km/h, you cover 2 km per simulated minute. The camera closer to the ground reinforces the sense of speed without multiplying the mileage.
-- There is one free second chance per race (3 s of invincibility).
+- A second chance costs 1,000 coins, once per race (3 s of invincibility). Buy coins in the main menu shows planned packs; real-money purchases are unavailable until a provider is integrated.
 - During the race only the track, speed, distance, points, fuel and pause appear (top bar). Garage, options and language are in the start menu.
 - **Sound:** it starts on, but the browser only unlocks audio on the first tap or key press. A single button in Options turns music, engine and effects on/off, and the preference is remembered. The music is procedural (Web Audio, no files): a calm loop for menu/pause (74 bpm) and three race tracks (Neon Highway 132 bpm, Turbo Rush 150 bpm, Sunset Drive 118 bpm), one picked at random when the race starts, never the same as the previously picked one (when resuming after a pause, the race music restarts with a different track).
 - **Languages:** Portuguese (Brazil), English, Portuguese (Portugal), French, Italian, Japanese and German, in Options. The default comes from `navigator.languages`; an unknown language falls back to English. The translations have not yet been reviewed by native speakers.
@@ -70,7 +70,7 @@ After editing `.env`, restart `npm start`. To generate the web, native or hosted
 
 **Progress:** export and import your progress in the game. On the hosted site there is a manual per-account backup, with protection against write conflicts. Restoring a backup replaces the data on the device. The save (v2) stores coins, distance and score records, vehicles, paints, sound and language.
 
-**Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. On iPhone, use Add to Home Screen.
+**Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. Open Settings ? Install game to install through the browser prompt, or see instructions for adding it to the Home Screen on iPhone. The button indicates when running as an installed app.
 
 ## Billboard ads
 
@@ -115,7 +115,7 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **57 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 23 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), and builds the assets automatically.
+- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **61 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 35 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), and builds the assets automatically.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves the game, `/runtime-config.json`, pairing (`/api/rooms`), backup (`/api/progress`) and `/health`. Sites provisions the D1 binding `DB` and applies the migrations in `drizzle/`. Preserve the project ID in `.openai/hosting.json`.
