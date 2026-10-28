@@ -215,11 +215,13 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  #toast{width:calc(100% - 45px);max-width:400px}
 }
 @media(max-height:570px) and (orientation:landscape){
- .main-menu{padding:22px 35px 14px}
- .menu-content{display:grid;grid-template-columns:230px 250px;max-width:none;column-gap:35px;align-content:center;align-items:center}
+ .main-menu{padding:max(22px,env(safe-area-inset-top)) max(35px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(35px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain;pointer-events:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+ .menu-content{display:grid;grid-template-columns:230px 250px;max-width:none;column-gap:35px;row-gap:10px;align-content:center;align-items:center;flex:none;margin-block:auto}
+ .title-block{grid-column:1;grid-row:1}
  .logo{font-size:60px}.logo>span{margin-left:60px}.tagline{font-size:12px;margin-top:10px}.kicker{font-size:9px}
- .menu-actions{grid-column:2;grid-row:1}.selected-car{display:none}
- .menu-top{min-height:35px}.edition{font-size:9px}.menu-bottom{font-size:10px}
+ .menu-actions{grid-column:2;grid-row:1 / span 2}
+ .selected-car{grid-column:1;grid-row:2;gap:8px}.selected-car canvas{width:72px;height:44px}.selected-car strong{font-size:13px}
+ .menu-top{min-height:35px;flex:none}.edition{font-size:9px}.menu-bottom{font-size:10px;flex:none;margin-top:10px}
  .touch-controls{bottom:max(12px,env(safe-area-inset-bottom))}
  .steering button{width:66px;height:66px}
  .pedals button{height:96px;width:84px}.pedals button[data-control=brake]{height:72px}
