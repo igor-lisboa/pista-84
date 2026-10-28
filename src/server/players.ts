@@ -17,7 +17,7 @@ export type StoreKey = 'scores' | 'backups';
 /**
  * Where the documents live. `update` runs `change` against the freshest copy
  * and persists the result; a database-backed store can make that atomic, the
- * Global Config one is last-writer-wins (see docs/TECH-DEBT.md).
+ * Blob one is conditional on the stored version and retries (see docs/TECH-DEBT.md).
  */
 export interface PlayerStore {
   read<T>(key: StoreKey, empty: T): Promise<T>;
@@ -27,13 +27,27 @@ export interface PlayerStore {
 /** Raised when the backing store cannot take more data. */
 export class StoreFullError extends Error {}
 
-/** `[guid, name, bestScore, bestDistanceMetres, achievedAt]` — arrays keep the JSON small. */
-export type ScoreRow = [id: string, name: string, score: number, distance: number, achieved: number];
+/**
+ * `[guid, name, bestScore, bestDistanceMetres, achievedAt, createdAt, updatedAt]` — arrays keep the JSON
+ * small. `achievedAt` is when the best score was set (the tie-break), `createdAt` the first submission and
+ * `updatedAt` the last change. Rows written before the last two existed lack them.
+ */
+export type ScoreRow = [
+  id: string,
+  name: string,
+  score: number,
+  distance: number,
+  achieved: number,
+  created?: number,
+  updated?: number,
+];
 /** Sorted best-first: higher score, then whoever got there earlier. */
 export type ScoresDoc = ScoreRow[];
 
 export interface Backup {
   revision: number;
+  /** First backup of this player; absent on backups written before it was recorded. */
+  created?: number;
   updated: number;
   save: SaveData;
 }
@@ -109,14 +123,19 @@ export async function submitScore(store: PlayerStore, input: ScoreSubmission): P
   return store.update<ScoresDoc, {rank: number}>('scores', [], (rows) => {
     const at = rows.findIndex((row) => row[0] === playerId);
     const [existing] = at >= 0 ? rows.splice(at, 1) : [];
+    const now = Date.now();
     const improved = !existing || score > existing[2];
+    const changed = improved || name !== existing[1] || distance > existing[3];
     const row: ScoreRow = [
       playerId,
       name,
       Math.max(score, existing?.[2] ?? 0),
       Math.max(distance, existing?.[3] ?? 0),
       // The tie-break clock only moves when the best score does.
-      improved ? Date.now() : existing![4],
+      improved ? now : existing![4],
+      existing?.[5] ?? existing?.[4] ?? now,
+      // An identical resubmission leaves the row untouched, so nothing is written.
+      changed ? now : (existing![6] ?? existing![4]),
     ];
     return {rank: insertSorted(rows, row)};
   });
@@ -174,7 +193,7 @@ export async function writeBackup(
     const current = doc[playerId]?.revision ?? 0;
     if (current !== revision) return null;
     const updated = Date.now();
-    doc[playerId] = {revision: current + 1, updated, save: clean};
+    doc[playerId] = {revision: current + 1, created: doc[playerId]?.created ?? doc[playerId]?.updated ?? updated, updated, save: clean};
     return {revision: current + 1, updated};
   });
   if (result && clean.username && clean.bestScore > 0) {

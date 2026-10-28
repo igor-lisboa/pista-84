@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 import {runtimeConfig} from './scripts/env.ts';
 import {signaling, memoryStore, sanitizeInput} from './src/server/signaling.ts';
 import {cloudProgress, leaderboardApi, onlineHealth} from './src/server/cloud.ts';
-import {globalConfigStore} from './src/server/global-config.ts';
+import {blobStore} from './src/server/blob-store.ts';
 import {memoryPlayerStore} from './src/server/players.ts';
 
 const DEFAULT_PORT = 4173;
@@ -35,8 +35,8 @@ const MIME_TYPES: Record<string, string> = {
 const root = resolve('www');
 const port = Number(process.env.PORT) || DEFAULT_PORT;
 const roomStore = memoryStore();
-// Local runs without Global Config keep players in memory; they reset on restart.
-const playerStore = globalConfigStore(process.env) ?? memoryPlayerStore();
+// Local runs without a Blob token keep players in memory; they reset on restart.
+const playerStore = blobStore(process.env) ?? memoryPlayerStore();
 
 function findHostIp(): string | undefined {
   return Object.values(networkInterfaces())

@@ -40,6 +40,10 @@ export interface SaveData {
   units: DistanceUnit;
   /** Whether the how-to-play tutorial was finished or skipped by this player. */
   tutorialDone: boolean;
+  /** When this save was first created (ms since epoch). */
+  createdAt: number;
+  /** When it was last written (ms since epoch); stamped on every save. */
+  updatedAt: number;
 }
 
 export interface SaveStorage {
@@ -56,6 +60,9 @@ const nonNegative = (value: unknown): number =>
 
 const keepKnown = (ids: unknown, known: readonly string[]): string[] =>
   Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && known.includes(id)) : [];
+
+const timestamp = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
 
 function readHistory(value: unknown): PastPlayer[] {
   if (!Array.isArray(value)) return [];
@@ -75,7 +82,7 @@ function readHistory(value: unknown): PastPlayer[] {
   return past.slice(-HISTORY_LIMIT);
 }
 
-export function defaultSave(): SaveData {
+export function defaultSave(now = Date.now()): SaveData {
   return {
     version: 2,
     coins: 0,
@@ -92,6 +99,8 @@ export function defaultSave(): SaveData {
     history: [],
     units: 'km',
     tutorialDone: false,
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
@@ -112,6 +121,8 @@ export function loadSave(storage: Pick<SaveStorage, 'getItem'>, config: BalanceC
     const owned = [...new Set([DEFAULT_CAR_ID, ...keepKnown(saved.owned, CARS.map((car) => car.id))])];
     const paints = [...new Set([DEFAULT_PAINT_ID, ...keepKnown(saved.paints, PAINTS.map((paint) => paint.id))])];
     const selected = typeof saved.selected === 'string' && owned.includes(saved.selected) ? saved.selected : DEFAULT_CAR_ID;
+    // Saves from before timestamps existed count as created now.
+    const createdAt = timestamp(saved.createdAt) ?? fallback.createdAt;
     const paint = typeof saved.paint === 'string' && paints.includes(saved.paint) ? saved.paint : DEFAULT_PAINT_ID;
 
     return {
@@ -130,6 +141,8 @@ export function loadSave(storage: Pick<SaveStorage, 'getItem'>, config: BalanceC
       history: readHistory(saved.history),
       units: saved.units === 'mi' ? 'mi' : 'km',
       tutorialDone: saved.tutorialDone === true,
+      createdAt: createdAt,
+      updatedAt: timestamp(saved.updatedAt) ?? createdAt,
     };
   } catch {
     return fallback;
@@ -156,6 +169,7 @@ export function importSave(current: SaveData, serialized: string, config: Balanc
   if (!Array.isArray(raw.history)) imported.history = current.history;
   if (raw.units !== 'km' && raw.units !== 'mi') imported.units = current.units;
   if (typeof raw.tutorialDone !== 'boolean') imported.tutorialDone = current.tutorialDone;
+  if (timestamp(raw.createdAt) === null) imported.createdAt = current.createdAt;
   if (imported.playerId === current.playerId) {
     imported.bestScore = Math.max(imported.bestScore, current.bestScore);
     imported.best = Math.max(imported.best, current.best);

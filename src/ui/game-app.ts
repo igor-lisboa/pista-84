@@ -438,6 +438,7 @@ export class GameApp implements RemoteHost {
   }
 
   private persist(): void {
+    this.save.updatedAt = Date.now();
     try {
       this.storage.setItem(SAVE_KEY, JSON.stringify(this.save));
     } catch {

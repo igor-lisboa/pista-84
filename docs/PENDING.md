@@ -14,7 +14,7 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 ## Still pending
 
-- **Tech debt:** online storage is a single Global Config JSON for all players (leaderboard, names, cloud backup). Size-capped and last-writer-wins; see [TECH-DEBT.md](TECH-DEBT.md) (TD-01) before moving to Redis or Postgres.
+- **Tech debt:** online storage is two JSON files in Vercel Blob (leaderboard, names, cloud backup). Conditional writes keep concurrent players safe, but it rewrites whole files and is bound by the free plan's operation quotas; see [TECH-DEBT.md](TECH-DEBT.md) (TD-01) before moving to Redis or Postgres.
 - **Real payment provider for the premium cars.** `CashStore` (`src/ui/store.ts`) has only the default "unavailable" implementation; a billing integration (web checkout, Google Play, App Store) must implement it, together with server-side entitlements and receipt validation (ECO-01, COM-01).
 - **Authored atlas art for the six newer vehicles** (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS, Maverick GT). They use procedural pixel sprites with no authored straight, mild-turn or strong-turn frames (ART-01).
 - **Native-speaker review of the translations** (en, pt-PT, fr, it, ja, de), including pt-PT, which only overrides part of the pt-BR strings (I18N-01).

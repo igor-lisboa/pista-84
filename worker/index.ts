@@ -2,15 +2,15 @@ import {DEFAULT_RUNTIME_CONFIG, publicConfig} from '../src/shared/config.ts';
 import type {RuntimeConfig} from '../src/shared/config.ts';
 import {signaling, d1Store} from '../src/server/signaling.ts';
 import {cloudProgress, leaderboardApi, onlineHealth, storageUnavailable} from '../src/server/cloud.ts';
-import {globalConfigStore} from '../src/server/global-config.ts';
-import type {GlobalConfigEnv} from '../src/server/global-config.ts';
+import {blobStore} from '../src/server/blob-store.ts';
+import type {BlobEnv} from '../src/server/blob-store.ts';
 import type {D1Like} from '../src/server/d1.ts';
 import {assets} from './generated-assets.ts';
 
 /** Replaced by esbuild `define` with the build-time public config. */
 declare const __PISTA_CONFIG__: RuntimeConfig | undefined;
 
-type Env = GlobalConfigEnv & {
+type Env = BlobEnv & {
   DB: D1Like;
   PISTA84_COINS?: string;
 };
@@ -50,7 +50,7 @@ export default {
     if (pathname.startsWith('/api/rooms')) {
       return signaling(request, d1Store(env.DB));
     }
-    const players = globalConfigStore(env);
+    const players = blobStore(env);
     if (pathname === '/api/progress') {
       return players ? cloudProgress(request, players, config) : storageUnavailable();
     }

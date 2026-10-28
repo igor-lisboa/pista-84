@@ -1,4 +1,4 @@
-import {globalConfigStore} from '../src/server/global-config.ts';
+import {blobStore} from '../src/server/blob-store.ts';
 
-/** `null` until GLOBAL_CONFIG and VERCEL_API_TOKEN are set on the project. */
-export const store = globalConfigStore(process.env);
+/** `null` until the Blob store token is set on the project. */
+export const store = blobStore(process.env);

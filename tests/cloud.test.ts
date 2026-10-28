@@ -95,8 +95,8 @@ test('the leaderboard ranks by best score and a rename keeps the score', async (
 
 test('a failing store answers 503 instead of crashing, so clients keep playing offline', async () => {
   const broken: PlayerStore = {
-    read: () => Promise.reject(new Error('Global Config unreachable')),
-    update: () => Promise.reject(new Error('Global Config unreachable')),
+    read: () => Promise.reject(new Error('Blob unreachable')),
+    update: () => Promise.reject(new Error('Blob unreachable')),
   };
   assert.equal((await leaderboardApi(new Request('https://pista.test/api/leaderboard'), broken)).status, 503);
   assert.equal((await leaderboardApi(scoreRequest({playerId: ALICE, username: 'Alice', score: 5, distance: 1}), broken)).status, 503);
@@ -190,4 +190,40 @@ test('the ranking is kept as a compact sorted list apart from the heavy backups'
   assert.equal(Object.keys(await store.read('backups', {})).length, 1);
   // Restoring a backup with a higher score publishes it to the ranking.
   assert.equal((await store.read<unknown[][]>('scores', []))[0]![2], 900);
+});
+
+test('rows and backups carry created and updated times that only move when data changes', async () => {
+  const store = memoryPlayerStore();
+  const submit = (score: number, name = 'Alice') =>
+    leaderboardApi(scoreRequest({playerId: ALICE, username: name, score, distance: 50}), store);
+  const row = async () => (await store.read<number[][]>('scores', []))[0] as unknown as [string, string, number, number, number, number, number];
+
+  await submit(500);
+  const first = await row();
+  assert.ok(first[5] > 0 && first[6] >= first[5]);
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  await submit(500); // identical resubmission: nothing changes
+  assert.deepEqual(await row(), first);
+
+  await submit(700);
+  const better = await row();
+  assert.equal(better[5], first[5], 'created never moves');
+  assert.ok(better[6] > first[6] && better[4] > first[4]);
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  await submit(100, 'AliceRenamed'); // rename only: updated moves, the score clock does not
+  const renamed = await row();
+  assert.equal(renamed[1], 'AliceRenamed');
+  assert.equal(renamed[4], better[4]);
+  assert.ok(renamed[6] > better[6]);
+
+  const save = {coins: 1, owned: ['fusca'], username: 'Alice'};
+  await cloudProgress(progressRequest(ALICE, 'PUT', {save, revision: 0}), store);
+  const [firstBackup] = Object.values(await store.read<Record<string, {created: number; updated: number}>>('backups', {}));
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  await cloudProgress(progressRequest(ALICE, 'PUT', {save, revision: 1}), store);
+  const [secondBackup] = Object.values(await store.read<Record<string, {created: number; updated: number}>>('backups', {}));
+  assert.equal(secondBackup!.created, firstBackup!.created);
+  assert.ok(secondBackup!.updated > firstBackup!.updated);
 });

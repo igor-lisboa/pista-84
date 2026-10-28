@@ -50,7 +50,7 @@ async function readJson(request: Request): Promise<{ok: true; body: unknown} | {
 
 /**
  * Runs a store operation. A full store is a clear 507 and any other failure
- * (Global Config unreachable, bad token) is a 503: clients play on with local
+ * (Blob unreachable, bad token) is a 503: clients play on with local
  * data and retry later, so the error must never escape as a crash.
  */
 async function guarded(run: () => Promise<Response>): Promise<Response> {
@@ -58,6 +58,8 @@ async function guarded(run: () => Promise<Response>): Promise<Response> {
     return await run();
   } catch (error) {
     if (error instanceof StoreFullError) return json({error: error.message}, 507);
+    // The player only sees a generic message; the operator needs the real cause in the logs.
+    console.error('[online storage]', error);
     return json({error: 'Online storage is unavailable. Your progress stays on this device.'}, 503);
   }
 }

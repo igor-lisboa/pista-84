@@ -201,3 +201,19 @@ test('distance and speed units convert, default to kilometres and survive new pl
   assert.equal(importSave(miles, JSON.stringify({ coins: 1 })).units, 'mi');
   assert.equal(importSave(miles, JSON.stringify({ units: 'km', tutorialDone: false })).units, 'km');
 });
+
+test('a save records when it was created and legacy saves count as created now', () => {
+  const before = Date.now();
+  const legacy = loadSave({ getItem: () => JSON.stringify({ coins: 3 }) });
+  assert.ok(legacy.createdAt >= before && legacy.updatedAt === legacy.createdAt);
+
+  const stored = loadSave({ getItem: () => JSON.stringify({ createdAt: 1000, updatedAt: 2000 }) });
+  assert.equal(stored.createdAt, 1000);
+  assert.equal(stored.updatedAt, 2000);
+  assert.equal(loadSave({ getItem: () => JSON.stringify({ createdAt: 'soon', updatedAt: -5 }) }).createdAt >= before, true);
+
+  // Starting over is a new save; an import keeps the file's creation time, or ours if it has none.
+  assert.ok(startNewPlayer(stored).createdAt >= before);
+  assert.equal(importSave(stored, JSON.stringify({ createdAt: 500 })).createdAt, 500);
+  assert.equal(importSave(stored, JSON.stringify({ coins: 1 })).createdAt, 1000);
+});
