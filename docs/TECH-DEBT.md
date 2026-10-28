@@ -34,7 +34,7 @@ It was chosen to get an online leaderboard running without provisioning a databa
 
 - The Cloudflare D1 `player_progress` table (`db/schema.ts`, `drizzle/0001_*`) is no longer used by the code. `control_rooms` (phone pairing) still uses D1 on the Worker and the in-memory store locally.
 - Phone-controller pairing (`/api/rooms`, `/relay`) has no store on Vercel (serverless functions keep no memory and cannot hold WebSockets), so it only works on the Worker or `node server.ts`.
-- `api/*.ts` and the `vercel.json` `builds`/`rewrites` entries were written against the Vercel docs but not yet deployed; verify on a preview deployment.
+- **Vercel functions setup (learned the hard way).** `vercel.json` must not use the legacy `builds` array: it names each function after its file *with* the extension (`/api/leaderboard.ts`), so every `/api/*` call returned 404. It uses `buildCommand` + `outputDirectory` instead and the `api/` folder is picked up automatically. `api/tsconfig.json` sets `types: []` because the function builder compiles from a temp directory where TypeScript 7 cannot find `@types/node` and then emits nothing. Reproduce the real build locally with `npx vercel build` (needs a throwaway `.vercel/project.json`) and look at `.vercel/output/functions`.
 
 ## Setup
 

@@ -9,6 +9,7 @@ playwright-report/
 www/
 worker/generated-assets.ts
 dist/
+.vercel/
 android/.gradle/
 android/local.properties
 android/app/build/
