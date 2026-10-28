@@ -24,6 +24,7 @@ export function step(race: Race, seconds: number, input: DriveInput = {}): void 
 export function quietRace(spec: CarSpec = CARS[0]!, random?: Random): Race {
   const race = new Race(spec, random);
   race.start();
+  race.entities = [];
   race.trafficTimer = 1e9;
   race.fuelTimer = 1e9;
   return race;

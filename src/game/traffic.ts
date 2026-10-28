@@ -35,7 +35,7 @@ export type Random = () => number;
 
 export const TRAFFIC_SPAWN_Z = 1.1;
 /** Seconds of play over which traffic density and speed ramp up to their maximum. */
-export const TRAFFIC_RAMP = 240;
+export const TRAFFIC_RAMP = 120;
 export const MAX_TRAFFIC = 16;
 /** Smallest bumper-to-bumper depth between two cars sharing a lane. */
 const MIN_FOLLOW_GAP = 0.03;
@@ -95,7 +95,7 @@ export const trafficOf = (entities: readonly Entity[]): TrafficEntity[] =>
 export function pickWaveLanes(intensity: number, random: Random): number[] {
   const first = LANES[Math.floor(random() * LANE_COUNT)]!;
   const lanes = [first];
-  if (random() < 0.25 + intensity * 0.6) {
+  if (random() < 0.35 + intensity * 0.55) {
     const offset = 1 + Math.floor(random() * (LANE_COUNT - 1));
     lanes.push(LANES[(LANES.indexOf(first) + offset) % LANE_COUNT]!);
   }

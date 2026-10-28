@@ -31,7 +31,7 @@ The experience is a playable racing game with an initial menu, rather than a das
 | Offline | Solo play after a successful first visit and asset caching |
 | Progress | Local browser save (v2), file export/import, manual account backup on hosted runtime |
 | Code | Full TypeScript; Node 24 runs `.ts` natively, `tsc --noEmit` type-checks, esbuild bundles |
-| Monetization | Two PREMIUM cars are priced in real money (BRL) behind the `CashStore` interface, but no payment provider is connected: the default store is unavailable. No premium wallet or ads are connected |
+| Monetization | Two PREMIUM cars cost millions of coins (2,000,000 and 3,000,000) while regular cars cost 0-1600. No payment provider, premium wallet or ads are connected |
 | Native | Android/iOS Capacitor projects exist; distributable builds are not validated or signed |
 
 ## Design priorities
@@ -47,4 +47,4 @@ The experience is a playable racing game with an initial menu, rather than a das
 
 There is no multiplayer racing, global leaderboard, campaign, upgrade-performance tree, real premium entitlement, account-authoritative race economy or signed store release. The original monetization and native-distribution goals remain defined in the [roadmap](09-roadmap.md); they are not presented as live features.
 
-Premium cars cannot be bought with coins in the garage, but ownership is only a list of ids in the editable local save (an imported or edited save can contain them); a billing integration implementing `CashStore` and server-side entitlements is still pending ([ECO-01 and COM-01](09-roadmap.md)). The account backup is a convenience for casual progress. It does not validate that client-reported coins were earned legitimately.
+Ownership is only a list of ids in the editable local save (an imported or edited save can contain any car); server-side entitlements are still pending ([ECO-01 and COM-01](09-roadmap.md)). The account backup is a convenience for casual progress. It does not validate that client-reported coins were earned legitimately.

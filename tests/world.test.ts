@@ -15,20 +15,19 @@ import {
   startNewPlayer,
   loadSave,
   paceMultiplier,
+  PREMIUM_PRICE,
   roadCurve,
   MAX_CURVE,
 } from '../src/game/index.ts';
 import { blendColor } from '../src/render/renderer.ts';
 
-test('the garage has fourteen distinct vehicles and exactly two real-money premium ones', () => {
+test('the garage has fourteen distinct vehicles and exactly two top-tier ones priced in the millions of coins', () => {
   assert.equal(CARS.length, 14);
   assert.equal(new Set(CARS.map((c) => c.id)).size, CARS.length);
-  const premium = CARS.filter((c) => c.purchase.kind === 'cash').map((c) => c.id);
+  const premium = CARS.filter((c) => coinPrice(c) >= PREMIUM_PRICE).map((c) => c.id);
   assert.deepEqual(premium.sort(), ['gt', 'superbike']);
-  for (const c of CARS) {
-    if (c.purchase.kind === 'coins') assert.ok(c.purchase.price >= 0);
-    else assert.ok(c.purchase.price > 0 && coinPrice(c) === 0);
-  }
+  for (const c of CARS) assert.ok(coinPrice(c) >= 0);
+  assert.ok(CARS.filter((c) => !premium.includes(c.id)).every((c) => coinPrice(c) <= 2000));
   assert.equal(coinPrice(CARS[0]!), 0);
 });
 
@@ -111,9 +110,9 @@ test('new races receive a new road seed while pause and second chance preserve i
 });
 
 test('the pace multiplier is bounded and rewards speed', () => {
-  assert.equal(paceMultiplier(1000, 10), 3.5);
+  assert.equal(paceMultiplier(1000, 10), 3);
   assert.equal(paceMultiplier(0, 0), 0.2);
-  assert.ok(paceMultiplier(1000, 36) > 0.99 && paceMultiplier(1000, 36) < 1.01);
+  assert.ok(paceMultiplier(1000, 30) > 0.99 && paceMultiplier(1000, 30) < 1.01);
 });
 
 // ---- saves ---------------------------------------------------------------

@@ -6,7 +6,7 @@
 
 Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 0.25 with a quadratic taper near top speed). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
-The garage lists coin cars in ascending price order, followed by premium cars in ascending BRL price order. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
+The garage lists coin cars in ascending price order, followed by the PREMIUM cars (millions of coins), which naturally sort last. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
 
 | ID | Display name | Shape | Max | Acceleration | Consumption | Handling | How it is unlocked |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -22,14 +22,14 @@ The garage lists coin cars in ascending price order, followed by premium cars in
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
 | `opala` | Opala SS | sedan | 215 | 40 | 1.50 | 0.95 | 900 coins |
 | `maverick` | Maverick GT | muscle | 240 | 52 | 1.70 | 1.05 | 1600 coins |
-| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | **PREMIUM:** R$ 29,90 |
-| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | **PREMIUM:** R$ 19,90 |
+| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | **PREMIUM:** 3,000,000 coins |
+| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | **PREMIUM:** 2,000,000 coins |
 
-Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }` or `{ kind: 'cash', price, currency: 'BRL' }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
+Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
-### Premium cars and `CashStore`
+### Premium cars
 
-The two PREMIUM cars (Veloce GT and Raio 1000) can **only** be bought with real money; coins never unlock them and their garage card shows the BRL price and a PREMIUM tag. Purchases go through the `CashStore` interface (`available` flag and `purchase(carId): Promise<boolean>`). **No payment provider is wired yet:** the default `unavailableStore` reports `available: false`, so choosing "COMPRAR" ("BUY") only shows a toast saying that real-money purchases are not available on this device, and nothing is granted. A billing integration (web checkout, Google Play, App Store) must implement `CashStore` and be injected in `GameApp`; server-side entitlements and receipt validation remain pending ([ECO-01 and COM-01](09-roadmap.md)). Because ownership is only a list of ids in the editable local save, a hand-edited or imported save can already contain a premium car; this is not protection against that.
+The two PREMIUM cars (Veloce GT and Raio 1000) are ordinary coin purchases whose price is in the millions (3,000,000 and 2,000,000 against 0-1600 for the rest). Their garage card shows a PREMIUM tag while unowned (any price at or above `PREMIUM_PRICE`, 1,000,000). There is no real-money flow and no `CashStore`.
 
 ### Art
 
@@ -61,7 +61,7 @@ A paint purchase is permanent for the casual save and works on every owned vehic
 
 ## Earnings and settlement
 
-- Coins come from **score**: **1 coin per 25 points**, rounded down (`race.coins = floor(score / 25)`). Score itself is metres × a pace multiplier (average km/h of the current kilometre ÷ 100, clamped to 0.2–3.5, reset at each checkpoint); see [gameplay](02-gameplay.md). Driving fast therefore pays more coins per kilometre.
+- Coins come from **score**: **1 coin per 25 points**, rounded down (`race.coins = floor(score / 25)`). Score itself is metres × a pace multiplier (average km/h of the current kilometre ÷ 120, clamped to 0.2–3, reset at each checkpoint); see [gameplay](02-gameplay.md). Driving fast therefore pays more coins per kilometre.
 - The run counter is total coins earned in the run; the wallet is settled progress.
 - Settlement credits `max(0, runCoins - alreadyPaidRunCoins)` so checkpoints and continuation cannot double-pay.
 - Settle every **5 s** of running simulation, when pausing, ending, returning to the menu, changing vehicle, or leaving the page.

@@ -33,10 +33,10 @@ export const ptPT: Messages = {
   'about.label': 'O CRIADOR',
   'about.title': 'Olá, sou o Igor',
   'about.role': 'Engenheiro de software · Niterói, Brasil',
-  'about.p1': 'O PISTA 84 é a minha carta de amor às estradas brasileiras e aos clássicos nacionais que cresci a ver na estrada.',
-  'about.p2': 'É também uma experiência: até onde consegue uma IA chegar na criação de um produto a sério, da primeira ideia até à loja? Este jogo foi feito lado a lado com IA. Eu defino o rumo, reviso e decido.',
-  'about.p3': 'Sem estúdio, sem orçamento. Só curiosidade, café e muita conversa com uma máquina.',
-  'about.quote': 'Transformo café em arquiteturas escaláveis e bugs em lições.',
+  'about.p1': 'O PISTA 84 é uma homenagem às estradas brasileiras e aos carros clássicos que cresci a ver por aí.',
+  'about.p2': 'Sou engenheiro de software e fiz este jogo com a IA como parceira: eu decido como deve ser e ela ajuda-me a escrevê-lo e a testá-lo.',
+  'about.p3': 'É um projeto independente e pequeno, feito nas horas vagas. Obrigado por jogares!',
+  'about.quote': 'Feito com café, curiosidade e muita nostalgia.',
   'about.github': 'VER O MEU GITHUB',
   'user.label': 'BEM-VINDO, PILOTO',
   'user.title': 'Escolha o seu nome',
@@ -184,9 +184,8 @@ export const ptPT: Messages = {
 
   'toast.error': 'Erro: {m}',
 
-  'garage.premium': 'PREMIUM · DINHEIRO REAL',
-  'garage.storeUnavailable': 'As compras com dinheiro real ainda não estão disponíveis neste aparelho.',
+  'garage.premium': 'PREMIUM',
   'garage.balance': 'O seu saldo: {coins} · Cada 25 pontos de pontuação valem 1 moeda.',
-  'garage.disclaimer': 'Os carros comuns desbloqueiam-se com moedas ganhas pela pontuação. Os carros PREMIUM só podem ser comprados com dinheiro real.',
+  'garage.disclaimer': 'Os carros desbloqueiam-se com moedas ganhas pela pontuação. Os carros PREMIUM custam milhões de moedas: só os melhores pilotos lá chegam.',
   'fb.offroad': 'RELVA! VOLTE AO ASFALTO',
 };

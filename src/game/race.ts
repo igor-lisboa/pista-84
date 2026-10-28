@@ -58,9 +58,9 @@ const OFFROAD_DRAG = 5.5;
 const STEER_RESPONSE = 22;
 const BARRIER_BOUNCE = 0.16;
 /** Fuel (percent of a tank) restored at every checkpoint. */
-export const CHECKPOINT_FUEL = 8;
+export const CHECKPOINT_FUEL = 4;
 /** Fuel (percent of a tank) a fuel can on the road restores. */
-export const FUEL_PICKUP = 20;
+export const FUEL_PICKUP = 12;
 const IDLE_FUEL_BURN = 0.04;
 const DRIVING_FUEL_BURN = 0.45;
 const DRIVING_FUEL_SPEED = 40;
@@ -68,6 +68,12 @@ const SECOND_CHANCE_SPEED = 90;
 const SECOND_CHANCE_FUEL = 45;
 const SECOND_CHANCE_INVINCIBLE = 3;
 const PICKUP_DEPTH_WINDOW = 0.018;
+const FIRST_TRAFFIC_DELAY = 0.6;
+const FIRST_FUEL_DELAY = 8;
+/** Cars placed ahead of the player when a run starts, within this depth band. */
+const OPENING_TRAFFIC = 3;
+const OPENING_TRAFFIC_MIN_Z = 0.4;
+const OPENING_TRAFFIC_MAX_Z = 0.9;
 
 export class Race {
   car: CarSpec;
@@ -105,8 +111,8 @@ export class Race {
   wall = 0;
   events: RaceEvent[] = [];
   /** Seconds until the next traffic wave / fuel can. */
-  trafficTimer = 1.6;
-  fuelTimer = 4;
+  trafficTimer = FIRST_TRAFFIC_DELAY;
+  fuelTimer = FIRST_FUEL_DELAY;
 
   constructor(car: CarSpec = CARS[0]!, random: Random = Math.random) {
     this.car = car;
@@ -143,13 +149,26 @@ export class Race {
     this.steer = 0;
     this.wall = 0;
     this.events = [];
-    this.trafficTimer = 1.6;
-    this.fuelTimer = 4;
+    this.trafficTimer = FIRST_TRAFFIC_DELAY;
+    this.fuelTimer = FIRST_FUEL_DELAY;
   }
 
   start(): void {
     this.reset();
     this.status = 'running';
+    this.seedTraffic();
+  }
+
+  /** Cars already on the road at the start line, so the highway is never empty while the car gathers speed. */
+  private seedTraffic(): void {
+    for (let i = 0; i < OPENING_TRAFFIC; i++) {
+      const lane = LANES[Math.floor(this.random() * LANE_COUNT)]!;
+      const z = OPENING_TRAFFIC_MIN_Z + this.random() * (OPENING_TRAFFIC_MAX_Z - OPENING_TRAFFIC_MIN_Z);
+      if (!isLaneClear(this.entities, lane, z, SPAWN_PROBE_SPEED)) continue;
+      const entity = createTraffic(lane, this.car, 0, this.random);
+      entity.z = z;
+      this.entities.push(entity);
+    }
   }
 
   finish(reason: EndReason): void {
@@ -291,12 +310,12 @@ export class Race {
           this.entities.push(createTraffic(lane, this.car, intensity, this.random));
         }
       }
-      this.trafficTimer = 1.5 - intensity * 0.95 + this.random() * 0.3;
+      this.trafficTimer = 1.1 - intensity * 0.7 + this.random() * 0.3;
     }
 
     if (this.fuelTimer <= 0) {
       this.entities.push(createFuel(LANES[Math.floor(this.random() * LANE_COUNT)]!));
-      this.fuelTimer = 7 + this.random() * 3;
+      this.fuelTimer = 12 + this.random() * 5;
     }
   }
 

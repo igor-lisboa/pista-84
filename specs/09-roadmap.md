@@ -14,7 +14,7 @@ Implement authenticated server-issued race sessions, bounded/plausible progress 
 
 ## COM-01 — Payments, premium currency and paid vehicles
 
-**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected. The client side already exists: the two PREMIUM cars (Veloce GT R$ 29,90 and Raio 1000 R$ 19,90) can only be bought through the `CashStore` interface in `src/ui/store.ts`, whose default `unavailableStore` makes the garage show an "unavailable" toast. A billing integration must implement `CashStore` (web checkout, Google Play or App Store) and be injected into `GameApp`.
+**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected. The PREMIUM cars are now priced in coins (millions), so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
 
 Create new migrations for `orders`, `payment_events`, `wallet_entries` and `entitlements`. Implement:
 

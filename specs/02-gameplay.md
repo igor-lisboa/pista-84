@@ -71,21 +71,21 @@ The renderer integrates upcoming curvature using midpoint curvature and trapezoi
 
 - Capacity: **100**; fuel cannot become negative or exceed capacity.
 - Continuous drain per second: `vehicle.consumption × (0.04 + 0.41 × clamp(speed / 40, 0, 1) + speed / 190)`. At rest the engine consumes `0.04 × consumption` tank percentage points per second (CG 125: 0.96% per minute; Fusca: 1.728%; Maverick: 4.08%). This rises smoothly to the previous driving rate by 40 km/h. Only a running race burns fuel; pause, menus and game over freeze it.
-- Pickup: red gas-pump symbol with a white meter, black hose/nozzle and amber glow, adding **20** fuel up to the cap.
-- First canister spawns after **4 s**; following canisters spawn every **7–10 s**.
-- Each 1000 m checkpoint adds **15** fuel.
+- Pickup: red gas-pump symbol with a white meter, black hose/nozzle and amber glow, adding **12** fuel up to the cap.
+- First canister spawns after **8 s**; following canisters spawn every **12–17 s**.
+- Each 1000 m checkpoint adds **4** fuel.
 - Empty fuel immediately ends the run (`endReason` `'fuel'`) with a dry-tank/rear-traffic message.
 
 ## Score and checkpoints
 
-- Score pays **per metre**, scaled by the pace of the kilometre being driven: `multiplier = clamp(averageKmh / 100, 0.2, 3.5)`, where `averageKmh = kmMetres / kmTime * 3.6` over the current kilometre. An average of 100 km/h pays 1 point per metre, a crawl pays down to 0.2, and a flat-out kilometre up to 3.5.
+- Score pays **per metre**, scaled by the pace of the kilometre being driven: `multiplier = clamp(averageKmh / 120, 0.2, 3)`, where `averageKmh = kmMetres / kmTime * 3.6` over the current kilometre. An average of 120 km/h pays 1 point per metre, a crawl pays down to 0.2, and a flat-out kilometre up to 3.
 - Every **1000 m** (`CHECKPOINT`) is a checkpoint: it adds fuel, fires a `checkpoint` event and **resets `kmTime` and `kmMetres`**, so the next kilometre starts a fresh average.
 - **Coins** are earned from score, not directly from distance: `race.coins = floor(score / 25)`. See [vehicles and economy](03-vehicles-and-economy.md) for settlement.
 - The HUD shows points and the live multiplier (`×1.0`); every game-over screen shows points, distance, coins and the saved best score (`bestScore`), plus the score-to-coins conversion and the shared rate of **25 points = 1 coin**, rounded down to whole coins. The result panel scrolls on short screens so its conversion and actions remain reachable.
 
 ## Traffic and entity movement
 
-Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s of active play); it freezes while paused.
+Traffic ramps with `intensity = clamp(time / 120, 0, 1)` (`TRAFFIC_RAMP = 120` s of active play); it freezes while paused.
 
 - First traffic wave: **1.6 s** after starting.
 - Subsequent interval: `1.5 - 0.95 * intensity + random * 0.3` seconds (1.5–1.8 s at the start, 0.55–0.85 s at full intensity).

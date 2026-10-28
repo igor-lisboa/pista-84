@@ -146,7 +146,7 @@ test.describe('garage', () => {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(380);
   });
 
-  test('garage purchases persist; premium cars cannot be bought with coins', async ({ page }) => {
+  test('garage purchases persist; premium cars cost millions and cannot be bought with few coins', async ({ page }) => {
     // A local .env may configure a balance; this test needs the stored one.
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.goto('/');
@@ -169,9 +169,8 @@ test.describe('garage', () => {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(260);
 
     const premium = page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Veloce GT' }) });
-    await expect(premium.getByRole('button')).toContainText('R$');
-    await premium.getByRole('button').click();
-    await expect(page.locator('#toast')).toBeVisible();
+    await expect(premium.getByRole('button')).toContainText(/3\.000\.000/);
+    await expect(premium.getByRole('button')).toBeDisabled();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).owned)).not.toContain('gt');
 
     await page.reload();

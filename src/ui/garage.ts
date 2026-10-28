@@ -1,6 +1,7 @@
 import {
   CARS,
   PAINTS,
+  PREMIUM_PRICE,
   coinPrice,
   importSave,
   type BalanceConfig,
@@ -13,7 +14,6 @@ import { carTagline, paintName, t } from '../i18n/index.ts';
 import { createCarThumbnail } from './car-art.ts';
 import { byId, formatBrl, formatInteger } from './dom.ts';
 import { speedUnit, speedValue } from './units.ts';
-import type { CashStore } from './store.ts';
 
 const MAX_IMPORT_BYTES = 100_000;
 
@@ -21,7 +21,6 @@ export interface GarageDeps {
   readonly save: SaveData;
   readonly race: Race;
   readonly config: BalanceConfig;
-  readonly store: CashStore;
   /** The selected car with the chosen paint applied. */
   selectedCar(): CarSpec;
   /** Re-reads the selected car into a fresh, ready-to-start race. */
@@ -89,11 +88,7 @@ export class Garage {
       <p>${t('garage.disclaimer')}</p>`;
 
     const grid = byId('garageGrid');
-    const carsByPrice = [...CARS].sort((a, b) =>
-      a.purchase.kind === b.purchase.kind
-        ? a.purchase.price - b.purchase.price
-        : a.purchase.kind === 'coins' ? -1 : 1,
-    );
+    const carsByPrice = [...CARS].sort((a, b) => coinPrice(a) - coinPrice(b));
     for (const car of carsByPrice) grid.append(this.carCard(car));
     const paints = byId('paints');
     for (const paint of PAINTS) paints.append(this.paintButton(paint));
@@ -108,7 +103,7 @@ export class Garage {
     const { save } = this.deps;
     const owned = save.owned.includes(car.id);
     const selected = save.selected === car.id;
-    const premium = car.purchase.kind === 'cash';
+    const premium = coinPrice(car) >= PREMIUM_PRICE;
 
     const card = document.createElement('article');
     card.className = `car-card ${selected ? 'active' : ''}`;
@@ -130,24 +125,18 @@ export class Garage {
       ? t('garage.selected')
       : owned
         ? t('garage.select')
-        : car.purchase.kind === 'cash'
-          ? t('garage.buyCash', { price: formatBrl(car.purchase.price) })
-          : t('garage.unlock', { price: car.purchase.price });
-    button.disabled = selected || (!owned && car.purchase.kind === 'coins' && save.coins < car.purchase.price);
-    button.onclick = () => void this.chooseCar(car, owned);
+        : t('garage.unlock', { price: formatInteger(coinPrice(car)) });
+    button.disabled = selected || (!owned && save.coins < coinPrice(car));
+    button.onclick = () => this.chooseCar(car, owned);
     card.append(body);
     return card;
   }
 
-  private async chooseCar(car: CarSpec, owned: boolean): Promise<void> {
+  private chooseCar(car: CarSpec, owned: boolean): void {
     const { save } = this.deps;
     if (!owned) {
-      if (car.purchase.kind === 'cash') {
-        if (!(await this.buyWithCash(car))) return;
-      } else {
-        if (save.coins < coinPrice(car)) return;
-        save.coins -= coinPrice(car);
-      }
+      if (save.coins < coinPrice(car)) return;
+      save.coins -= coinPrice(car);
       save.owned.push(car.id);
     }
     save.selected = car.id;
@@ -155,14 +144,6 @@ export class Garage {
     this.deps.persist();
     this.deps.refreshFeatured();
     this.render();
-  }
-
-  private async buyWithCash(car: CarSpec): Promise<boolean> {
-    if (!this.deps.store.available) {
-      this.deps.toast(t('garage.storeUnavailable'));
-      return false;
-    }
-    return this.deps.store.purchase(car.id);
   }
 
   private paintButton(paint: Paint): HTMLButtonElement {

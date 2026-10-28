@@ -24,6 +24,8 @@ const CONTENT_TYPES: Record<string, string> = {
   webmanifest: 'application/manifest+json',
   svg: 'image/svg+xml',
   png: 'image/png',
+  txt: 'text/plain; charset=utf-8',
+  xml: 'application/xml',
   jpg: 'image/jpeg',
 };
 const BINARY_EXTENSIONS = new Set(['png', 'jpg']);
@@ -35,6 +37,33 @@ async function copyStaticFiles(): Promise<void> {
     recursive: true,
     filter: (source) => !source.endsWith('.ts'),
   });
+}
+
+/** Public origin used for canonical and social-share URLs: `SITE_URL`, else the Vercel production domain, else relative. */
+function siteUrl(): string {
+  const configured = process.env.SITE_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  return (configured ?? '').replace(/\/+$/, '');
+}
+
+/** Fills the `%SITE_URL%` placeholders and writes the crawler files. */
+async function writeSeoFiles(): Promise<void> {
+  const origin = siteUrl();
+  const page = await readFile(`${WWW_DIR}/index.html`, 'utf8');
+  await writeFile(`${WWW_DIR}/index.html`, page.replaceAll('%SITE_URL%', origin));
+  await writeFile(`${WWW_DIR}/robots.txt`, `User-agent: *
+Allow: /
+Disallow: /api/
+${origin ? `
+Sitemap: ${origin}/sitemap.xml
+` : ''}`);
+  if (origin) {
+    await writeFile(
+      `${WWW_DIR}/sitemap.xml`,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url></urlset>
+`,
+    );
+  }
 }
 
 async function bundleClient(): Promise<void> {
@@ -115,6 +144,7 @@ async function main(): Promise<void> {
   await mkdir('dist/server', {recursive: true});
   await mkdir('dist/.openai', {recursive: true});
   await copyStaticFiles();
+  await writeSeoFiles();
   await bundleClient();
   await bundleServiceWorker();
   await writeRuntimeConfig();

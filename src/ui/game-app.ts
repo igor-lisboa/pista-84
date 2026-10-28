@@ -33,7 +33,6 @@ import { setUnits } from './units.ts';
 import { NewPlayerDialog } from './new-player.ts';
 import { UsernameDialog } from './username.ts';
 import { SettingsDialog, type InstallPrompt } from './settings.ts';
-import { unavailableStore, type CashStore } from './store.ts';
 
 type View = 'menu' | 'race' | 'overlay';
 
@@ -73,7 +72,6 @@ export class GameApp implements RemoteHost {
   private readonly audio = new AudioEngine();
   private readonly notifications = new Notifications();
   private readonly hud = new Hud();
-  private readonly store: CashStore = unavailableStore;
   private readonly renderer = new Renderer(byId<HTMLCanvasElement>('game'));
   private readonly garage: Garage;
   private readonly settingsDialog: SettingsDialog;
@@ -110,7 +108,6 @@ export class GameApp implements RemoteHost {
       save: this.save,
       race: this.race,
       config,
-      store: this.store,
       selectedCar: () => this.selectedCar(),
       resetForCar: () => this.resetForCar(),
       persist: () => this.persist(),

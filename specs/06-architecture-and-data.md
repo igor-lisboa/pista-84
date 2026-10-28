@@ -60,7 +60,6 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/hud.ts`, `overlays.ts`, `settings.ts`, `garage.ts` | Top-bar HUD, pause/result screens, options dialog, garage and backup |
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
-| `src/ui/store.ts` | `CashStore` interface and the default `unavailableStore` |
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts` | Car previews, DOM/format helpers, toasts and feedback |
 | `src/net/remote.ts` | Pairing client, WebRTC and HTTP compatibility transport |
 | `src/server/signaling.ts` | Shared room API with D1 and in-memory stores |

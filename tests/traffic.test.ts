@@ -196,3 +196,11 @@ test('heavy traffic never overlaps and stays within the cap', () => {
   }
   assert.ok(busiest >= 6);
 });
+
+test('a new run starts with cars already ahead, and', () => {
+  const race = new Race(car('fusca'), seededRandom(7));
+  race.start();
+  assert.ok(trafficOf(race.entities).length >= 1);
+  assert.ok(race.entities.every((entity) => entity.z >= 0.4 && entity.z <= 0.9));
+  assert.equal(TRAFFIC_RAMP, 120);
+});

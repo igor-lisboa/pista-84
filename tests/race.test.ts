@@ -16,6 +16,7 @@ import {
   laneCenter,
   roadCurve,
   screenToDepth,
+  PAR_SPEED,
 } from '../src/game/index.ts';
 import { car, fuelCan, quietRace, step, trafficCar } from './support/game.ts';
 import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
@@ -126,9 +127,9 @@ test('running out of fuel ends the run and the car cannot move afterwards', () =
   assert.equal(race.distance, distance);
 });
 
-test('fuel is scarce: a can restores a fifth of a tank, a checkpoint under a tenth', () => {
-  assert.equal(FUEL_PICKUP, 20);
-  assert.equal(CHECKPOINT_FUEL, 8);
+test('fuel is scarce: a can restores an eighth of a tank, a checkpoint a twenty-fifth', () => {
+  assert.equal(FUEL_PICKUP, 12);
+  assert.equal(CHECKPOINT_FUEL, 4);
 });
 
 test('a fuel can restores its amount, caps at 100 and is consumed once', () => {
@@ -503,11 +504,11 @@ test('score pays per metre scaled by the average speed of the current kilometre'
     return race;
   };
   const slow = drive(50);
-  const par = drive(100);
+  const par = drive(PAR_SPEED);
   const fast = drive(200);
   assert.ok(slow.score < par.score && par.score < fast.score);
   assert.ok(Math.abs(par.score - par.distance) < par.distance * 0.03);
-  assert.ok(Math.abs(slow.score - slow.distance * 0.5) < slow.distance * 0.03);
+  assert.ok(Math.abs(slow.score - slow.distance * (50 / PAR_SPEED)) < slow.distance * 0.03);
 });
 
 test('a checkpoint resets the kilometre clock, and coins come from score', () => {

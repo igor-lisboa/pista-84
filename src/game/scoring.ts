@@ -1,15 +1,15 @@
 import { clamp } from './math.ts';
 
 /** Average speed (km/h) of a kilometre that pays exactly one point per metre. */
-export const PAR_SPEED = 100;
+export const PAR_SPEED = 120;
 /** Shared by the race payout and the end-of-game conversion display. */
 export const POINTS_PER_COIN = 25;
 const MIN_MULTIPLIER = 0.2;
-const MAX_MULTIPLIER = 3.5;
+const MAX_MULTIPLIER = 3;
 
 /**
  * Score pays per metre, scaled by the average speed of the kilometre being
- * driven: par is x1, a crawl pays a fraction and a flat-out kilometre up to x3.5.
+ * driven: par is x1, a crawl pays a fraction and a flat-out kilometre up to x3.
  */
 export function paceMultiplier(metres: number, seconds: number): number {
   if (seconds <= 0) return MIN_MULTIPLIER;
