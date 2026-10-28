@@ -12,6 +12,7 @@ import {
 import { carTagline, paintName, t } from '../i18n/index.ts';
 import { createCarThumbnail } from './car-art.ts';
 import { byId, formatBrl, formatInteger } from './dom.ts';
+import { speedUnit, speedValue } from './units.ts';
 import type { CashStore } from './store.ts';
 
 const MAX_IMPORT_BYTES = 100_000;
@@ -118,7 +119,7 @@ export class Garage {
       <h3>${car.name}</h3>
       <p class="car-tagline">${carTagline(car.id)}</p>
       <dl>
-        <div><dt>${t('garage.max')}</dt><dd>${car.max} ${t('hud.speedUnit')}</dd></div>
+        <div><dt>${t('garage.max')}</dt><dd>${speedValue(car.max)} ${speedUnit()}</dd></div>
         <div><dt>${t('garage.accel')}</dt><dd>${car.accel}</dd></div>
         <div><dt>${t('garage.fuel')}</dt><dd>${car.consumption.toFixed(2)}×</dd></div>
       </dl>

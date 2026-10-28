@@ -1,7 +1,8 @@
 import type { EndReason, Race, SaveData } from '../game/index.ts';
 import { POINTS_PER_COIN, SECOND_CHANCE_PRICE } from '../game/index.ts';
 import { t, type MessageKey } from '../i18n/index.ts';
-import { byId, formatInteger, formatKm } from './dom.ts';
+import { byId, formatInteger } from './dom.ts';
+import { distanceUnit, formatDistance, speedUnit, speedValue } from './units.ts';
 import { icon } from './icons.ts';
 
 export interface PauseActions {
@@ -48,7 +49,7 @@ export function showPause(actions: PauseActions): void {
 export function showGameOver(race: Race, save: SaveData, actions: GameOverActions): void {
   const crashed = race.crashed;
   const reasonKey = REASON_KEYS[race.endReason ?? 'fuel'];
-  const reason = t(reasonKey, { speed: Math.round(race.crashSpeed) });
+  const reason = t(reasonKey, { speed: speedValue(race.crashSpeed), unit: speedUnit() });
   showOverlay(
     `
     <div class="overlay-card">
@@ -57,7 +58,7 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
       <p>${reason}</p>
       <div class="result-stats">
         <span>${formatInteger(race.score)} ${t('hud.pts')}</span>
-        <span>${formatKm(race.distance)} km</span>
+        <span>${formatDistance(race.distance)} ${distanceUnit()}</span>
         <span>${t('coins.amount', { n: formatInteger(race.coins) })}</span>
       </div>
       <div class="result-conversion">

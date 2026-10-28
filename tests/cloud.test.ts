@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {cloudProgress, leaderboardApi} from '../src/server/cloud.ts';
-import {importSave, loadSave} from '../src/game/index.ts';
+import {importSave, loadSave, startNewPlayer} from '../src/game/index.ts';
 import {memoryPlayerStore} from '../src/server/players.ts';
 import type {PlayerStore} from '../src/server/players.ts';
 
@@ -125,4 +125,69 @@ test('importing replaces everything, but keeps the highest score for the same GU
   assert.equal(legacy.username, 'Alice');
   assert.equal(legacy.bestScore, 900);
   assert.equal(legacy.coins, 9);
+});
+
+test('starting a new player gets a fresh GUID and garage but keeps device preferences and history', () => {
+  const current = loadSave({
+    getItem: () => JSON.stringify({playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, coins: 500, owned: ['fusca', 'gol'], lang: 'ja', sound: false}),
+  });
+  const fresh = startNewPlayer(current, {coins: null}, 1234);
+
+  assert.notEqual(fresh.playerId, ALICE);
+  assert.equal(fresh.username, null);
+  assert.equal(fresh.coins, 0);
+  assert.equal(fresh.bestScore, 0);
+  assert.deepEqual(fresh.owned, ['fusca']);
+  assert.equal(fresh.lang, 'ja');
+  assert.equal(fresh.sound, false);
+  assert.deepEqual(fresh.history, [{playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, retired: 1234}]);
+
+  // History survives a save round trip and accumulates; an empty, nameless player is not recorded.
+  const reloaded = loadSave({getItem: () => JSON.stringify(fresh)});
+  assert.equal(reloaded.history.length, 1);
+  assert.equal(startNewPlayer(reloaded, {coins: null}).history.length, 1);
+  const named = {...reloaded, username: 'Bob'};
+  assert.equal(startNewPlayer(named, {coins: null}).history.length, 2);
+});
+
+test('the leaderboard is served in pages of five, sorted, with ties going to whoever got there first', async () => {
+  const store = memoryPlayerStore();
+  const ids = Array.from({length: 7}, (_, i) => `6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5${i}`);
+  const submit = (playerId: string, score: number) =>
+    leaderboardApi(scoreRequest({playerId, username: `Driver${playerId.slice(-1)}`, score, distance: 100}), store);
+  for (const [i, id] of ids.entries()) await submit(id, 100 + i * 10); // driver 6 leads
+  await submit(ids[0]!, 160); // ties driver 6, but arrived later
+
+  const page = async (n: number, caller?: string) =>
+    (await leaderboardApi(new Request(`https://pista.test/api/leaderboard?page=${n}`, {headers: caller ? {'x-player-id': caller} : {}}), store)).json();
+
+  const first = await page(1, ids[2]);
+  assert.equal(first.size, 5);
+  assert.equal(first.total, 7);
+  assert.equal(first.pages, 2);
+  assert.deepEqual(first.entries.map((e: {name: string}) => e.name), ['Driver6', 'Driver0', 'Driver5', 'Driver4', 'Driver3']);
+  assert.deepEqual(first.entries.map((e: {rank: number}) => e.rank), [1, 2, 3, 4, 5]);
+  assert.ok(first.entries.every((e: {mine: boolean}) => !e.mine));
+
+  const second = await page(2, ids[2]);
+  assert.deepEqual(second.entries.map((e: {name: string; mine: boolean}) => [e.name, e.mine]), [['Driver2', true], ['Driver1', false]]);
+  assert.equal(second.entries[0].rank, 6);
+
+  // Out-of-range and junk pages are clamped instead of failing.
+  assert.equal((await page(99)).page, 2);
+  assert.equal((await page(-3)).page, 1);
+  assert.equal((await (await leaderboardApi(new Request('https://pista.test/api/leaderboard?page=x&size=abc'), store)).json()).size, 5);
+});
+
+test('the ranking is kept as a compact sorted list apart from the heavy backups', async () => {
+  const store = memoryPlayerStore();
+  await leaderboardApi(scoreRequest({playerId: ALICE, username: 'Alice', score: 500, distance: 50}), store);
+  const rows = await store.read<unknown[][]>('scores', []);
+  assert.deepEqual(rows.map((row) => row.slice(0, 4)), [[ALICE, 'Alice', 500, 50]]);
+  assert.deepEqual(await store.read('backups', {}), {});
+
+  await cloudProgress(progressRequest(ALICE, 'PUT', {save: {coins: 1, owned: ['fusca'], username: 'Alice', bestScore: 900}, revision: 0}), store);
+  assert.equal(Object.keys(await store.read('backups', {})).length, 1);
+  // Restoring a backup with a higher score publishes it to the ranking.
+  assert.equal((await store.read<unknown[][]>('scores', []))[0]![2], 900);
 });

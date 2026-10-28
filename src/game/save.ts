@@ -1,7 +1,21 @@
+import type { DistanceUnit } from './units.ts';
 import { isPlayerId, newPlayerId, normalizeUsername } from './username.ts';
 import { CARS, DEFAULT_CAR_ID, DEFAULT_PAINT_ID, PAINTS } from './cars.ts';
 
 export const SAVE_KEY = 'pista84';
+
+/** A player this device has retired; kept so earlier scores are never lost from view. */
+export interface PastPlayer {
+  playerId: string;
+  username: string | null;
+  bestScore: number;
+  /** Best distance in metres. */
+  best: number;
+  /** When the player was retired (ms since epoch). */
+  retired: number;
+}
+
+export const HISTORY_LIMIT = 20;
 
 export interface SaveData {
   version: 2;
@@ -20,6 +34,12 @@ export interface SaveData {
   username: string | null;
   /** Permanent GUID that scores are attached to; the username may change, this never does. */
   playerId: string;
+  /** Players this device used before, newest last. */
+  history: PastPlayer[];
+  /** Unit for distances and speeds; kilometres unless the player picks miles. */
+  units: DistanceUnit;
+  /** Whether the how-to-play tutorial was finished or skipped by this player. */
+  tutorialDone: boolean;
 }
 
 export interface SaveStorage {
@@ -37,6 +57,24 @@ const nonNegative = (value: unknown): number =>
 const keepKnown = (ids: unknown, known: readonly string[]): string[] =>
   Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && known.includes(id)) : [];
 
+function readHistory(value: unknown): PastPlayer[] {
+  if (!Array.isArray(value)) return [];
+  const past: PastPlayer[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue;
+    const item = entry as Record<string, unknown>;
+    if (!isPlayerId(item.playerId)) continue;
+    past.push({
+      playerId: item.playerId,
+      username: normalizeUsername(item.username),
+      bestScore: Math.floor(nonNegative(item.bestScore)),
+      best: nonNegative(item.best),
+      retired: nonNegative(item.retired),
+    });
+  }
+  return past.slice(-HISTORY_LIMIT);
+}
+
 export function defaultSave(): SaveData {
   return {
     version: 2,
@@ -51,6 +89,9 @@ export function defaultSave(): SaveData {
     lang: null,
     username: null,
     playerId: newPlayerId(),
+    history: [],
+    units: 'km',
+    tutorialDone: false,
   };
 }
 
@@ -86,6 +127,9 @@ export function loadSave(storage: Pick<SaveStorage, 'getItem'>, config: BalanceC
       lang: typeof saved.lang === 'string' ? saved.lang : null,
       username: normalizeUsername(saved.username),
       playerId: isPlayerId(saved.playerId) ? saved.playerId : fallback.playerId,
+      history: readHistory(saved.history),
+      units: saved.units === 'mi' ? 'mi' : 'km',
+      tutorialDone: saved.tutorialDone === true,
     };
   } catch {
     return fallback;
@@ -109,9 +153,30 @@ export function importSave(current: SaveData, serialized: string, config: Balanc
   }
   if (!isPlayerId(raw.playerId)) imported.playerId = current.playerId;
   if (normalizeUsername(raw.username) === null) imported.username = current.username;
+  if (!Array.isArray(raw.history)) imported.history = current.history;
+  if (raw.units !== 'km' && raw.units !== 'mi') imported.units = current.units;
+  if (typeof raw.tutorialDone !== 'boolean') imported.tutorialDone = current.tutorialDone;
   if (imported.playerId === current.playerId) {
     imported.bestScore = Math.max(imported.bestScore, current.bestScore);
     imported.best = Math.max(imported.best, current.best);
   }
   return imported;
+}
+
+/**
+ * Starts over as a brand-new player: fresh GUID, no name, starting garage and
+ * zero coins. Device preferences (language, sound) carry over and the retired
+ * player goes into `history`. Their scores stay online under the old GUID.
+ */
+export function startNewPlayer(current: SaveData, config: BalanceConfig = { coins: null }, now = Date.now()): SaveData {
+  const fresh = loadSave({ getItem: () => '{}' }, config);
+  fresh.lang = current.lang;
+  fresh.sound = current.sound;
+  fresh.units = current.units;
+  const retired: PastPlayer[] =
+    current.username !== null || current.bestScore > 0
+      ? [{ playerId: current.playerId, username: current.username, bestScore: current.bestScore, best: current.best, retired: now }]
+      : [];
+  fresh.history = [...current.history, ...retired].slice(-HISTORY_LIMIT);
+  return fresh;
 }

@@ -1,6 +1,7 @@
 import { CHECKPOINT, PATH_UNIT, paceMultiplier, roadBend, type Race } from '../game/index.ts';
 import { t } from '../i18n/index.ts';
-import { byId, formatInteger, formatKm } from './dom.ts';
+import { byId, formatInteger } from './dom.ts';
+import { distanceUnit, formatDistance, speedUnit, speedValue } from './units.ts';
 
 /** How far ahead of the car a bend must be to show the warning. */
 const CURVE_LOOKAHEAD = PATH_UNIT * 0.45;
@@ -36,8 +37,8 @@ export class Hud {
     if (nowMs - this.lastRefresh <= REFRESH_MS) return;
     this.lastRefresh = nowMs;
 
-    this.speed.innerHTML = `${Math.round(race.speed).toString().padStart(3, '0')} <em>${t('hud.speedUnit')}</em>`;
-    this.distance.innerHTML = `${formatKm(race.distance)} <em>km</em>`;
+    this.speed.innerHTML = `${speedValue(race.speed).toString().padStart(3, '0')} <em>${speedUnit()}</em>`;
+    this.distance.innerHTML = `${formatDistance(race.distance)} <em>${distanceUnit()}</em>`;
     const multiplier = paceMultiplier(race.kmMetres, race.kmTime).toFixed(1);
     this.score.textContent = `${formatInteger(race.score)} ${t('hud.pts')} · x${multiplier}`;
     this.fuelLabel.textContent = `${Math.ceil(race.fuel)}%`;
@@ -48,7 +49,7 @@ export class Hud {
 
     const nextCheckpoint = (race.checkpoints + 1) * CHECKPOINT;
     this.checkpointBar.style.width = `${((race.distance % CHECKPOINT) / CHECKPOINT) * 100}%`;
-    this.checkpointLabel.textContent = race.offroad ? t('hud.offroad') : t('hud.checkpoint', { km: formatKm(nextCheckpoint) });
+    this.checkpointLabel.textContent = race.offroad ? t('hud.offroad') : t('hud.checkpoint', { km: formatDistance(nextCheckpoint), unit: distanceUnit() });
     const showBest = bestDistanceAtStart > race.distance && bestDistanceAtStart < nextCheckpoint;
     this.bestMark.style.display = showBest ? 'block' : 'none';
     this.bestMark.style.left = `${((bestDistanceAtStart % CHECKPOINT) / CHECKPOINT) * 100}%`;

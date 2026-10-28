@@ -2,7 +2,7 @@ import {isPlayerId} from '../game/username.ts';
 import {loadSave} from '../game/save.ts';
 import {DEFAULT_RUNTIME_CONFIG} from '../shared/config.ts';
 import type {RuntimeConfig} from '../shared/config.ts';
-import {LEADERBOARD_LIMIT, StoreFullError, leaderboard, readBackup, submitScore, writeBackup} from './players.ts';
+import {StoreFullError, leaderboardPage, readBackup, submitScore, writeBackup} from './players.ts';
 import type {PlayerStore} from './players.ts';
 
 /** Header carrying the caller's permanent GUID; it is the key of their record. */
@@ -95,12 +95,25 @@ export async function cloudProgress(
   });
 }
 
-/** `GET /api/leaderboard` (top players) and `POST /api/score` (a finished run). */
+/**
+ * `GET /api/leaderboard?page=1&size=5` (one page of the ranking; `x-player-id`
+ * is optional and only marks the caller's own row) and `POST /api/score` (a finished run).
+ */
 export async function leaderboardApi(request: Request, store: PlayerStore): Promise<Response> {
   const {pathname} = new URL(request.url);
   if (pathname === '/api/leaderboard') {
     if (request.method !== 'GET') return json({error: 'Invalid method.'}, 405);
-    return guarded(async () => json({entries: await leaderboard(store, LEADERBOARD_LIMIT)}));
+    const params = new URL(request.url).searchParams;
+    const caller = request.headers.get(PLAYER_HEADER);
+    return guarded(async () =>
+      json(
+        await leaderboardPage(store, {
+          page: Number(params.get('page')),
+          size: Number(params.get('size')),
+          playerId: isPlayerId(caller) ? caller : null,
+        }),
+      ),
+    );
   }
   if (pathname === '/api/score') {
     if (request.method !== 'POST') return json({error: 'Invalid method.'}, 405);

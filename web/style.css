@@ -280,3 +280,50 @@ html[dir=rtl] .about-card blockquote{padding-left:0;padding-right:12px;border-le
 .username-form input[aria-invalid=true]{border-color:var(--hot)}
 .username-rules{margin:0;font-size:12px;color:var(--muted)}
 .username-rules.invalid{color:var(--hot);font-weight:700}
+
+/* ---------- new player confirmation ---------- */
+.confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.confirm-actions .menu-button{justify-content:center;text-align:center}
+.menu-button.danger{background:var(--hot);color:var(--cream)}
+dialog p.warning{color:var(--sun);font-weight:700}
+@media (max-width:420px){.confirm-actions{grid-template-columns:1fr}}
+
+/* ---------- leaderboard ---------- */
+.lb-list{list-style:none;margin:18px 0 14px;padding:0;display:grid;gap:8px}
+.lb-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"rank name score" "rank name distance";align-items:center;column-gap:12px;padding:10px 12px;background:var(--panel);border:3px solid var(--line);box-shadow:0 4px 0 #000a}
+.lb-row.mine{border-color:var(--sun)}
+.lb-rank{grid-area:rank;font:400 22px var(--display);color:var(--sun);text-align:center}
+.lb-name{grid-area:name;font:700 16px var(--body);color:var(--cream);overflow-wrap:anywhere}
+.lb-name em{font:700 10px var(--body);font-style:normal;letter-spacing:2px;color:var(--ink);background:var(--sun);padding:2px 6px;margin-left:6px}
+.lb-score{grid-area:score;font:400 18px var(--display);color:var(--cyan);text-align:right}
+.lb-distance{grid-area:distance;color:var(--muted);text-align:right}
+.lb-pager{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:12px}
+.lb-pager .menu-button{justify-content:center;text-align:center}
+.lb-pager .menu-button:disabled{opacity:.4;pointer-events:none}
+#lbPage{font:700 12px var(--body);letter-spacing:1px;color:var(--muted);text-align:center}
+html[dir=rtl] .lb-name em{margin-left:0;margin-right:6px}
+
+/* ---------- tilt steering needs landscape ---------- */
+#rotateHint{display:none;position:fixed;inset:0;z-index:40;place-items:center;padding:24px;background:#0d0620f2;text-align:center}
+body[data-rotate=needed] #rotateHint{display:grid}
+.rotate-card{display:grid;gap:18px;justify-items:center;max-width:320px}
+.rotate-card .ui-icon{width:64px;height:64px;color:var(--sun);animation:turn-hint 2.4s ease-in-out infinite}
+.rotate-card p{margin:0;font:700 17px/1.4 var(--body);color:var(--cream)}
+.rotate-card .secondary{justify-content:center}
+@keyframes turn-hint{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
+@media (prefers-reduced-motion:reduce){.rotate-card .ui-icon{animation:none}}
+
+/* ---------- tutorial ---------- */
+.tutorial-card{display:flex;gap:18px;align-items:center;margin:16px 0 12px;padding:16px;background:var(--panel);border:3px solid var(--line);box-shadow:0 4px 0 #000a}
+.tutorial-card p{margin:0;font-size:15px;color:var(--cream)}
+.tutorial-icon{flex:none;display:grid;place-items:center;width:64px;height:64px;background:var(--ink2);border:3px solid var(--sun);color:var(--sun);box-shadow:3px 3px 0 #000b}
+.tutorial-icon .ui-icon{width:34px;height:34px}
+.tutorial-do .tutorial-icon{border-color:var(--cyan);color:var(--cyan)}
+.tutorial-dont .tutorial-icon{border-color:var(--hot);color:var(--hot)}
+.tutorial-dots{display:flex;justify-content:center;gap:8px;margin-bottom:6px}
+.tutorial-dots i{width:12px;height:12px;background:var(--ink2);border:2px solid var(--line)}
+.tutorial-dots i.on{background:var(--sun);border-color:var(--sun)}
+.tutorial-count{margin:0 0 4px;text-align:center;font-size:12px}
+.menu-button.go{background:var(--sun);color:var(--ink)}
+.tutorial-skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);text-decoration:underline;font:700 12px var(--body);letter-spacing:2px;text-transform:uppercase}
+@media (max-width:420px){.tutorial-card{flex-direction:column;text-align:center}}

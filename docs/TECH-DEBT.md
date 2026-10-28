@@ -2,14 +2,14 @@
 
 ## TD-01 · Online storage is one Vercel Global Config item
 
-**Decision.** Everything online (leaderboard scores, player names, cloud backups) is stored as **one JSON document for all players** under the Global Config key `players`, keyed by each player's permanent GUID. Code: `src/server/players.ts` (rules), `src/server/global-config.ts` (store), `src/server/cloud.ts` (HTTP handlers), `api/*.ts` (Vercel functions).
+**Decision.** Everything online lives in Vercel Global Config, split into two items so the hot path stays tiny: `scores` (one compact `[guid, name, score, distance, achievedAt]` row per player, kept sorted best-first; every finished run touches only this, and the leaderboard reads only this, paginated five at a time by the server) and `backups` (the heavy per-player cloud saves, written only by the backup button). Rows hang off each player's permanent GUID. Code: `src/server/players.ts` (rules), `src/server/global-config.ts` (store), `src/server/cloud.ts` (HTTP handlers), `api/*.ts` (Vercel functions), `src/ui/leaderboard.ts` (menu dialog).
 
 It was chosen to get an online leaderboard running without provisioning a database. It is a stop-gap. Global Config is a read-optimised configuration store, not a database.
 
 **Known limits**
 
-- **Size cap.** The whole document must fit the plan limit (roughly 8 KB hobby, 64 KB pro, as last known; verify). Scores alone are about 120 bytes per player; a cloud backup adds a few hundred. Writes above `GLOBAL_CONFIG_MAX_BYTES` (default 8000) are refused with HTTP 507. Expect to hit this at tens of players.
-- **Last writer wins.** Every write re-reads the document and rewrites all of it. Two runs finishing at the same moment can drop one update. There are no transactions.
+- **Size cap.** Global Config has a total size limit (roughly 8 KB hobby, 64 KB pro, as last known; verify). A score row is about 90 bytes, so the ranking alone fits roughly 80 players on the free plan; each cloud backup adds a few hundred bytes. The limit is checked per item, not across items. Writes above `GLOBAL_CONFIG_MAX_BYTES` (default 8000) are refused with HTTP 507. Expect to hit this at tens of players.
+- **Last writer wins.** Every write re-reads the item and rewrites all of it (unchanged items are skipped). Two runs finishing at the same moment can drop one update. There are no transactions.
 - **Write path is slow and rate-limited.** Writes go through the Vercel management API with `VERCEL_API_TOKEN` and take time to propagate to the edge, so a leaderboard read right after a write can be stale.
 - **Scores are trusted.** The client sends its own score; there is no server-side validation of a run, so the leaderboard can be cheated.
 - **Names are not unique.** Two players can share a display name. Ranking is by GUID, so nothing collides, but the board can show duplicates.

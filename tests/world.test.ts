@@ -8,7 +8,11 @@ import {
   Race,
   coinPrice,
   environment,
+  importSave,
   isPlayerId,
+  kmhToUnit,
+  metresToUnit,
+  startNewPlayer,
   loadSave,
   paceMultiplier,
   roadCurve,
@@ -174,4 +178,26 @@ test('the player GUID is generated once, survives a rename and rejects malformed
   const forged = loadSave({ getItem: () => JSON.stringify({ playerId: 'not-a-guid' }) });
   assert.notEqual(forged.playerId, 'not-a-guid');
   assert.ok(isPlayerId(forged.playerId));
+});
+
+test('distance and speed units convert, default to kilometres and survive new players and imports', () => {
+  assert.equal(metresToUnit(1609.344, 'mi'), 1);
+  assert.equal(metresToUnit(2500, 'km'), 2.5);
+  assert.equal(Math.round(kmhToUnit(160.9344, 'mi')), 100);
+  assert.equal(kmhToUnit(120, 'km'), 120);
+
+  assert.equal(loadSave({ getItem: () => '{}' }).units, 'km');
+  assert.equal(loadSave({ getItem: () => JSON.stringify({ units: 'furlongs' }) }).units, 'km');
+  const miles = loadSave({ getItem: () => JSON.stringify({ units: 'mi', tutorialDone: true }) });
+  assert.equal(miles.units, 'mi');
+  assert.equal(miles.tutorialDone, true);
+
+  // A new player keeps the device's unit but sees the tutorial again.
+  const fresh = startNewPlayer(miles);
+  assert.equal(fresh.units, 'mi');
+  assert.equal(fresh.tutorialDone, false);
+
+  // An import without these fields leaves them alone; one with them replaces them.
+  assert.equal(importSave(miles, JSON.stringify({ coins: 1 })).units, 'mi');
+  assert.equal(importSave(miles, JSON.stringify({ units: 'km', tutorialDone: false })).units, 'km');
 });

@@ -1,9 +1,11 @@
 import { AudioEngine } from '../audio/audio.ts';
 import {
   CARS,
+  CHECKPOINT,
   PAINTS,
   Race,
   loadSave,
+  startNewPlayer,
   SAVE_KEY,
   type BalanceConfig,
   type CarSpec,
@@ -14,7 +16,8 @@ import { applyStatic, detectLang, isLang, setLang, t, type Lang } from '../i18n/
 import { Renderer } from '../render/renderer.ts';
 import { loadSprites } from '../render/sprites.ts';
 import { paintCarPreview } from './car-art.ts';
-import { byId, formatInteger, formatKm } from './dom.ts';
+import { byId, formatInteger } from './dom.ts';
+import { distanceUnit, formatDistance } from './units.ts';
 import { Garage } from './garage.ts';
 import { Hud } from './hud.ts';
 import { InputController } from './input.ts';
@@ -23,6 +26,10 @@ import { Notifications } from './notifications.ts';
 import { showGameOver, showPause } from './overlays.ts';
 import { RemoteDialog, type RemoteHost } from './remote-dialog.ts';
 import { AboutDialog } from './about.ts';
+import { LeaderboardDialog } from './leaderboard.ts';
+import { TutorialDialog } from './tutorial.ts';
+import { setUnits } from './units.ts';
+import { NewPlayerDialog } from './new-player.ts';
 import { UsernameDialog } from './username.ts';
 import { SettingsDialog, type InstallPrompt } from './settings.ts';
 import { unavailableStore, type CashStore } from './store.ts';
@@ -30,6 +37,9 @@ import { unavailableStore, type CashStore } from './store.ts';
 type View = 'menu' | 'race' | 'overlay';
 
 const SYNC_KEY = 'pista84.synced';
+
+/** A first-time player who has not moved after this many seconds gets the tutorial. */
+const IDLE_TUTORIAL_SECONDS = 5;
 
 /** Seconds of play between automatic progress saves. */
 const AUTOSAVE_SECONDS = 5;
@@ -68,6 +78,13 @@ export class GameApp implements RemoteHost {
   private readonly settingsDialog: SettingsDialog;
   private readonly remoteDialog: RemoteDialog;
   private readonly usernameDialog: UsernameDialog;
+  private readonly newPlayerDialog: NewPlayerDialog;
+  private readonly leaderboardDialog = new LeaderboardDialog(() => this.save.playerId);
+  private readonly tutorialDialog = new TutorialDialog();
+  /** The tutorial owns the modal; closing it by any route finishes it. */
+  private tutorialActive = false;
+  /** Restart the race once an idle-triggered tutorial closes. */
+  private tutorialRestart = false;
   private readonly aboutDialog = new AboutDialog();
 
   private previousStatus: Race['status'] = 'ready';
@@ -85,6 +102,7 @@ export class GameApp implements RemoteHost {
     this.config = config;
     this.save = loadSave(this.storage, config);
     setLang(isLang(this.save.lang) ? this.save.lang : detectLang(navigator.languages));
+    setUnits(this.save.units);
     this.race = new Race(this.selectedCar());
 
     this.garage = new Garage({
@@ -98,7 +116,12 @@ export class GameApp implements RemoteHost {
       refreshFeatured: () => this.paintFeaturedCar(),
       toast: (message) => this.notifications.toast(message),
       cloudEnabled: () => this.cloudBackup,
-      imported: () => void this.syncScore(),
+      imported: () => {
+        setUnits(this.save.units);
+        this.hud.invalidate();
+        this.refresh();
+        void this.syncScore();
+      },
     });
     this.settingsDialog = new SettingsDialog({
       save: this.save,
@@ -108,6 +131,9 @@ export class GameApp implements RemoteHost {
       persist: () => this.persist(),
       changeLanguage: (lang) => this.changeLanguage(lang),
       editUsername: () => this.openUsername(),
+      changeUnits: (units) => this.changeUnits(units),
+      showTutorial: () => this.openTutorial(false),
+      newPlayer: () => this.openNewPlayer(),
       installPrompt: () => {
         const prompt = this.installPrompt;
         this.installPrompt = null;
@@ -120,8 +146,10 @@ export class GameApp implements RemoteHost {
       onSaved: (name) => {
         this.notifications.toast(t('user.welcome', { name }));
         void this.syncScore();
+        if (!this.save.tutorialDone) this.openTutorial(false);
       },
     });
+    this.newPlayerDialog = new NewPlayerDialog({ save: this.save, confirm: () => this.startNewPlayer() });
     this.remoteDialog = new RemoteDialog(this);
   }
 
@@ -134,6 +162,7 @@ export class GameApp implements RemoteHost {
     if (this.usernameDialog.required) this.openUsername();
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
+      this.checkRotation();
     };
     this.input.onTiltSilent = () => this.notifications.toast(t('tilt.silent'));
     void loadSprites().then(() => this.refresh()).catch(() => undefined);
@@ -147,12 +176,19 @@ export class GameApp implements RemoteHost {
     byId('garageOpen').onclick = () => this.openGarage();
     byId('settingsNav').onclick = () => this.openSettings();
     byId('aboutNav').onclick = () => this.openAbout();
+    byId('rotateOff').onclick = () => void this.input.toggleTilt().catch(() => undefined);
+    byId('leaderboardNav').onclick = () => this.openLeaderboard();
+    byId('newPlayerNav').onclick = () => this.openNewPlayer();
     byId('remoteNav').onclick = () => void this.remoteDialog.open();
     byId('pause').onclick = () => this.pause();
     byId('closeModal').onclick = () => byId<HTMLDialogElement>('modal').close();
     // Without a name the dialog is mandatory, so Escape must not dismiss it.
     byId<HTMLDialogElement>('modal').addEventListener('cancel', (event) => {
       if (this.usernameDialog.required) event.preventDefault();
+    });
+    byId<HTMLDialogElement>('modal').addEventListener('close', () => {
+      // A modal re-opened in the same tick (name dialog -> tutorial) is still open: ignore its stale close.
+      if (this.tutorialActive && !byId<HTMLDialogElement>('modal').open) this.finishTutorial();
     });
 
     this.checkOnline();
@@ -286,6 +322,16 @@ export class GameApp implements RemoteHost {
       this.recordShown = true;
       this.notifications.feedback(t('fb.record'));
     }
+    if (
+      race.status === 'running' &&
+      race.time >= IDLE_TUTORIAL_SECONDS &&
+      race.distance < 1 &&
+      this.save.best === 0 &&
+      !this.tutorialActive
+    ) {
+      this.showIdleTutorial();
+      return;
+    }
     if (this.previousStatus !== 'over' && race.status === 'over') this.gameOver();
     this.previousStatus = race.status;
     if (race.status === 'running' && race.time - this.lastAutosaveTime >= AUTOSAVE_SECONDS) {
@@ -307,7 +353,7 @@ export class GameApp implements RemoteHost {
           this.audio.tone(660, 0.22, 'square', 0.2);
           break;
         case 'checkpoint':
-          this.notifications.feedback(t('fb.checkpoint', { n: this.race.checkpoints }));
+          this.notifications.feedback(t('fb.checkpoint', { n: formatDistance(this.race.checkpoints * CHECKPOINT, 0), unit: distanceUnit() }));
           this.audio.tone(880, 0.2, 'square', 0.18);
           break;
         case 'offroad':
@@ -417,7 +463,7 @@ export class GameApp implements RemoteHost {
   }
 
   private refresh(): void {
-    byId('best').textContent = `${formatKm(this.save.best)} km`;
+    byId('best').textContent = `${formatDistance(this.save.best)} ${distanceUnit()}`;
     byId('wallet').textContent = t('coins.amount', { n: formatInteger(this.save.coins) });
     byId('carName').textContent = this.race.car.name.toUpperCase();
     this.paintFeaturedCar();
@@ -438,6 +484,65 @@ export class GameApp implements RemoteHost {
     this.openModal();
     this.aboutDialog.render();
     applyIcons();
+  }
+
+  private openLeaderboard(): void {
+    this.openModal();
+    this.leaderboardDialog.open();
+  }
+
+  /** Opens the tutorial; `idle` means the player did not move and the race will restart afterwards. */
+  private openTutorial(idle: boolean): void {
+    this.tutorialActive = true;
+    this.tutorialRestart = idle;
+    this.openModal();
+    this.tutorialDialog.open(idle);
+  }
+
+  private finishTutorial(): void {
+    this.tutorialActive = false;
+    if (!this.save.tutorialDone) {
+      this.save.tutorialDone = true;
+      this.persist();
+    }
+    if (this.tutorialRestart) {
+      this.tutorialRestart = false;
+      this.start();
+    }
+  }
+
+  /** Nobody moved in the first seconds of a first run: show how to drive, then start over. */
+  private showIdleTutorial(): void {
+    this.race.reset();
+    this.settledCoins = 0;
+    this.previousStatus = 'ready';
+    this.setView('menu');
+    this.refresh();
+    this.openTutorial(true);
+  }
+
+  private changeUnits(units: SaveData['units']): void {
+    this.save.units = units;
+    setUnits(units);
+    this.persist();
+    this.hud.invalidate();
+  }
+
+  openNewPlayer(): void {
+    this.openModal();
+    this.newPlayerDialog.render();
+  }
+
+  /** Retires the current player (kept in history and online) and begins again from scratch. */
+  private startNewPlayer(): void {
+    if (this.race.distance > 0) this.settle();
+    this.race.reset();
+    this.settledCoins = 0;
+    Object.assign(this.save, startNewPlayer(this.save, this.config));
+    this.resetForCar();
+    this.persist();
+    this.notifications.toast(t('newp.done'));
+    this.openUsername();
   }
 
   openUsername(): void {
@@ -461,6 +566,18 @@ export class GameApp implements RemoteHost {
     const height = window.visualViewport?.height ?? innerHeight;
     document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
     this.renderer.resize();
+    this.checkRotation();
+  }
+
+  /**
+   * Tilt steering needs a landscape screen. Where the orientation lock is not
+   * available the overlay asks the player to turn the phone, and a running race
+   * pauses rather than being played blind in a portrait layout.
+   */
+  private checkRotation(): void {
+    const needed = this.input.tiltEnabled && innerHeight > innerWidth;
+    document.body.dataset.rotate = needed ? 'needed' : '';
+    if (needed && this.race.status === 'running') this.pause();
   }
 
   // ---- platform plumbing ----

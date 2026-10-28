@@ -7,9 +7,6 @@ export function byId<T extends HTMLElement = HTMLElement>(id: string): T {
   return element as T;
 }
 
-export const formatKm = (metres: number): string =>
-  (metres / 1000).toLocaleString(getLang(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 export const formatInteger = (value: number): string => Math.floor(value).toLocaleString(getLang());
 
 export const formatBrl = (value: number): string =>

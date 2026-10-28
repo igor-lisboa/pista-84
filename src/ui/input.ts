@@ -42,6 +42,8 @@ export class InputController {
   private rawTilt = 0;
   private tiltZero = 0;
   private calibrateNext = false;
+  /** Whether tilt steering put the page into fullscreen, so turning it off can leave again. */
+  private fullscreenByTilt = false;
   private lastSensor = 0;
 
   constructor() {
@@ -159,14 +161,17 @@ export class InputController {
     }
     if (!window.DeviceOrientationEvent) throw new TiltError('tilt.noSensor');
     if (!window.isSecureContext) throw new TiltError('tilt.https');
+    // Fullscreen and the orientation lock need a very recent tap, and the sensor
+    // permission prompt can take longer than that to answer: ask for the lock first.
+    void this.lockLandscape();
     const permission = DeviceOrientationEvent as unknown as OrientationPermission;
     if (typeof permission.requestPermission === 'function' && (await permission.requestPermission()) !== 'granted') {
+      this.unlockOrientation();
       throw new TiltError('tilt.denied');
     }
     this.tiltEnabled = true;
     this.calibrateNext = true;
     this.lastSensor = 0;
-    void this.lockLandscape();
     this.onTiltChange(true);
     setTimeout(() => {
       if (this.tiltEnabled && !this.lastSensor) {
@@ -187,29 +192,43 @@ export class InputController {
 
   /**
    * Pins the page to landscape so turning the phone steers the car instead of
-   * rotating the layout. Browsers usually require fullscreen for the lock; where
-   * it is unsupported (e.g. iOS Safari) tilt keeps working without it.
+   * rotating the layout. Installed apps allow the lock directly; Chrome in a
+   * tab only allows it in fullscreen; iOS Safari has no lock at all. When it
+   * fails the game falls back to asking for landscape (see `data-rotate`).
    */
   private async lockLandscape(): Promise<void> {
-    try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
-    } catch {
-      // Fullscreen is only a prerequisite for the lock; try without it.
+    const orientation = screen.orientation;
+    if (typeof orientation?.lock !== 'function') return;
+    const attempt = async (): Promise<boolean> => {
+      try {
+        await orientation.lock('landscape');
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    if (!(await attempt())) {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+          this.fullscreenByTilt = true;
+        }
+      } catch {
+        // Fullscreen refused (no user gesture, or not supported); the overlay fallback covers it.
+      }
+      if (!(await attempt())) return;
     }
-    try {
-      await screen.orientation?.lock?.('landscape');
-      this.calibrateNext = true;
-    } catch {
-      // Orientation lock is not available here.
-    }
+    this.calibrateNext = true;
   }
 
   private unlockOrientation(): void {
     try {
       screen.orientation?.unlock?.();
+      if (this.fullscreenByTilt && document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
     } catch {
       // Nothing to unlock.
     }
+    this.fullscreenByTilt = false;
   }
 
   private isHeld(name: string): boolean {

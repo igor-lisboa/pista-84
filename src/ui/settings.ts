@@ -21,6 +21,11 @@ export interface SettingsDeps {
   changeLanguage(lang: Lang): void;
   /** Opens the player-name dialog. */
   editUsername(): void;
+  changeUnits(units: SaveData['units']): void;
+  /** Opens the how-to-play tutorial. */
+  showTutorial(): void;
+  /** Opens the "start over as a new player" confirmation. */
+  newPlayer(): void;
   installPrompt(): InstallPrompt | null;
 }
 
@@ -53,6 +58,9 @@ export class SettingsDialog {
       <div class="settings-list">
         <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
         <button id="username">${t('set.username', { name: save.username ?? '—' })}</button>
+        <button id="units">${t(save.units === 'mi' ? 'set.unitsMi' : 'set.unitsKm')}</button>
+        <button id="tutorial">${t('set.tutorial')}</button>
+        <button id="newPlayer">${t('newp.menu')}</button>
         <button id="sound" aria-pressed="${audio.enabled}">${audio.enabled ? t('set.soundOn') : t('set.soundOff')}</button>
         <button id="tilt">${input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff')}</button>
         <button id="calibrate" ${input.tiltEnabled ? '' : 'hidden'}>${t('set.calibrate')}</button>
@@ -71,6 +79,13 @@ export class SettingsDialog {
       };
     }
     byId('username').onclick = () => this.deps.editUsername();
+    byId('units').onclick = () => {
+      const units = save.units === 'km' ? 'mi' : 'km';
+      this.deps.changeUnits(units);
+      byId('units').textContent = t(units === 'mi' ? 'set.unitsMi' : 'set.unitsKm');
+    };
+    byId('tutorial').onclick = () => this.deps.showTutorial();
+    byId('newPlayer').onclick = () => this.deps.newPlayer();
     byId('sound').onclick = () => void this.toggleSound();
     byId('tilt').onclick = () => void this.toggleTilt();
     byId('calibrate').onclick = () => {

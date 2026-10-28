@@ -20,6 +20,9 @@ test('first launch demands a valid name and keeps the same GUID after a rename',
 
   await page.locator('#usernameInput').fill('Igor_84');
   await page.locator('#usernameForm button[type=submit]').click();
+  // A brand-new player gets the tutorial next; skipping it closes the dialog.
+  await expect(page.locator('#tutNext')).toBeVisible();
+  await page.locator('#tutSkip').click();
   await expect(modal).toBeHidden();
   const first = await save(page);
   expect(first.username).toBe('Igor_84');
