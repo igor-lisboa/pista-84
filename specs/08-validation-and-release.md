@@ -12,7 +12,7 @@ npm run build
 npm start
 ```
 
-`npm start` (and `npm run dev`) run `node server.ts` and serve the generated `www/`, so build first. Open `http://localhost:4173`. `PORT` changes the port. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
+`npm start` (and `npm run dev`) run `node dev-server.ts` and serve the generated `www/`, so build first. Open `http://localhost:4173`. `PORT` changes the port. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
 
 ## Automated checks
 

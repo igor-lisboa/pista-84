@@ -39,7 +39,7 @@ async function copyStaticFiles(): Promise<void> {
 
 async function bundleClient(): Promise<void> {
   await build({
-    entryPoints: ['src/app.ts'],
+    entryPoints: ['src/client.ts'],
     outfile: `${WWW_DIR}/app.js`,
     bundle: true,
     format: 'esm',
