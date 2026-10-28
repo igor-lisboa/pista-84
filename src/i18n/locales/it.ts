@@ -79,6 +79,10 @@ export const it: Messages = {
   'set.unitsKm': 'Unità: chilometri (km)',
   'set.unitsMi': 'Unità: miglia (mi)',
   'set.tutorial': 'Come si gioca',
+  'set.groupPlayer': 'Giocatore',
+  'set.groupGame': 'Gioco',
+  'set.groupControls': 'Controlli',
+  'set.groupDevice': 'Dispositivo',
   'tut.label': 'COME SI GIOCA',
   'tut.step': 'Passo {n} di {total}',
   'tut.next': 'AVANTI',
@@ -93,7 +97,7 @@ export const it: Messages = {
   'tut.brake.title': 'Frenare',
   'tut.brake.body': 'Tieni premuto il pedale del freno (o ↓ / S / Spazio) per rallentare prima delle curve strette e del traffico.',
   'tut.do.title': 'Fai questo',
-  'tut.do.body': 'Raccogli le taniche di carburante per continuare e supera i checkpoint per +15% di carburante. Guida veloce e pulito per fare più punti, poi spendi le monete in garage.',
+  'tut.do.body': 'Raccogli le taniche di carburante per continuare e supera i checkpoint per +{fuel}% di carburante. Guida veloce e pulito per fare più punti, poi spendi le monete in garage.',
   'tut.dont.title': 'Evita questo',
   'tut.dont.body': 'Non toccare mai il traffico né la barriera: qualsiasi urto termina la corsa. Resta sull’asfalto, perché l’erba ti rallenta. Anche restare senza carburante termina la corsa.',
 
@@ -141,7 +145,7 @@ export const it: Messages = {
   'reason.wall': 'Hai colpito la barriera a {speed} {unit}!',
 
   'fb.fuel': '+32 CARBURANTE',
-  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +15% CARBURANTE',
+  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel}% CARBURANTE',
   'fb.record': 'NUOVO RECORD!',
 
   'set.label': 'A MODO TUO',

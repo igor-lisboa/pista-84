@@ -78,6 +78,10 @@ export const ptBR = {
   'set.unitsKm': 'Unidades: quilômetros (km)',
   'set.unitsMi': 'Unidades: milhas (mi)',
   'set.tutorial': 'Como jogar',
+  'set.groupPlayer': 'Jogador',
+  'set.groupGame': 'Jogo',
+  'set.groupControls': 'Controles',
+  'set.groupDevice': 'Aparelho',
   'tut.label': 'COMO JOGAR',
   'tut.step': 'Passo {n} de {total}',
   'tut.next': 'PRÓXIMO',
@@ -92,7 +96,7 @@ export const ptBR = {
   'tut.brake.title': 'Frear',
   'tut.brake.body': 'Segure o pedal de freio (ou ↓ / S / Espaço) para reduzir antes de curvas fechadas e do trânsito.',
   'tut.do.title': 'Faça isto',
-  'tut.do.body': 'Pegue galões de combustível para continuar e passe pelos checkpoints para ganhar +15% de combustível. Dirija rápido e limpo para pontuar mais e gaste suas moedas na garagem.',
+  'tut.do.body': 'Pegue galões de combustível para continuar e passe pelos checkpoints para ganhar +{fuel}% de combustível. Dirija rápido e limpo para pontuar mais e gaste suas moedas na garagem.',
   'tut.dont.title': 'Evite isto',
   'tut.dont.body': 'Nunca encoste no trânsito nem na barreira: qualquer batida encerra a corrida. Fique no asfalto, pois a grama derruba sua velocidade. Ficar sem combustível também encerra a corrida.',
 
@@ -141,7 +145,7 @@ export const ptBR = {
   'reason.wall': 'Você bateu na barreira a {speed} {unit}!',
 
   'fb.fuel': '+32 COMBUSTÍVEL',
-  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +15% COMBUSTÍVEL',
+  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel}% COMBUSTÍVEL',
   'fb.record': 'NOVO RECORDE!',
 
   'set.label': 'DO SEU JEITO',

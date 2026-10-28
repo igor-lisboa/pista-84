@@ -1,14 +1,13 @@
-import {memoryStore, signaling} from '../src/server/signaling.ts';
+import {signaling} from '../src/server/signaling.ts';
+import {rooms} from './_rooms.ts';
 
 /**
- * Phone-as-controller pairing. Rooms live in this function instance's memory:
- * they last ten minutes, change many times a second and hold no gameplay data,
- * so they do not belong in the Blob store (every change would cost an operation
- * of its quota). Serverless functions do not share memory, so `vercel.json`
- * rewrites every `/api/rooms/**` route to this single file, as `?route=<rest>`.
- * See docs/TECH-DEBT.md (TD-02) for what that costs.
+ * Phone-as-controller pairing. Rooms last ten minutes, change many times a
+ * second and hold no gameplay data, so they do not belong in the Blob store
+ * (every change would cost an operation of its quota) unless the store spares
+ * them (see `blob-rooms.ts`); `_rooms.ts` picks the Blob rooms when a token is set. `vercel.json` rewrites every `/api/rooms/**`
+ * route to this single file, as `?route=<rest>`. See docs/TECH-DEBT.md (TD-02).
  */
-const rooms = memoryStore();
 
 /** Rebuilds the real room path whether Vercel hands over the original URL or the rewritten one. */
 async function handler(request: Request): Promise<Response> {

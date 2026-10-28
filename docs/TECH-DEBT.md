@@ -35,29 +35,32 @@ It was chosen to get an online leaderboard running without provisioning a databa
 - The Cloudflare D1 `player_progress` table (`db/schema.ts`, `drizzle/0001_*`) is no longer used by the code. `control_rooms` (phone pairing) still uses D1 on the Worker and the in-memory store locally.
 - **Vercel functions setup (learned the hard way).** `vercel.json` must not use the legacy `builds` array: it names each function after its file *with* the extension (`/api/leaderboard.ts`), so every `/api/*` call returned 404. It uses `buildCommand` + `outputDirectory` instead and the `api/` folder is picked up automatically. **Never name a file like a server entrypoint.** Vercel's backend auto-detection looks for `app`, `index`, `server` and `main` (`.js/.ts` variants, in the repo root and in `src/`) and, if it finds one, deploys it as a Node function that answers `/` instead of the static site (the browser entry `src/app.ts` once crashed there with `location is not defined`). The search also covers the **build output directory** (`www/`), and runtime stack traces are source-mapped, so a crash in the browser bundle `www/app.js` showed up as `/var/src/app.ts` even after the source file was renamed. That is why the browser entry is `src/client.ts`, its bundle `www/game.js`, and the local server `dev-server.ts`; a test guards all of these names. `api/tsconfig.json` sets `types: []` because the function builder compiles from a temp directory where TypeScript 7 cannot find `@types/node` and then emits nothing. Reproduce the real build locally with `npx vercel build` (needs a throwaway `.vercel/project.json`) and look at `.vercel/output/functions`.
 
-## TD-02 · Phone pairing rooms live in one serverless function's memory
+## TD-02 · Phone pairing rooms are Blob objects, and every poll is a billed operation
 
-**Decision.** `/api/rooms/**` (the QR code for "phone as controller") is served by a single function, `api/rooms.ts`, which keeps the rooms in a `memoryStore()`. `vercel.json` rewrites every sub-route to it as `/api/rooms?route=<rest>` because separate functions cannot share memory. The Worker keeps using D1 and `dev-server.ts` its own in-memory store.
+**Symptom that led here.** With the rooms kept in one serverless function's memory, the phone's `GET /api/rooms/<id>` was answered by a different instance than the one that created the room and failed with `410 Room expired. Generate a new QR code.` Serverless functions do not share memory, and Vercel cannot host a WebSocket server, so there is no way to "just open a socket" between the two devices without an outside service.
 
-It is not stored in Blob on purpose: a paired session makes about 10 calls a second (the main screen polls the room every 110 ms, the phone sends a heartbeat), so every call would cost a Blob operation and the free quota would be gone within minutes, starving the leaderboard.
+**Decision.** `/api/rooms/**` is served by the single function `api/rooms.ts` (`vercel.json` rewrites every sub-route to it as `/api/rooms?route=<rest>`). Its rooms live in the same private Blob store as the leaderboard (`src/server/blob-rooms.ts`): per room an object for the fixed part (tokens, offer), one for the answer (created without overwrite, so only one phone can take a room) and one for the latest command. If no Blob token is set the function falls back to `memoryStore()`, which is fine locally and unreliable on Vercel. `/health` reports `pairing: "shared"` or `"memory"`. The Worker keeps using D1 and `dev-server.ts` its own in-memory store.
+
+**How operations are spared** (a Blob call is a billed operation, writes are the expensive kind)
+
+- Over the direct WebRTC channel the phone sends commands peer to peer and contacts the server only every 5 seconds, and the main screen polls once a second: a direct session costs almost nothing after pairing.
+- The fixed part of a room is remembered by each instance for 5 seconds, so a poll of an answered room is one read.
+- An unchanged command is not rewritten for 0.8 seconds, so holding a pedal does not write ten times a second.
+- Creating a room occasionally sweeps up rooms nobody closed.
 
 **Known limits**
 
-- **Instances do not share memory.** A cold start or a second instance in the middle of a pairing loses the room; the client then shows "Room expired. Generate a new QR code." and the player scans a new one. With one player on one device pair this is rare, under real traffic it will not be.
-- **Invocation cost.** ~10 function invocations per second per paired session (about 36,000 an hour) count against the plan's invocation and compute quotas.
-- **No relay guarantees.** The HTTPS fallback (used on Safari or when WebRTC cannot connect) depends on the same polling, so it is the first thing to degrade.
-- **No TURN server** (roadmap NET-01), so WebRTC across some mobile networks falls back to that relay.
+- **A relay session is expensive.** Safari (which always uses the HTTPS relay) or any phone where WebRTC cannot connect polls the room about 9 times a second and writes every change in steering or pedals. That is on the order of 30,000 reads and several thousand writes an hour, against a free plan of roughly 10,000 simple and 2,000 advanced operations a *month*. A few minutes of relay play can use the whole allowance, after which the leaderboard cannot save either. On a paid plan it costs cents per hour.
+- **Latency.** Each relayed command is a Blob write plus a read on the other side; steering by tilt over the relay will feel laggy.
+- **Invocation cost.** Every poll and heartbeat is a function invocation.
+- **No TURN server** (roadmap NET-01), so WebRTC across some mobile networks falls back to the relay above.
 
-**Exit plan.** `RoomStore` (`src/server/signaling.ts`) is the only thing the pairing code knows about storage. Back it with Redis (keys with a ten-minute expiry) and rooms become shared across instances; polling could then also be replaced by server-sent events or WebSockets on a platform that supports them.
-
-**Related leftovers**
-
-- Verified only locally with `vercel build` and by calling the built function; try it on a preview deployment with a real phone.
+**Exit plan.** `RoomStore` (`src/server/signaling.ts`) is all the pairing code knows about storage. A store with cheap small writes (Redis) or a WebSocket/pub-sub service (Cloudflare Durable Objects, Ably, Pusher) removes both the cost and the polling.
 
 ## Setup
 
 1. Create a private Blob store in the Vercel dashboard and connect it to the project with the `BLOB_STORAGE` prefix. Vercel then provides `BLOB_STORAGE_READ_WRITE_TOKEN` and `BLOB_STORAGE_STORE_ID` to the deployment; that is all the server needs.
 2. For local runs put the same two values in `.env.local` (or run `vercel env pull .env.local`).
-3. Run `npm run online:check`. It reads the ranking, writes a throwaway row and removes it again.
+3. Run `npm run online:check`. It reads the ranking, writes a throwaway row, removes it again, and round-trips a pairing room in the same store.
 
-Without a token the online features are simply switched off (`/health` reports `cloudBackup: false`) and local runs keep players in memory.
+Without a Blob token the online features are simply switched off (`/health` reports `cloudBackup: false`) and local runs keep players in memory.

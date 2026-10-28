@@ -24,7 +24,7 @@ test('every public endpoint the client calls has a function, and helpers are not
   const files = (await readdir(new URL('../api/', import.meta.url))).filter((name) => name.endsWith('.ts'));
   for (const endpoint of ['health', 'leaderboard', 'score', 'progress', 'rooms']) assert.ok(files.includes(`${endpoint}.ts`), endpoint);
   // Files starting with an underscore are shared helpers, never routes.
-  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts', 'rooms.ts'].includes(name)), ['_store.ts']);
+  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts', 'rooms.ts'].includes(name)).sort(), ['_rooms.ts', '_store.ts']);
 });
 
 test('the function builder is told not to load @types/node, which it cannot find from its temp directory', async () => {

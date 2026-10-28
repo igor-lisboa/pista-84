@@ -152,44 +152,70 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
 .paint-option small{display:block;font-size:10px;margin-top:3px;color:var(--sun);letter-spacing:1px}
 .backup-tools{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .backup-tools button,.backup-tools label{border:3px solid var(--line);background:var(--panel);padding:10px 14px;font-weight:700;cursor:pointer}
-.backup-tools input{display:block;max-width:210px;margin:8px 0 0;font-size:12px}
+.backup-tools label{position:relative;overflow:hidden}
+.backup-tools input[type=file]{position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0;opacity:0;cursor:pointer;font-size:0}
 .cloud-note{font-size:12px!important}
 .remote-content{text-align:center;max-width:580px;margin:auto}
 .remote-content img{width:220px;max-width:65vw;border:4px solid var(--cream);image-rendering:pixelated;margin:18px auto;display:block;background:#fff}
 .remote-content a{font-size:12px;color:var(--sun);overflow-wrap:anywhere}
 .remote-content .secondary{margin:20px auto;max-width:320px;justify-content:center}
 .remote-content .primary{margin:10px auto;max-width:320px}
-.settings-list{display:grid;gap:12px;margin-top:22px}
-.settings-list button,.settings-list select{background:var(--panel);color:var(--cream);padding:15px 16px;border:3px solid var(--line);text-align:left;font:700 14px var(--body);border-radius:0;box-shadow:0 4px 0 #000a;width:100%}
-.settings-list select{appearance:none;cursor:pointer}
-.language-picker{display:grid;gap:8px}
+.settings-groups{column-count:2;column-gap:22px;margin-top:20px}
+.settings-group{break-inside:avoid;margin-bottom:20px}
+.group-title{font:700 11px var(--body)!important;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin:0 0 8px!important}
+.setting-card{display:grid;border:3px solid var(--line);background:var(--panel);box-shadow:0 4px 0 #000a}
+.setting-row{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 14px;border:0;border-top:2px solid #ffffff14;border-radius:0;background:none;color:var(--cream);font:700 14px var(--body);text-align:left;cursor:pointer}
+.setting-card>.setting-row:first-child{border-top:0}
+.setting-row:hover{background:#ffffff0d}
+.setting-row:active{background:#ffffff1a}
+.setting-row:disabled{opacity:.55;cursor:default}
+.setting-row[hidden]{display:none}
+.row-icon{flex:none;display:grid;place-items:center;width:32px;height:32px;background:var(--ink2);border:2px solid var(--line);color:var(--cyan)}
+.row-icon .ui-icon{width:18px;height:18px}
+.setting-row.danger .row-icon{color:var(--hot)}
+.row-text{flex:1;min-width:0;overflow-wrap:anywhere}
+.row-end{flex:none;color:var(--muted)}.row-end .ui-icon{width:16px;height:16px}
+.switch{flex:none;position:relative;width:48px;height:26px;background:var(--ink);border:3px solid var(--line);transition:background .12s,border-color .12s}
+.switch:after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--muted);transition:transform .12s,background .12s}
+.setting-row[aria-pressed=true] .switch{background:#0b4a4d;border-color:var(--cyan)}
+.setting-row[aria-pressed=true] .switch:after{transform:translateX(22px);background:var(--cyan)}
+.settings-note{margin:0;padding:12px 14px;border-top:2px solid #ffffff14;font-size:12px!important;line-height:1.7!important;color:var(--muted)}
+.settings-note[hidden]{display:none}
+.settings-version{display:block;margin-top:18px;color:var(--muted)}
+.language-picker{display:grid;gap:10px;padding:14px}
 .language-picker .label{font:700 11px var(--body);letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
-.flags{display:flex;flex-wrap:wrap;gap:10px}
-.settings-list .flags .flag{width:auto;padding:6px;border:3px solid var(--line);background:var(--panel);box-shadow:0 4px 0 #000a;line-height:0;opacity:.75}
-.flag svg{display:block;width:42px;height:28px}
-.settings-list .flags .flag:hover{opacity:1}
-.settings-list .flags .flag.active{border-color:var(--sun);opacity:1;transform:translateY(2px);box-shadow:0 2px 0 #000a}
-.settings-list label{display:grid;gap:6px;font:700 11px var(--body);letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+.flags{display:flex;flex-wrap:wrap;gap:8px}
+.flags .flag{width:auto;padding:5px;border:3px solid var(--line);background:var(--ink);box-shadow:0 3px 0 #000a;line-height:0;opacity:.7;cursor:pointer}
+.flag svg{display:block;width:40px;height:27px}
+.flags .flag:hover{opacity:1}
+.flags .flag.active{border-color:var(--sun);opacity:1;transform:translateY(2px);box-shadow:0 1px 0 #000a}
 .help-keys{font-size:13px;line-height:2;color:var(--muted)}
 /* ---------- phone as controller ---------- */
-.controller{height:var(--app-height,100dvh);padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));display:flex;flex-direction:column;text-align:center;touch-action:none;background:linear-gradient(180deg,var(--ink) 0,var(--ink2) 100%)}
+.controller{height:var(--app-height,100dvh);padding:max(16px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px;text-align:center;touch-action:none;-webkit-user-select:none;user-select:none;background:radial-gradient(120% 70% at 50% 0,var(--ink3) 0,var(--ink) 70%)}
+.controller-top{display:grid;gap:10px}
 .controller header{display:flex;align-items:center;justify-content:space-between}
 .controller h1{font:400 30px var(--display);margin:0;color:var(--cream);text-shadow:3px 3px 0 var(--hot)}
 .controller h1 span{color:var(--sun)}
-.controller #connection{font-size:13px;color:var(--cyan);padding:12px 0;min-height:45px}
-.controller-toolbar{display:flex;gap:10px;justify-content:center}
-.controller-toolbar button{border:3px solid var(--line);background:var(--panel);padding:11px 14px;font:700 13px var(--body)}
-.controller-wheel{display:grid;place-items:center;flex:1;min-height:100px}
-.wheel{width:130px;height:130px;border:12px solid var(--cream);border-radius:50%;position:relative;transform:rotate(var(--wheel-angle,0deg));box-shadow:4px 4px 0 #000b}
-.wheel:before{content:'';position:absolute;inset:32%;border-radius:50%;background:var(--sun);border:3px solid var(--ink)}
-.wheel:after{content:'';position:absolute;left:0;right:0;height:10px;background:var(--cream);top:45%;z-index:-1}
-.controller-pedals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.controller-pedals button{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;min-height:82px;border:3px solid var(--cream);background:var(--ink3);box-shadow:0 5px 0 #000b;font:400 15px var(--display)}
-.controller-pedals button:nth-child(n+3){min-height:100px}
-.controller-pedals button:nth-child(3){background:#8c1245}
-.controller-pedals button:last-child{background:var(--sun);color:var(--ink);border-color:var(--ink);outline:3px solid var(--cream);outline-offset:-3px}
-.controller-pedals button.pressed{transform:translateY(4px);box-shadow:0 1px 0 #000b;filter:brightness(1.2)}
-.controller-note{font-size:11px;color:var(--muted);margin:16px 0 0}
+.controller #connection{margin:0;min-height:42px;padding:8px 12px;display:flex;align-items:center;justify-content:center;font:700 13px var(--body);color:var(--cyan);background:#0d0620aa;border:2px solid var(--line)}
+.controller-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.controller-toolbar button{border:3px solid var(--line);background:var(--panel);color:var(--cream);padding:12px 10px;font:700 13px var(--body);box-shadow:0 4px 0 #000a}
+.controller-toolbar button.go{background:var(--sun);color:var(--ink);border-color:var(--ink);outline:2px solid var(--cream);outline-offset:-5px}
+.controller-toolbar button:active{transform:translateY(3px);box-shadow:0 1px 0 #000a}
+#tilt:has(+ #calibrate[hidden]){grid-column:1/-1}
+.controller-wheel{display:grid;place-items:center;flex:1;min-height:150px}
+.wheel{--wheel-size:clamp(150px,52vw,240px);--rim:calc(var(--wheel-size)*.1);position:relative;width:var(--wheel-size);height:var(--wheel-size);box-sizing:border-box;border:var(--rim) solid var(--cream);border-radius:50%;transform:rotate(var(--wheel-angle,0deg));transition:transform .05s linear;box-shadow:5px 6px 0 #000b,inset 0 0 0 3px var(--ink3),0 0 0 3px var(--ink)}
+.wheel:before{content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(var(--cream),var(--cream)) 50% 50%/100% 9% no-repeat,linear-gradient(var(--cream),var(--cream)) 50% 100%/9% 50% no-repeat}
+.wheel:after{content:'';position:absolute;inset:30%;z-index:1;border-radius:50%;background:var(--sun);border:4px solid var(--ink);box-shadow:inset 0 -6px 0 var(--sun-d)}
+.wheel i{position:absolute;left:50%;top:calc(var(--rim)*-1);z-index:2;width:calc(var(--wheel-size)*.07);height:var(--rim);transform:translateX(-50%);background:var(--hot);border:2px solid var(--ink);box-sizing:border-box}
+.controller-steer,.controller-pedals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+body[data-tilt=on] .controller-steer{display:none}
+.controller-steer button,.controller-pedals button{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;min-height:84px;border:3px solid var(--cream);background:var(--ink3);color:var(--cream);box-shadow:0 5px 0 #000b;font:400 15px var(--display)}
+.controller-pedals button{min-height:104px}
+body[data-tilt=on] .controller-pedals button{min-height:132px}
+.controller-pedals button[data-control=brake]{background:var(--hot-d)}
+.controller-pedals button[data-control=accelerate]{background:var(--sun);color:var(--ink);border-color:var(--ink);outline:3px solid var(--cream);outline-offset:-3px}
+.controller-steer button.pressed,.controller-pedals button.pressed{transform:translateY(4px);box-shadow:0 1px 0 #000b;filter:brightness(1.2)}
+.controller-note{font-size:11px;color:var(--muted);margin:4px 0 0}
 /* ---------- responsive ---------- */
 @media(pointer:coarse){.touch-controls{display:flex}.keyboard-hint{display:none}}
 @media(max-width:600px){
@@ -209,8 +235,6 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .steering,.pedals{gap:9px}.steering button{width:72px;height:72px;font-size:40px}
  .pedals button{width:86px;height:112px;font-size:11px}.pedals button[data-control=brake]{height:84px}
  .curve-hint{left:12px;top:96px;padding:3px 9px}.curve-hint span{font-size:28px}
- .garage-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.car-card{padding:8px}.car-card h3{font-size:13px}.car-card dl{font-size:11px}.car-card button{font-size:10px}
- #paints{grid-template-columns:repeat(2,minmax(0,1fr))}.paint-option{font-size:12px}
  dialog{padding:24px 14px}dialog h1{font-size:34px}
  .overlay h2{font-size:38px}.feedback{font-size:15px}
  #toast{width:calc(100% - 45px);max-width:400px}
@@ -226,10 +250,6 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .touch-controls{bottom:max(12px,env(safe-area-inset-bottom))}
  .steering button{width:66px;height:66px}
  .pedals button{height:96px;width:84px}.pedals button[data-control=brake]{height:72px}
- .controller-wheel{display:none}
- .controller-pedals{grid-template-columns:repeat(4,1fr);margin-top:auto}
- .controller-pedals button,.controller-pedals button:nth-child(n+3){min-height:100px}
- .controller #connection{padding:4px;margin:5px}.controller-toolbar{margin:8px}.controller-note{margin-top:12px}
  .curve-hint{left:max(18px,env(safe-area-inset-left));top:calc(max(8px,env(safe-area-inset-top)) + 108px);display:flex;align-items:center;gap:6px;padding:3px 8px}
  .curve-hint span{font-size:22px}.curve-hint small{font-size:9px}
  /* Stack driving information on the left; fuel and pause sit on the right. */
@@ -254,7 +274,7 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
  .hud-side{gap:6px}.fuel{width:60px}.pause-button{width:34px}
 }
 /* Preserve physical driving positions when interface text reads right to left. */
-.hud,.touch-controls,.controller-pedals,.controller-toolbar{direction:ltr}
+.hud,.touch-controls,.controller-pedals,.controller-steer,.controller-toolbar{direction:ltr}
 html[dir=rtl] .close{right:auto;left:12px}
 html[dir=rtl] #modalBody>h1,html[dir=rtl] #modalBody>.label{padding-right:0;padding-left:44px}
 html[dir=rtl] .car-card dd{direction:ltr;text-align:left}
@@ -327,3 +347,59 @@ body[data-rotate=needed] #rotateHint{display:grid}
 .menu-button.go{background:var(--sun);color:var(--ink)}
 .tutorial-skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);text-decoration:underline;font:700 12px var(--body);letter-spacing:2px;text-transform:uppercase}
 @media (max-width:420px){.tutorial-card{flex-direction:column;text-align:center}}
+
+/* Phone held sideways: steering buttons left, the wheel in the middle, pedals right. */
+@media (orientation:landscape) and (max-height:570px){
+ .controller{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top top" "steer wheel pedals";gap:10px 16px;padding:max(8px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+ .controller-top{grid-area:top;display:flex;align-items:center;gap:12px}
+ .controller header{flex:none}.controller h1{font-size:22px;text-shadow:2px 2px 0 var(--hot)}.controller header .label{display:none}
+ .controller #connection{flex:1;min-width:0;min-height:0;padding:6px 10px;font-size:12px}
+ .controller-toolbar{display:flex;flex:none;gap:8px}
+ #tilt:has(+ #calibrate[hidden]){grid-column:auto}
+ .controller-toolbar button{padding:8px 12px;font-size:12px;box-shadow:0 3px 0 #000a}
+ .controller-wheel{grid-area:wheel;min-height:0}
+ .wheel{--wheel-size:clamp(110px,min(62vh,34vw),250px)}
+ body[data-tilt=on] .wheel{--wheel-size:clamp(130px,min(72vh,40vw),290px)}
+ /* No steering buttons: centre the wheel in the space left of the pedals. */
+ body[data-tilt=on] .controller{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top top" "wheel pedals"}
+ .controller-steer{grid-area:steer;gap:10px;min-height:0}
+ .controller-pedals{grid-area:pedals;gap:10px;min-height:0}
+ .controller-steer button,.controller-pedals button,.controller-pedals button,body[data-tilt=on] .controller-pedals button{min-height:0;height:100%}
+ .controller-note{display:none}
+}
+
+html[dir=rtl] .setting-row{text-align:right}
+html[dir=rtl] .row-end{transform:scaleX(-1)}
+html[dir=rtl] .setting-row[aria-pressed=true] .switch:after{transform:translateX(-22px)}
+html[dir=rtl] .switch:after{left:auto;right:2px}
+@media (max-width:760px){.settings-groups{column-count:1}}
+@media (max-width:600px){.setting-row{min-height:56px}}
+
+/* ---------- garage on a phone: one card per car, thumbnail beside the details ---------- */
+@media (max-width:600px){
+ .garage-grid{grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0}
+ .car-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:0 12px;align-items:start;padding:10px;box-shadow:3px 3px 0 #000a}
+ .car-card canvas{width:96px;height:62px;align-self:start;margin-top:2px}
+ .car-card>div{min-width:0;display:flex;flex-direction:column}
+ .car-card h3{height:auto;margin:0 0 2px;font-size:15px;line-height:1.25}
+ .car-card p{height:auto;margin:0 0 8px;font-size:12px;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+ /* compact label / value rows: any translation fits, unlike three narrow boxes */
+ .car-card dl{display:grid;grid-template-columns:minmax(0,1fr);gap:0;margin:2px 0 10px;font-size:12px;line-height:1.5}
+ .car-card dl>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:3px 0;border-bottom:1px dashed #ffffff26}
+ .car-card dl>div:last-child{border-bottom:0}
+ .car-card dt{font-size:11px;overflow-wrap:anywhere}
+ .car-card dd{text-align:right;font-size:12px}
+ .car-badge{min-height:0;margin:0 0 8px}.car-badge:empty{display:none}
+ .car-card button{height:46px;padding:6px 8px;font-size:11px}
+ /* paints: one row you swipe through, not a second wall of cards */
+ #paints{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+ .paint-option{flex:0 0 148px;min-height:58px;padding:8px 10px;scroll-snap-align:start;font-size:12px}
+ .paint-shop{margin-top:14px;padding-top:12px}
+ /* backup: stacked full-width buttons */
+ .backup-tools{flex-direction:column;gap:10px;margin:16px 0}
+ .backup-tools button,.backup-tools label{width:100%;text-align:center}
+ .coin-packs{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px) and (orientation:landscape){
+ .garage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

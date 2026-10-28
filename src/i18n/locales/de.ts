@@ -79,6 +79,10 @@ export const de: Messages = {
   'set.unitsKm': 'Einheiten: Kilometer (km)',
   'set.unitsMi': 'Einheiten: Meilen (mi)',
   'set.tutorial': 'Spielanleitung',
+  'set.groupPlayer': 'Spieler',
+  'set.groupGame': 'Spiel',
+  'set.groupControls': 'Steuerung',
+  'set.groupDevice': 'Gerät',
   'tut.label': 'SPIELANLEITUNG',
   'tut.step': 'Schritt {n} von {total}',
   'tut.next': 'WEITER',
@@ -93,7 +97,7 @@ export const de: Messages = {
   'tut.brake.title': 'Bremsen',
   'tut.brake.body': 'Halte das Bremspedal (oder ↓ / S / Leertaste) gedrückt, um vor engen Kurven und Verkehr langsamer zu werden.',
   'tut.do.title': 'Mach das',
-  'tut.do.body': 'Sammle Kraftstoffkanister, um weiterzufahren, und passiere Checkpoints für +15 % Kraftstoff. Fahre schnell und sauber für mehr Punkte und gib deine Münzen in der Garage aus.',
+  'tut.do.body': 'Sammle Kraftstoffkanister, um weiterzufahren, und passiere Checkpoints für +{fuel} % Kraftstoff. Fahre schnell und sauber für mehr Punkte und gib deine Münzen in der Garage aus.',
   'tut.dont.title': 'Vermeide das',
   'tut.dont.body': 'Berühre nie den Verkehr oder die Leitplanke: Jeder Unfall beendet die Fahrt. Bleib auf dem Asphalt, denn das Gras bremst dich stark. Ohne Kraftstoff endet die Fahrt ebenfalls.',
 
@@ -141,7 +145,7 @@ export const de: Messages = {
   'reason.wall': 'Du bist mit {speed} {unit} in die Leitplanke gekracht!',
 
   'fb.fuel': '+32 KRAFTSTOFF',
-  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +15 % KRAFTSTOFF',
+  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel} % KRAFTSTOFF',
   'fb.record': 'NEUER REKORD!',
 
   'set.label': 'NACH DEINEM GESCHMACK',

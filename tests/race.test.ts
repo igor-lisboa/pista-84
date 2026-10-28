@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   CARS,
+  CHECKPOINT_FUEL,
+  FUEL_PICKUP,
   LANES,
   LANE_COUNT,
   LANE_DIVIDERS,
@@ -124,9 +126,20 @@ test('running out of fuel ends the run and the car cannot move afterwards', () =
   assert.equal(race.distance, distance);
 });
 
-test('a fuel can restores 32, caps at 100 and is consumed once', () => {
+test('fuel is scarce: a can restores a fifth of a tank, a checkpoint under a tenth', () => {
+  assert.equal(FUEL_PICKUP, 20);
+  assert.equal(CHECKPOINT_FUEL, 8);
+});
+
+test('a fuel can restores its amount, caps at 100 and is consumed once', () => {
+  const half = quietRace();
+  half.fuel = 50;
+  half.entities = [fuelCan(0, PLAYER_DEPTH)];
+  half.update(0.02);
+  assert.ok(Math.abs(half.fuel - (50 + FUEL_PICKUP)) < 0.5, `got ${half.fuel}`);
+
   const race = quietRace();
-  race.fuel = 80;
+  race.fuel = 90;
   race.entities = [fuelCan(0, PLAYER_DEPTH)];
   race.update(0.02);
   assert.equal(race.fuel, 100);
@@ -224,9 +237,9 @@ test('the Veloce GT tops out at 350 km/h', () => {
   const gt = car('gt');
   assert.equal(gt.max, 350);
   const race = quietRace(gt);
-  race.fuel = 1e9;
   for (let i = 0; i < 4000; i++) {
     race.x = 0;
+    race.fuel = 100; // top speed is the question here, not how long a tank lasts
     race.update(0.02, { accelerate: true });
   }
   assert.ok(race.speed > 345 && race.speed <= 350);
@@ -286,7 +299,8 @@ test('every kilometre is a checkpoint that refuels once', () => {
   race.update(0.05, { accelerate: true });
   assert.ok(race.events.includes('checkpoint'));
   assert.equal(race.checkpoints, 1);
-  assert.ok(race.fuel > 60);
+  assert.ok(race.fuel > 50 + CHECKPOINT_FUEL - 1, `got ${race.fuel}`);
+  assert.ok(race.fuel < 50 + CHECKPOINT_FUEL + 0.01);
   race.update(0.05, { accelerate: true });
   assert.ok(!race.events.includes('checkpoint'));
 });
@@ -379,7 +393,7 @@ test('all five lanes align with collisions and pickups; adjacent lanes stay clea
     race.fuel = 40;
     race.entities = [fuelCan(lane, PLAYER_DEPTH)];
     race.update(0.02);
-    assert.ok(race.fuel > 71);
+    assert.ok(race.fuel > 40 + FUEL_PICKUP - 1, `got ${race.fuel}`);
     assert.equal(race.entities.length, 0);
   }
 });

@@ -2,6 +2,7 @@ import { AudioEngine } from '../audio/audio.ts';
 import {
   CARS,
   CHECKPOINT,
+  CHECKPOINT_FUEL,
   PAINTS,
   Race,
   loadSave,
@@ -353,7 +354,7 @@ export class GameApp implements RemoteHost {
           this.audio.tone(660, 0.22, 'square', 0.2);
           break;
         case 'checkpoint':
-          this.notifications.feedback(t('fb.checkpoint', { n: formatDistance(this.race.checkpoints * CHECKPOINT, 0), unit: distanceUnit() }));
+          this.notifications.feedback(t('fb.checkpoint', { n: formatDistance(this.race.checkpoints * CHECKPOINT, 0), unit: distanceUnit(), fuel: CHECKPOINT_FUEL }));
           this.audio.tone(880, 0.2, 'square', 0.18);
           break;
         case 'offroad':

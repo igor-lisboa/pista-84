@@ -57,8 +57,10 @@ const OFFROAD_TRACTION = 0.1;
 const OFFROAD_DRAG = 5.5;
 const STEER_RESPONSE = 22;
 const BARRIER_BOUNCE = 0.16;
-const CHECKPOINT_FUEL = 15;
-const FUEL_PICKUP = 32;
+/** Fuel (percent of a tank) restored at every checkpoint. */
+export const CHECKPOINT_FUEL = 8;
+/** Fuel (percent of a tank) a fuel can on the road restores. */
+export const FUEL_PICKUP = 20;
 const IDLE_FUEL_BURN = 0.04;
 const DRIVING_FUEL_BURN = 0.45;
 const DRIVING_FUEL_SPEED = 40;

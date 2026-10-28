@@ -22,20 +22,22 @@ export function mountControllerPage(params: URLSearchParams): void {
   document.body.dataset.view = 'controller';
   byId('app').innerHTML = `
     <section class="controller">
-      <header><h1>PISTA<span>84</span></h1><span class="label">${t('ctl.title')}</span></header>
-      <p id="connection">${t('ctl.connecting')}</p>
-      <div class="controller-toolbar">
-        <button id="remoteStart">${t('ctl.start')}</button>
-        <button id="remotePause">${t('ctl.pause')}</button>
+      <div class="controller-top">
+        <header><h1>PISTA<span>84</span></h1><span class="label">${t('ctl.title')}</span></header>
+        <p id="connection" role="status">${t('ctl.connecting')}</p>
+        <div class="controller-toolbar">
+          <button id="remoteStart" class="go">${t('ctl.start')}</button>
+          <button id="remotePause">${t('ctl.pause')}</button>
+          <button id="tilt">${t('tilt.off')}</button>
+          <button id="calibrate" hidden>${t('ctl.calibrate')}</button>
+        </div>
       </div>
-      <div class="controller-wheel"><div id="wheel" class="wheel"></div></div>
-      <div class="controller-toolbar">
-        <button id="tilt">${t('tilt.off')}</button>
-        <button id="calibrate" hidden>${t('ctl.calibrate')}</button>
-      </div>
-      <div class="controller-pedals">
+      <div class="controller-wheel"><div id="wheel" class="wheel"><i></i></div></div>
+      <div class="controller-steer">
         <button data-control="left" aria-label="${t('hud.left')}">${t('ctl.left')}</button>
         <button data-control="right" aria-label="${t('hud.right')}">${t('ctl.right')}</button>
+      </div>
+      <div class="controller-pedals">
         <button data-control="brake">${t('hud.brake')}</button>
         <button data-control="accelerate">${t('hud.accelerate')}</button>
       </div>
@@ -47,6 +49,8 @@ export function mountControllerPage(params: URLSearchParams): void {
   input.onTiltChange = (enabled) => {
     tiltButton.textContent = enabled ? t('tilt.on') : t('tilt.off');
     byId('calibrate').hidden = !enabled;
+    // Tilting steers, so the on-screen left/right buttons get out of the way.
+    document.body.dataset.tilt = enabled ? 'on' : 'off';
   };
   tiltButton.onclick = () => {
     input.toggleTilt().catch((error: unknown) => {

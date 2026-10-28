@@ -79,6 +79,10 @@ export const en: Messages = {
   'set.unitsKm': 'Units: kilometers (km)',
   'set.unitsMi': 'Units: miles (mi)',
   'set.tutorial': 'How to play',
+  'set.groupPlayer': 'Player',
+  'set.groupGame': 'Game',
+  'set.groupControls': 'Controls',
+  'set.groupDevice': 'Device',
   'tut.label': 'HOW TO PLAY',
   'tut.step': 'Step {n} of {total}',
   'tut.next': 'NEXT',
@@ -93,7 +97,7 @@ export const en: Messages = {
   'tut.brake.title': 'Brake',
   'tut.brake.body': 'Hold the brake pedal (or ↓ / S / Space) to slow down before sharp bends and traffic.',
   'tut.do.title': 'Do this',
-  'tut.do.body': 'Grab fuel cans to keep going and pass checkpoints for +15% fuel. Drive fast and clean to score more, then spend your coins in the garage.',
+  'tut.do.body': 'Grab fuel cans to keep going and pass checkpoints for +{fuel}% fuel. Drive fast and clean to score more, then spend your coins in the garage.',
   'tut.dont.title': 'Avoid this',
   'tut.dont.body': 'Never touch traffic or the barrier: any crash ends the run. Stay on the asphalt, because the grass drags your speed down. Running out of fuel also ends the run.',
 
@@ -141,7 +145,7 @@ export const en: Messages = {
   'reason.wall': 'You hit the barrier at {speed} {unit}!',
 
   'fb.fuel': '+32 FUEL',
-  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +15% FUEL',
+  'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel}% FUEL',
   'fb.record': 'NEW RECORD!',
 
   'set.label': 'YOUR WAY',

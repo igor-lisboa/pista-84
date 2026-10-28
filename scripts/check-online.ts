@@ -1,9 +1,31 @@
 import './env.ts';
 import {blobStore} from '../src/server/blob-store.ts';
+import {blobRoomStore} from '../src/server/blob-rooms.ts';
 
 /** `npm run online:check`: proves the Vercel Blob connection can be read and written. */
 
 const PROBE_ID = '00000000-0000-4000-8000-000000000000';
+
+/** Phone pairing: a room must survive being read back, answered once and closed. */
+async function checkPairing(): Promise<boolean> {
+  const rooms = blobRoomStore(process.env);
+  if (!rooms) return false;
+  try {
+    const id = 'f'.repeat(48);
+    await rooms.create({id, hostToken: 'h', joinToken: 'j', offer: 'check', answer: null, expires: Date.now() + 60_000});
+    const first = await rooms.answer(id, 'a');
+    const second = await rooms.answer(id, 'b');
+    const room = await rooms.get(id);
+    await rooms.remove(id);
+    const gone = await rooms.get(id);
+    const ok = first && !second && room?.offer === 'check' && room.answer === 'a' && !gone;
+    console.log(ok ? 'OK    pairing: Blob room created, answered once and removed.' : 'FAIL  pairing: unexpected Blob behaviour.');
+    return Boolean(ok);
+  } catch (error) {
+    console.error('FAIL  pairing:', error instanceof Error ? error.message : error);
+    return false;
+  }
+}
 
 async function check(): Promise<boolean> {
   const store = blobStore(process.env);
@@ -33,7 +55,7 @@ async function check(): Promise<boolean> {
       if (at >= 0) rows.splice(at, 1);
     });
     console.log('OK    write: saved and removed a test row.');
-    return true;
+    return await checkPairing();
   } catch (error) {
     console.error('FAIL  write:', error instanceof Error ? error.message : error);
     return false;

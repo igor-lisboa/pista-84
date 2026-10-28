@@ -71,7 +71,7 @@ The renderer integrates upcoming curvature using midpoint curvature and trapezoi
 
 - Capacity: **100**; fuel cannot become negative or exceed capacity.
 - Continuous drain per second: `vehicle.consumption × (0.04 + 0.41 × clamp(speed / 40, 0, 1) + speed / 190)`. At rest the engine consumes `0.04 × consumption` tank percentage points per second (CG 125: 0.96% per minute; Fusca: 1.728%; Maverick: 4.08%). This rises smoothly to the previous driving rate by 40 km/h. Only a running race burns fuel; pause, menus and game over freeze it.
-- Pickup: red gas-pump symbol with a white meter, black hose/nozzle and amber glow, adding **32** fuel up to the cap.
+- Pickup: red gas-pump symbol with a white meter, black hose/nozzle and amber glow, adding **20** fuel up to the cap.
 - First canister spawns after **4 s**; following canisters spawn every **7–10 s**.
 - Each 1000 m checkpoint adds **15** fuel.
 - Empty fuel immediately ends the run (`endReason` `'fuel'`) with a dry-tank/rear-traffic message.
@@ -101,7 +101,7 @@ Traffic ramps with `intensity = clamp(time / 240, 0, 1)` (`TRAFFIC_RAMP = 240` s
 
 Contact testing occurs when an unpassed entity crosses the player contact band **PLAYER_DEPTH +/- 0.018**, using its previous and current depth to avoid skipping a contact. A hit requires `abs(player.x - laneCenter(entity.lane))` below **0.114** for a motorcycle or **0.162** for other player vehicles. An entity is marked passed after its first contact so it cannot repeatedly refuel or crash the player.
 
-- A fuel canister adds **32** fuel up to 100 and disappears.
+- A fuel canister adds **20** fuel up to 100 and disappears.
 - Traffic contact is a fatal crash at any speed (see Crashes). The result screen is titled **"VOCÊ BATEU!"** ("YOU CRASHED!", localized), the reason line shows the crash speed, and the one 1,000-coin second chance is still offered.
 - While the 3 s second-chance invincibility lasts, traffic and barrier contacts do not end the run (the barrier still places the car back on the road).
 - Stopping does not end a run. **Running out of fuel** ends it (`'fuel'`, "Pane seca!" message) and also offers the second chance.

@@ -4,8 +4,44 @@ import type { SaveData } from '../game/index.ts';
 import { LANGS, getLang, isLang, t, type Lang } from '../i18n/index.ts';
 import { byId } from './dom.ts';
 import { flagSvg } from './flags.ts';
+import { icon } from './icons.ts';
 import { TiltError, type InputController } from './input.ts';
 import type { Notifications } from './notifications.ts';
+
+type IconName = Parameters<typeof icon>[0];
+
+interface RowOptions {
+  /** Shows an on/off switch and exposes the state as `aria-pressed`. */
+  switch?: boolean;
+  pressed?: boolean;
+  /** Icon at the far end, for rows that open another dialog. */
+  end?: IconName;
+  danger?: boolean;
+  hidden?: boolean;
+  describedBy?: string;
+}
+
+/** One tappable settings row: icon, label and a switch or arrow. */
+function row(id: string, iconName: IconName, text: string, options: RowOptions = {}): string {
+  const end = options.switch
+    ? '<i class="switch" aria-hidden="true"></i>'
+    : options.end
+      ? `<span class="row-end">${icon(options.end)}</span>`
+      : '';
+  const attrs = [
+    options.switch ? `aria-pressed="${options.pressed === true}"` : '',
+    options.hidden ? 'hidden' : '',
+    options.describedBy ? `aria-describedby="${options.describedBy}"` : '',
+  ].filter(Boolean).join(' ');
+  return `<button id="${id}" class="setting-row${options.danger ? ' danger' : ''}" ${attrs}><span class="row-icon">${icon(iconName)}</span><span class="row-text">${text}</span>${end}</button>`;
+}
+
+/** Changes a row's label (and switch state) without losing its icon. */
+function setRow(id: string, text: string, pressed?: boolean): void {
+  const element = byId(id);
+  element.querySelector('.row-text')!.textContent = text;
+  if (pressed !== undefined) element.setAttribute('aria-pressed', String(pressed));
+}
 
 export interface InstallPrompt {
   prompt(): Promise<unknown>;
@@ -55,22 +91,42 @@ export class SettingsDialog {
     byId('modalBody').innerHTML = `
       <span class="label">${t('set.label')}</span>
       <h1>${t('set.title')}<span>.</span></h1>
-      <div class="settings-list">
-        <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
-        <button id="username">${t('set.username', { name: save.username ?? '—' })}</button>
-        <button id="units">${t(save.units === 'mi' ? 'set.unitsMi' : 'set.unitsKm')}</button>
-        <button id="tutorial">${t('set.tutorial')}</button>
-        <button id="newPlayer">${t('newp.menu')}</button>
-        <button id="sound" aria-pressed="${audio.enabled}">${audio.enabled ? t('set.soundOn') : t('set.soundOff')}</button>
-        <button id="tilt">${input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff')}</button>
-        <button id="calibrate" ${input.tiltEnabled ? '' : 'hidden'}>${t('set.calibrate')}</button>
-        <button id="fullscreen">${t('set.fullscreen')}</button>
-        <button id="install" aria-describedby="installHelp">${t('set.install')}</button>
-        <p id="installHelp" role="status" hidden></p>
+      <div class="settings-groups">
+        <section class="settings-group">
+          <h3 class="group-title">${t('set.groupPlayer')}</h3>
+          <div class="setting-card">
+            ${row('username', 'user', t('set.username', { name: save.username ?? '—' }), { end: 'arrow' })}
+            ${row('newPlayer', 'restart', t('newp.menu'), { end: 'arrow', danger: true })}
+          </div>
+        </section>
+        <section class="settings-group">
+          <h3 class="group-title">${t('set.groupGame')}</h3>
+          <div class="setting-card">
+            <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
+            ${row('units', 'swap', t(save.units === 'mi' ? 'set.unitsMi' : 'set.unitsKm'))}
+            ${row('sound', 'volume', audio.enabled ? t('set.soundOn') : t('set.soundOff'), { switch: true, pressed: audio.enabled })}
+            ${row('tutorial', 'help', t('set.tutorial'), { end: 'arrow' })}
+          </div>
+        </section>
+        <section class="settings-group">
+          <h3 class="group-title">${t('set.groupControls')}</h3>
+          <div class="setting-card">
+            ${row('tilt', 'phone', input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff'), { switch: true, pressed: input.tiltEnabled })}
+            ${row('calibrate', 'target', t('set.calibrate'), { hidden: !input.tiltEnabled })}
+            <p id="sensorStatus" class="settings-note">${t('set.sensor')}</p>
+            <p class="settings-note help-keys">${t('set.keys')}</p>
+          </div>
+        </section>
+        <section class="settings-group">
+          <h3 class="group-title">${t('set.groupDevice')}</h3>
+          <div class="setting-card">
+            ${row('fullscreen', 'expand', t('set.fullscreen'))}
+            ${row('install', 'download', t('set.install'), { describedBy: 'installHelp' })}
+            <p id="installHelp" class="settings-note" role="status" hidden></p>
+          </div>
+        </section>
       </div>
-      <p id="sensorStatus">${t('set.sensor')}</p>
-      <p class="help-keys">${t('set.keys')}</p>
-      <small class="label">${t('set.version')}</small>`;
+      <small class="label settings-version">${t('set.version')}</small>`;
 
     for (const flag of document.querySelectorAll<HTMLButtonElement>('.flag')) {
       flag.onclick = () => {
@@ -82,7 +138,7 @@ export class SettingsDialog {
     byId('units').onclick = () => {
       const units = save.units === 'km' ? 'mi' : 'km';
       this.deps.changeUnits(units);
-      byId('units').textContent = t(units === 'mi' ? 'set.unitsMi' : 'set.unitsKm');
+      setRow('units', t(units === 'mi' ? 'set.unitsMi' : 'set.unitsKm'));
     };
     byId('tutorial').onclick = () => this.deps.showTutorial();
     byId('newPlayer').onclick = () => this.deps.newPlayer();
@@ -104,7 +160,7 @@ export class SettingsDialog {
     const installed = this.installed || window.matchMedia('(display-mode: standalone)').matches
       || (navigator as Navigator & { standalone?: boolean }).standalone === true;
     button.disabled = installed || this.installing;
-    button.textContent = t(installed ? 'set.installed' : 'set.install');
+    button.querySelector('.row-text')!.textContent = t(installed ? 'set.installed' : 'set.install');
     if (installed) document.querySelector<HTMLElement>('#installHelp')?.setAttribute('hidden', '');
   }
 
@@ -140,8 +196,7 @@ export class SettingsDialog {
     const { audio, save } = this.deps;
     try {
       save.sound = await audio.toggle();
-      byId('sound').textContent = audio.enabled ? t('set.soundOn') : t('set.soundOff');
-      byId('sound').setAttribute('aria-pressed', String(audio.enabled));
+      setRow('sound', audio.enabled ? t('set.soundOn') : t('set.soundOff'), audio.enabled);
       this.deps.persist();
     } catch (error) {
       if (!(error instanceof AudioUnavailableError)) console.error(error);
@@ -153,7 +208,7 @@ export class SettingsDialog {
     const { input, notify } = this.deps;
     try {
       const enabled = await input.toggleTilt();
-      byId('tilt').textContent = enabled ? t('tilt.on') : t('tilt.off');
+      setRow('tilt', enabled ? t('tilt.on') : t('tilt.off'), enabled);
       byId('calibrate').hidden = !enabled;
       notify.toast(enabled ? t('tilt.hold') : t('tilt.buttons'));
     } catch (error) {

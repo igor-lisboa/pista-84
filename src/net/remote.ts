@@ -46,8 +46,11 @@ const ICE_GATHER_TIMEOUT_MS = 3500;
 const API_TIMEOUT_MS = 8000;
 const POLL_BEFORE_ANSWER_MS = 450;
 const POLL_AFTER_ANSWER_MS = 110;
+/** With the direct channel open the server only has to notice a close, so poll slowly and save requests. */
+const POLL_DIRECT_MS = 1000;
 const INPUT_STALE_MS = 1800;
-const SEND_INTERVAL_DIRECT_MS = 500;
+/** Direct channel open: commands travel peer to peer, the HTTPS path only needs an occasional sign of life. */
+const SEND_INTERVAL_DIRECT_MS = 5000;
 const SEND_INTERVAL_RELAY_MS = 100;
 
 const STATUS_DIRECT = 'Direct connection';
@@ -247,7 +250,7 @@ export class RemoteConnection {
       this.setStatus('error', error instanceof Error ? error.message : undefined);
     }
     if (!this.closed) {
-      const delay = this.answered ? POLL_AFTER_ANSWER_MS : POLL_BEFORE_ANSWER_MS;
+      const delay = !this.answered ? POLL_BEFORE_ANSWER_MS : this.channelOpen ? POLL_DIRECT_MS : POLL_AFTER_ANSWER_MS;
       this.pollTimer = setTimeout(() => void this.pollHost(), delay);
     }
   }
@@ -314,7 +317,7 @@ export class RemoteConnection {
     if (this.channelOpen) {
       this.sendOverChannel(clean);
     }
-    // Keep a low-rate HTTPS heartbeat even on WebRTC; upgrade failures never strand Safari.
+    // Over WebRTC only a rare HTTPS sign of life is sent (every server call is a billed Blob operation).
     const interval = this.channelOpen ? SEND_INTERVAL_DIRECT_MS : SEND_INTERVAL_RELAY_MS;
     if (this.sending || performance.now() - this.lastSendAt < interval) {
       return;

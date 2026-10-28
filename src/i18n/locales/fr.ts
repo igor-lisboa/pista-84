@@ -79,6 +79,10 @@ export const fr: Messages = {
   'set.unitsKm': 'Unités : kilomètres (km)',
   'set.unitsMi': 'Unités : miles (mi)',
   'set.tutorial': 'Comment jouer',
+  'set.groupPlayer': 'Joueur',
+  'set.groupGame': 'Jeu',
+  'set.groupControls': 'Commandes',
+  'set.groupDevice': 'Appareil',
   'tut.label': 'COMMENT JOUER',
   'tut.step': 'Étape {n} sur {total}',
   'tut.next': 'SUIVANT',
@@ -93,7 +97,7 @@ export const fr: Messages = {
   'tut.brake.title': 'Freiner',
   'tut.brake.body': 'Maintenez la pédale de frein (ou ↓ / S / Espace) pour ralentir avant les virages serrés et le trafic.',
   'tut.do.title': 'À faire',
-  'tut.do.body': 'Ramassez des bidons de carburant pour continuer et passez les points de contrôle pour +15 % de carburant. Roulez vite et proprement pour marquer plus, puis dépensez vos pièces au garage.',
+  'tut.do.body': 'Ramassez des bidons de carburant pour continuer et passez les points de contrôle pour +{fuel} % de carburant. Roulez vite et proprement pour marquer plus, puis dépensez vos pièces au garage.',
   'tut.dont.title': 'À éviter',
   'tut.dont.body': 'Ne touchez jamais le trafic ni la barrière : toute collision termine la course. Restez sur l’asphalte, car l’herbe vous ralentit. Tomber en panne de carburant termine aussi la course.',
 
@@ -141,7 +145,7 @@ export const fr: Messages = {
   'reason.wall': 'Vous avez percuté la barrière à {speed} {unit} !',
 
   'fb.fuel': '+32 CARBURANT',
-  'fb.checkpoint': 'POINT DE CONTRÔLE {n} {unit} · +15 % CARBURANT',
+  'fb.checkpoint': 'POINT DE CONTRÔLE {n} {unit} · +{fuel} % CARBURANT',
   'fb.record': 'NOUVEAU RECORD !',
 
   'set.label': 'À VOTRE FAÇON',

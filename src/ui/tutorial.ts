@@ -1,3 +1,4 @@
+import { CHECKPOINT_FUEL } from '../game/index.ts';
 import { t, type MessageKey } from '../i18n/index.ts';
 import { byId } from './dom.ts';
 import { icon } from './icons.ts';
@@ -38,7 +39,7 @@ export class TutorialDialog {
       ${this.idle && this.step === 0 ? `<p class="warning">${t('tut.idle')}</p>` : ''}
       <div class="tutorial-card tutorial-${current.id}">
         <span class="tutorial-icon">${icon(current.icon)}</span>
-        <p>${t(key('body'))}</p>
+        <p>${t(key('body'), { fuel: CHECKPOINT_FUEL })}</p>
       </div>
       <div class="tutorial-dots" aria-hidden="true">${dots}</div>
       <p class="tutorial-count" role="status">${t('tut.step', { n: this.step + 1, total: STEPS.length })}</p>

@@ -79,6 +79,10 @@ export const ja: Messages = {
   'set.unitsKm': '単位：キロメートル (km)',
   'set.unitsMi': '単位：マイル (mi)',
   'set.tutorial': '遊び方',
+  'set.groupPlayer': 'プレイヤー',
+  'set.groupGame': 'ゲーム',
+  'set.groupControls': '操作',
+  'set.groupDevice': '端末',
   'tut.label': '遊び方',
   'tut.step': 'ステップ {n} / {total}',
   'tut.next': '次へ',
@@ -93,7 +97,7 @@ export const ja: Messages = {
   'tut.brake.title': 'ブレーキ',
   'tut.brake.body': 'ブレーキペダル（または ↓ / S / スペース）を押し続けて、急カーブや前方の車の手前で減速しましょう。',
   'tut.do.title': 'やること',
-  'tut.do.body': '燃料缶を拾って走り続け、チェックポイントを通過して燃料を15%回復しましょう。速くクリーンに走って高得点を狙い、コインはガレージで使えます。',
+  'tut.do.body': '燃料缶を拾って走り続け、チェックポイントを通過して燃料を{fuel}%回復しましょう。速くクリーンに走って高得点を狙い、コインはガレージで使えます。',
   'tut.dont.title': 'やってはいけないこと',
   'tut.dont.body': '他の車やバリアには絶対に触れないでください。衝突するとレースは終了します。路面から外れると芝生で大きく減速します。燃料切れでも終了です。',
 
@@ -141,7 +145,7 @@ export const ja: Messages = {
   'reason.wall': '時速{speed} {unit}でバリアに衝突！',
 
   'fb.fuel': '+32 燃料',
-  'fb.checkpoint': 'チェックポイント {n} {unit} · 燃料 +15%',
+  'fb.checkpoint': 'チェックポイント {n} {unit} · 燃料 +{fuel}%',
   'fb.record': '新記録！',
 
   'set.label': 'あなた好みに',

@@ -13,6 +13,14 @@ const PATHS = {
   info: '<path d="M10 2h4v4h-4zm-1 6h5v10h2v3H8v-3h2v-7H9z"/>',
   restart: '<path d="M12 5V2L7 7l5 5V9a5 5 0 1 1-5 5H4a8 8 0 1 0 8-9z"/>',
   trophy: '<path d="M6 3h12v3h3v4a4 4 0 0 1-4 4h-.3A6 6 0 0 1 13 17.9V20h3v2H8v-2h3v-2.1A6 6 0 0 1 7.3 14H7a4 4 0 0 1-4-4V6h3zm-1 5v2a2 2 0 0 0 1 1.7V8zm14 0h-1v3.7A2 2 0 0 0 19 10z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/>',
+  volume: '<path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15 8.5a5 5 0 0 1 0 7l1.4 1.4a7 7 0 0 0 0-9.8z"/>',
+  expand: '<path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/>',
+  download: '<path d="M11 3h2v9l3-3 1.4 1.4L12 16l-5.4-5.6L8 9l3 3zM5 19h14v2H5z"/>',
+  help: '<path d="M11 17h2v2h-2zM12 4a5 5 0 0 0-5 5h2a3 3 0 1 1 4.2 2.7c-1.4.8-2.2 1.8-2.2 3.3h2c0-.7.4-1.2 1.2-1.7A5 5 0 0 0 12 4z"/>',
+  swap: '<path d="M7 7h11l-3-3 1.4-1.4L22 8l-5.6 5.4L15 12l3-3H7zm10 10H6l3 3-1.4 1.4L2 16l5.6-5.4L9 12l-3 3h11z"/>',
+  phone: '<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v14h8V5z"/>',
+  target: '<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-1-6h2v3h-2zm0 17h2v3h-2zM2 11h3v2H2zm17 0h3v2h-3z"/>',
   curve: '<path d="M4 21v-9a7 7 0 0 1 7-7h3V1l8 6-8 6V9h-3a3 3 0 0 0-3 3v9z"/>',
 } as const;
 
