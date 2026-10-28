@@ -153,6 +153,7 @@ export class InputController {
     if (this.tiltEnabled) {
       this.tiltEnabled = false;
       this.tilt = 0;
+      this.unlockOrientation();
       this.onTiltChange(false);
       return false;
     }
@@ -165,10 +166,12 @@ export class InputController {
     this.tiltEnabled = true;
     this.calibrateNext = true;
     this.lastSensor = 0;
+    void this.lockLandscape();
     this.onTiltChange(true);
     setTimeout(() => {
       if (this.tiltEnabled && !this.lastSensor) {
         this.tiltEnabled = false;
+        this.unlockOrientation();
         this.onTiltChange(false);
         this.onTiltSilent();
       }
@@ -180,6 +183,33 @@ export class InputController {
   calibrate(): void {
     this.tiltZero = this.rawTilt;
     this.tilt = 0;
+  }
+
+  /**
+   * Pins the page to landscape so turning the phone steers the car instead of
+   * rotating the layout. Browsers usually require fullscreen for the lock; where
+   * it is unsupported (e.g. iOS Safari) tilt keeps working without it.
+   */
+  private async lockLandscape(): Promise<void> {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
+    } catch {
+      // Fullscreen is only a prerequisite for the lock; try without it.
+    }
+    try {
+      await screen.orientation?.lock?.('landscape');
+      this.calibrateNext = true;
+    } catch {
+      // Orientation lock is not available here.
+    }
+  }
+
+  private unlockOrientation(): void {
+    try {
+      screen.orientation?.unlock?.();
+    } catch {
+      // Nothing to unlock.
+    }
   }
 
   private isHeld(name: string): boolean {

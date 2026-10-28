@@ -16,6 +16,8 @@ export default defineConfig({
     baseURL: BASE_URL,
     headless: true,
     locale: 'pt-BR',
+    // Most tests start as a returning player; username.spec.ts opts out to see first launch.
+    storageState: 'tests/browser/support/signed-in.json',
   },
   webServer: {
     command: 'npm start',

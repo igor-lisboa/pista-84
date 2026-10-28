@@ -22,10 +22,14 @@ import { applyIcons } from './icons.ts';
 import { Notifications } from './notifications.ts';
 import { showGameOver, showPause } from './overlays.ts';
 import { RemoteDialog, type RemoteHost } from './remote-dialog.ts';
+import { AboutDialog } from './about.ts';
+import { UsernameDialog } from './username.ts';
 import { SettingsDialog, type InstallPrompt } from './settings.ts';
 import { unavailableStore, type CashStore } from './store.ts';
 
 type View = 'menu' | 'race' | 'overlay';
+
+const SYNC_KEY = 'pista84.synced';
 
 /** Seconds of play between automatic progress saves. */
 const AUTOSAVE_SECONDS = 5;
@@ -63,6 +67,8 @@ export class GameApp implements RemoteHost {
   private readonly garage: Garage;
   private readonly settingsDialog: SettingsDialog;
   private readonly remoteDialog: RemoteDialog;
+  private readonly usernameDialog: UsernameDialog;
+  private readonly aboutDialog = new AboutDialog();
 
   private previousStatus: Race['status'] = 'ready';
   private clock = 0;
@@ -72,6 +78,7 @@ export class GameApp implements RemoteHost {
   private bestDistanceAtStart = 0;
   private recordShown = false;
   private cloudBackup = false;
+  private syncing = false;
   private installPrompt: (InstallPrompt & Event) | null = null;
 
   constructor(config: BalanceConfig) {
@@ -91,6 +98,7 @@ export class GameApp implements RemoteHost {
       refreshFeatured: () => this.paintFeaturedCar(),
       toast: (message) => this.notifications.toast(message),
       cloudEnabled: () => this.cloudBackup,
+      imported: () => void this.syncScore(),
     });
     this.settingsDialog = new SettingsDialog({
       save: this.save,
@@ -99,10 +107,19 @@ export class GameApp implements RemoteHost {
       notify: this.notifications,
       persist: () => this.persist(),
       changeLanguage: (lang) => this.changeLanguage(lang),
+      editUsername: () => this.openUsername(),
       installPrompt: () => {
         const prompt = this.installPrompt;
         this.installPrompt = null;
         return prompt;
+      },
+    });
+    this.usernameDialog = new UsernameDialog({
+      save: this.save,
+      persist: () => this.persist(),
+      onSaved: (name) => {
+        this.notifications.toast(t('user.welcome', { name }));
+        void this.syncScore();
       },
     });
     this.remoteDialog = new RemoteDialog(this);
@@ -114,6 +131,7 @@ export class GameApp implements RemoteHost {
     applyStatic();
     this.refresh();
     this.input.bindButtons();
+    if (this.usernameDialog.required) this.openUsername();
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
     };
@@ -128,16 +146,17 @@ export class GameApp implements RemoteHost {
     };
     byId('garageOpen').onclick = () => this.openGarage();
     byId('settingsNav').onclick = () => this.openSettings();
+    byId('aboutNav').onclick = () => this.openAbout();
     byId('remoteNav').onclick = () => void this.remoteDialog.open();
     byId('pause').onclick = () => this.pause();
     byId('closeModal').onclick = () => byId<HTMLDialogElement>('modal').close();
+    // Without a name the dialog is mandatory, so Escape must not dismiss it.
+    byId<HTMLDialogElement>('modal').addEventListener('cancel', (event) => {
+      if (this.usernameDialog.required) event.preventDefault();
+    });
 
-    fetch('/health')
-      .then((response) => response.json() as Promise<{ cloudBackup?: boolean }>)
-      .then((data) => {
-        this.cloudBackup = data.cloudBackup === true;
-      })
-      .catch(() => undefined);
+    this.checkOnline();
+    window.addEventListener('online', () => this.checkOnline());
 
     this.bindWindowEvents();
     window.addEventListener('resize', () => this.resize());
@@ -313,6 +332,63 @@ export class GameApp implements RemoteHost {
     this.save.best = Math.max(this.save.best, this.race.distance);
     this.save.bestScore = Math.max(this.save.bestScore, Math.floor(this.race.score));
     this.persist();
+    void this.syncScore();
+  }
+
+  /**
+   * Asks the server whether online storage exists, then pushes any score the
+   * server has not seen. Offline or failing servers are ignored: the game only
+   * ever depends on the local save.
+   */
+  private checkOnline(): void {
+    fetch('/health')
+      .then((response) => response.json() as Promise<{ cloudBackup?: boolean }>)
+      .then((data) => {
+        this.cloudBackup = data.cloudBackup === true;
+        return this.syncScore();
+      })
+      .catch(() => undefined);
+  }
+
+  /**
+   * Sends the best score and current name once per change. The last value the
+   * server accepted is remembered on this device, so a run played offline (or
+   * a rename) is retried on the next launch, run or reconnection.
+   */
+  private async syncScore(): Promise<void> {
+    const { save } = this;
+    if (!this.cloudBackup || this.syncing || !save.username || save.bestScore <= 0) return;
+    const marker = `${save.playerId}|${save.username}|${save.bestScore}`;
+    if (this.readSyncMarker() === marker) return;
+    this.syncing = true;
+    try {
+      const response = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ playerId: save.playerId, username: save.username, score: save.bestScore, distance: save.best }),
+      });
+      if (response.ok) this.writeSyncMarker(marker);
+    } catch {
+      // Offline: the marker is unchanged, so the next trigger retries.
+    } finally {
+      this.syncing = false;
+    }
+  }
+
+  private readSyncMarker(): string | null {
+    try {
+      return this.storage.getItem(SYNC_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  private writeSyncMarker(marker: string): void {
+    try {
+      this.storage.setItem(SYNC_KEY, marker);
+    } catch {
+      // Not being able to remember only means one extra submission later.
+    }
   }
 
   private persist(): void {
@@ -356,6 +432,17 @@ export class GameApp implements RemoteHost {
   private openGarage(): void {
     this.openModal();
     this.garage.render();
+  }
+
+  private openAbout(): void {
+    this.openModal();
+    this.aboutDialog.render();
+    applyIcons();
+  }
+
+  openUsername(): void {
+    this.openModal();
+    this.usernameDialog.render();
   }
 
   private openSettings(): void {

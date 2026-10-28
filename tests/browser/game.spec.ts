@@ -96,7 +96,7 @@ test('the barrier ends the race with the crash screen', async ({ page }) => {
 
 test('leaving the road drags the speed down to about 40 km/h', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('pista84', JSON.stringify({ owned: ['fusca', 'gt'], selected: 'gt' }));
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', owned: ['fusca', 'gt'], selected: 'gt' }));
     Math.random = () => 0.3;
   });
   await page.goto('/');
@@ -131,7 +131,7 @@ test.describe('garage', () => {
   test('new paint purchases debit coins once and persist the selected color', async ({ page }) => {
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.addInitScript(() => {
-      if (!localStorage.getItem('pista84')) localStorage.setItem('pista84', JSON.stringify({ coins: 500, owned: ['fusca'], selected: 'fusca' }));
+      if (!JSON.parse(localStorage.getItem('pista84') ?? '{}').owned) localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, owned: ['fusca'], selected: 'fusca' }));
     });
     await page.goto('/');
     await page.locator('#garageNav').click();
@@ -151,7 +151,7 @@ test.describe('garage', () => {
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.goto('/');
     await page.evaluate(() =>
-      localStorage.setItem('pista84', JSON.stringify({ coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' })),
+      localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' })),
     );
     await page.reload();
     await page.locator('#garageNav').click();
@@ -362,7 +362,7 @@ test('an environment balance overrides stored and cloud balances while purchases
     route.fulfill({ json: { save: { coins: 7, owned: ['fusca'], selected: 'fusca' }, revision: 1 } }),
   );
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('pista84', JSON.stringify({ coins: 3, owned: ['fusca'], selected: 'fusca' })));
+  await page.evaluate(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 3, owned: ['fusca'], selected: 'fusca' })));
   await page.reload();
   await expect(page.locator('#wallet')).toContainText('10.000');
   await page.locator('#garageNav').click();
@@ -421,7 +421,7 @@ test('the road renders four lane dividers and five lanes using the race seed', a
 });
 
 test('fuel exhaustion offers one paid continuation and deducts 1000 coins', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ coins: 2000, owned: ['fusca'], selected: 'fusca' })));
+  await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 2000, owned: ['fusca'], selected: 'fusca' })));
   await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
   await page.route('**/app.js', async (route) => {
     const response = await route.fetch();

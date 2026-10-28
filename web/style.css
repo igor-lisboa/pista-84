@@ -30,6 +30,7 @@ body[data-view=menu] .vignette{background:linear-gradient(90deg,#160a30f2 0%,#16
 .menu-top{margin-top:8px}
 .edition{font:700 11px var(--body);letter-spacing:3px;color:var(--sun)}
 .icon-button{width:46px;height:46px;background:var(--ink2);border:3px solid var(--cream);box-shadow:3px 3px 0 #000b;font-size:21px;border-radius:0}
+.menu-tools{display:flex;gap:10px}
 .icon-button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000b}
 .menu-content{display:flex;flex-direction:column;justify-content:center;flex:1;max-width:400px;gap:26px}
 .logo{position:relative;margin:12px 0 0;font:400 clamp(60px,min(8.4vw,15vh),126px)/.9 var(--display);letter-spacing:-2px;color:var(--cream);text-shadow:4px 4px 0 var(--hot),8px 8px 0 var(--ink);-webkit-text-stroke:2px var(--ink);transform:skew(-6deg)}
@@ -262,3 +263,20 @@ html:lang(hi),html:lang(bn),html:lang(ur),html:lang(am),html:lang(zh){
  --display:var(--body);
 }
 html:lang(hi) .logo,html:lang(bn) .logo,html:lang(ur) .logo,html:lang(am) .logo,html:lang(zh) .logo{font-family:'Bungee','Impact',sans-serif}
+
+/* ---------- about dialog ---------- */
+.about-card{display:flex;gap:18px;align-items:center;margin:14px 0 18px;padding:14px;background:var(--panel);border:3px solid var(--line);box-shadow:0 4px 0 #000a}
+.about-avatar{width:96px;height:96px;flex:none;object-fit:cover;border:3px solid var(--sun);box-shadow:3px 3px 0 #000b;image-rendering:auto;background:var(--ink2)}
+.about-card strong{display:block;font:400 22px var(--display);color:var(--cream);margin-bottom:4px}
+.about-card blockquote{margin:10px 0 0;padding-left:12px;border-left:3px solid var(--hot);font-size:13px;line-height:1.5;color:var(--cyan);font-style:italic}
+.about-link{display:flex;margin-top:18px;text-decoration:none}
+html[dir=rtl] .about-card blockquote{padding-left:0;padding-right:12px;border-left:0;border-right:3px solid var(--hot)}
+@media (max-width:560px){.about-card{flex-direction:column;text-align:center}.about-card blockquote{border:0;padding:0}}
+
+/* ---------- username dialog ---------- */
+.username-form{display:grid;gap:12px;margin-top:18px}
+.username-form input{background:var(--panel);color:var(--cream);padding:16px;border:3px solid var(--line);border-radius:0;box-shadow:0 4px 0 #000a;font:700 20px var(--body);letter-spacing:2px;width:100%}
+.username-form input:focus{outline:3px solid var(--sun);outline-offset:2px;border-color:var(--sun)}
+.username-form input[aria-invalid=true]{border-color:var(--hot)}
+.username-rules{margin:0;font-size:12px;color:var(--muted)}
+.username-rules.invalid{color:var(--hot);font-weight:700}

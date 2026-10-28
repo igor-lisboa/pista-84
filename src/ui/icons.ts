@@ -10,6 +10,7 @@ const PATHS = {
   fuel: '<path d="M3 3h11v17H2v-2h1zm2 2v6h7V5zm10 2 2-2 5 5v8a3 3 0 0 1-6 0v-4h-2v-2h4v6a1 1 0 0 0 2 0v-7z"/>',
   coins: '<path d="m12 2 10 10-10 10L2 12zm0 4-6 6 6 6 6-6z"/>',
   controller: '<path d="M6 5h12l4 13-3 2-5-5h-4l-5 5-3-2zm1 3v3H4v2h3v3h2v-3h3v-2H9V8zm9 1v3h3V9z"/>',
+  info: '<path d="M10 2h4v4h-4zm-1 6h5v10h2v3H8v-3h2v-7H9z"/>',
   curve: '<path d="M4 21v-9a7 7 0 0 1 7-7h3V1l8 6-8 6V9h-3a3 3 0 0 0-3 3v9z"/>',
 } as const;
 

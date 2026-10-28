@@ -1,3 +1,4 @@
+import { isPlayerId, newPlayerId, normalizeUsername } from './username.ts';
 import { CARS, DEFAULT_CAR_ID, DEFAULT_PAINT_ID, PAINTS } from './cars.ts';
 
 export const SAVE_KEY = 'pista84';
@@ -15,6 +16,10 @@ export interface SaveData {
   sound: boolean;
   /** Chosen UI language, or `null` to follow the browser. */
   lang: string | null;
+  /** Leaderboard name chosen on first launch, or `null` until the player picks one. */
+  username: string | null;
+  /** Permanent GUID that scores are attached to; the username may change, this never does. */
+  playerId: string;
 }
 
 export interface SaveStorage {
@@ -44,6 +49,8 @@ export function defaultSave(): SaveData {
     paint: DEFAULT_PAINT_ID,
     sound: true,
     lang: null,
+    username: null,
+    playerId: newPlayerId(),
   };
 }
 
@@ -77,8 +84,34 @@ export function loadSave(storage: Pick<SaveStorage, 'getItem'>, config: BalanceC
       paint,
       sound: saved.sound !== false,
       lang: typeof saved.lang === 'string' ? saved.lang : null,
+      username: normalizeUsername(saved.username),
+      playerId: isPlayerId(saved.playerId) ? saved.playerId : fallback.playerId,
     };
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Applies an imported or restored save over the current one. Everything is
+ * replaced, name and GUID included, with two exceptions: a file that carries no
+ * identity (older exports) keeps the current one, and when the GUID is the same
+ * the highest score and distance of the two are kept.
+ */
+export function importSave(current: SaveData, serialized: string, config: BalanceConfig = { coins: null }): SaveData {
+  const imported = loadSave({ getItem: () => serialized }, config);
+  let raw: Record<string, unknown> = {};
+  try {
+    const parsed: unknown = JSON.parse(serialized);
+    if (parsed && typeof parsed === 'object') raw = parsed as Record<string, unknown>;
+  } catch {
+    // loadSave already fell back to defaults.
+  }
+  if (!isPlayerId(raw.playerId)) imported.playerId = current.playerId;
+  if (normalizeUsername(raw.username) === null) imported.username = current.username;
+  if (imported.playerId === current.playerId) {
+    imported.bestScore = Math.max(imported.bestScore, current.bestScore);
+    imported.best = Math.max(imported.best, current.best);
+  }
+  return imported;
 }

@@ -8,6 +8,9 @@ import {WebSocketServer, WebSocket} from 'ws';
 import QRCode from 'qrcode';
 import {runtimeConfig} from './scripts/env.ts';
 import {signaling, memoryStore, sanitizeInput} from './src/server/signaling.ts';
+import {cloudProgress, leaderboardApi, onlineHealth} from './src/server/cloud.ts';
+import {globalConfigStore} from './src/server/global-config.ts';
+import {memoryPlayerStore} from './src/server/players.ts';
 
 const DEFAULT_PORT = 4173;
 const MAX_API_BODY = 24_000;
@@ -32,6 +35,8 @@ const MIME_TYPES: Record<string, string> = {
 const root = resolve('www');
 const port = Number(process.env.PORT) || DEFAULT_PORT;
 const roomStore = memoryStore();
+// Local runs without Global Config keep players in memory; they reset on restart.
+const playerStore = globalConfigStore(process.env) ?? memoryPlayerStore();
 
 function findHostIp(): string | undefined {
   return Object.values(networkInterfaces())
@@ -81,6 +86,26 @@ async function handleRoomsApi(req: IncomingMessage, res: ServerResponse, url: UR
   res.end(await response.text());
 }
 
+async function handlePlayersApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
+  const body = await readBody(req, MAX_API_BODY);
+  if (body === null) {
+    sendStatus(res, 413);
+    return;
+  }
+  const method = req.method ?? 'GET';
+  const request = new Request(url, {
+    method,
+    headers: req.headers as Record<string, string>,
+    ...(['GET', 'HEAD'].includes(method) ? {} : {body}),
+  });
+  const response =
+    url.pathname === '/api/progress'
+      ? await cloudProgress(request, playerStore, runtimeConfig)
+      : await leaderboardApi(request, playerStore);
+  res.writeHead(response.status, Object.fromEntries(response.headers));
+  res.end(await response.text());
+}
+
 async function handleQr(res: ServerResponse, url: URL): Promise<void> {
   const text = url.searchParams.get('text') || '';
   if (text.length > MAX_QR_TEXT) {
@@ -117,12 +142,14 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const {pathname} = url;
   if (pathname.startsWith('/api/rooms')) {
     await handleRoomsApi(req, res, url);
+  } else if (['/api/progress', '/api/score', '/api/leaderboard'].includes(pathname)) {
+    await handlePlayersApi(req, res, url);
   } else if (pathname === '/runtime-config.json') {
     sendJson(res, runtimeConfig, {'cache-control': 'no-store'});
   } else if (pathname === '/network') {
     sendJson(res, {host: hostIp});
   } else if (pathname === '/health') {
-    sendJson(res, {ok: true});
+    sendJson(res, onlineHealth(playerStore));
   } else if (pathname === '/qr') {
     await handleQr(res, url);
   } else {

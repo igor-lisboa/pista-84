@@ -1,14 +1,16 @@
 import {DEFAULT_RUNTIME_CONFIG, publicConfig} from '../src/shared/config.ts';
 import type {RuntimeConfig} from '../src/shared/config.ts';
 import {signaling, d1Store} from '../src/server/signaling.ts';
-import {cloudProgress} from '../src/server/cloud.ts';
+import {cloudProgress, leaderboardApi, onlineHealth, storageUnavailable} from '../src/server/cloud.ts';
+import {globalConfigStore} from '../src/server/global-config.ts';
+import type {GlobalConfigEnv} from '../src/server/global-config.ts';
 import type {D1Like} from '../src/server/d1.ts';
 import {assets} from './generated-assets.ts';
 
 /** Replaced by esbuild `define` with the build-time public config. */
 declare const __PISTA_CONFIG__: RuntimeConfig | undefined;
 
-type Env = {
+type Env = GlobalConfigEnv & {
   DB: D1Like;
   PISTA84_COINS?: string;
 };
@@ -48,11 +50,15 @@ export default {
     if (pathname.startsWith('/api/rooms')) {
       return signaling(request, d1Store(env.DB));
     }
+    const players = globalConfigStore(env);
     if (pathname === '/api/progress') {
-      return cloudProgress(request, env.DB, config);
+      return players ? cloudProgress(request, players, config) : storageUnavailable();
+    }
+    if (pathname === '/api/leaderboard' || pathname === '/api/score') {
+      return players ? leaderboardApi(request, players) : storageUnavailable();
     }
     if (pathname === '/health') {
-      return Response.json({ok: true, transport: 'webrtc', cloudBackup: true});
+      return Response.json({...onlineHealth(players), transport: 'webrtc'});
     }
     return serveAsset(pathname);
   },

@@ -2,7 +2,7 @@ import {
   CARS,
   PAINTS,
   coinPrice,
-  loadSave,
+  importSave,
   type BalanceConfig,
   type CarSpec,
   type Paint,
@@ -30,6 +30,8 @@ export interface GarageDeps {
   refreshFeatured(): void;
   toast(message: string): void;
   cloudEnabled(): boolean;
+  /** Called after a save was imported or restored, so the new identity and scores can be shared online. */
+  imported(): void;
 }
 
 /** Garage dialog: car shop, paint shop, and progress backup/restore. */
@@ -219,12 +221,13 @@ export class Garage {
 
   /** Replaces the in-memory save with sanitised data and returns to the menu state. */
   private applySave(serialized: string): void {
-    Object.assign(this.deps.save, loadSave({ getItem: () => serialized }, this.deps.config));
+    Object.assign(this.deps.save, importSave(this.deps.save, serialized, this.deps.config));
     this.deps.race.car = this.deps.selectedCar();
     this.deps.race.status = 'paused';
     this.deps.resetForCar();
     this.deps.persist();
     this.deps.refreshFeatured();
+    this.deps.imported();
     this.render();
   }
 
@@ -232,7 +235,8 @@ export class Garage {
     const buttons = [byId<HTMLButtonElement>('cloudUpload'), byId<HTMLButtonElement>('cloudRestore')];
     buttons.forEach((button) => (button.disabled = true));
     try {
-      const response = await fetch('/api/progress');
+      const identity = { 'x-player-id': this.deps.save.playerId };
+      const response = await fetch('/api/progress', { headers: identity });
       const data = (await response.json()) as { error?: string; save?: unknown; revision?: number };
       if (!response.ok) throw new Error(data.error ?? t('garage.cloudUnavailable'));
 
@@ -243,7 +247,7 @@ export class Garage {
       } else {
         const result = await fetch('/api/progress', {
           method: 'PUT',
-          headers: { 'content-type': 'application/json' },
+          headers: { ...identity, 'content-type': 'application/json' },
           body: JSON.stringify({ save: this.deps.save, revision: data.revision }),
         });
         const updated = (await result.json()) as { error?: string };

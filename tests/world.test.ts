@@ -8,6 +8,7 @@ import {
   Race,
   coinPrice,
   environment,
+  isPlayerId,
   loadSave,
   paceMultiplier,
   roadCurve,
@@ -149,4 +150,28 @@ test('a configured balance takes precedence over local and imported balances', (
   }
   assert.equal(loadSave({ getItem: () => stored }, { coins: null }).coins, 45);
   assert.equal(loadSave({ getItem: () => stored }, { coins: 10000 }).selected, 'gol');
+});
+
+test('the player name is kept only when it fits the leaderboard rules', () => {
+  const nameOf = (username: unknown): string | null => loadSave({ getItem: () => JSON.stringify({ username }) }).username;
+  assert.equal(nameOf('  Igor_84 '), 'Igor_84');
+  assert.equal(nameOf('Zé.Lisboa'), 'Zé.Lisboa');
+  assert.equal(nameOf('ab'), null);
+  assert.equal(nameOf('a'.repeat(17)), null);
+  assert.equal(nameOf('has space'), null);
+  assert.equal(nameOf('<script>'), null);
+  assert.equal(nameOf(42), null);
+  assert.equal(loadSave({ getItem: () => '{}' }).username, null);
+});
+
+test('the player GUID is generated once, survives a rename and rejects malformed values', () => {
+  const first = loadSave({ getItem: () => '{}' });
+  assert.match(first.playerId, /^[0-9a-f-]{36}$/);
+  const stored = JSON.stringify({ playerId: first.playerId, username: 'Igor_84' });
+  const renamed = loadSave({ getItem: () => JSON.stringify({ ...JSON.parse(stored), username: 'NewName' }) });
+  assert.equal(renamed.playerId, first.playerId);
+  assert.equal(renamed.username, 'NewName');
+  const forged = loadSave({ getItem: () => JSON.stringify({ playerId: 'not-a-guid' }) });
+  assert.notEqual(forged.playerId, 'not-a-guid');
+  assert.ok(isPlayerId(forged.playerId));
 });

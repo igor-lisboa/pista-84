@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",
+    "@vercel/global-config": "^1.5.1",
     "qrcode": "^1.5.4",
     "ws": "^8.18.0"
   },

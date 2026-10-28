@@ -19,6 +19,8 @@ export interface SettingsDeps {
   persist(): void;
   /** Applies a new UI language everywhere. */
   changeLanguage(lang: Lang): void;
+  /** Opens the player-name dialog. */
+  editUsername(): void;
   installPrompt(): InstallPrompt | null;
 }
 
@@ -38,7 +40,7 @@ export class SettingsDialog {
   }
 
   render(): void {
-    const { audio, input } = this.deps;
+    const { audio, input, save } = this.deps;
     const flags = (Object.entries(LANGS) as [Lang, string][])
       .map(([code, name]) => {
         const active = code === getLang();
@@ -50,6 +52,7 @@ export class SettingsDialog {
       <h1>${t('set.title')}<span>.</span></h1>
       <div class="settings-list">
         <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
+        <button id="username">${t('set.username', { name: save.username ?? '—' })}</button>
         <button id="sound" aria-pressed="${audio.enabled}">${audio.enabled ? t('set.soundOn') : t('set.soundOff')}</button>
         <button id="tilt">${input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff')}</button>
         <button id="calibrate" ${input.tiltEnabled ? '' : 'hidden'}>${t('set.calibrate')}</button>
@@ -67,6 +70,7 @@ export class SettingsDialog {
         if (isLang(lang) && lang !== getLang()) this.deps.changeLanguage(lang);
       };
     }
+    byId('username').onclick = () => this.deps.editUsername();
     byId('sound').onclick = () => void this.toggleSound();
     byId('tilt').onclick = () => void this.toggleTilt();
     byId('calibrate').onclick = () => {

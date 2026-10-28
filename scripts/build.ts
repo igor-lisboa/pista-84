@@ -24,8 +24,9 @@ const CONTENT_TYPES: Record<string, string> = {
   webmanifest: 'application/manifest+json',
   svg: 'image/svg+xml',
   png: 'image/png',
+  jpg: 'image/jpeg',
 };
-const BINARY_EXTENSIONS = new Set(['png']);
+const BINARY_EXTENSIONS = new Set(['png', 'jpg']);
 
 /** Copies `web/` to `www/`, skipping TypeScript sources (they are bundled separately). */
 async function copyStaticFiles(): Promise<void> {

@@ -1,0 +1,11 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:4173",
+      "localStorage": [
+        { "name": "pista84", "value": "{\"username\":\"Tester\",\"playerId\":\"6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b\"}" }
+      ]
+    }
+  ]
+}
