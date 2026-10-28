@@ -3,6 +3,7 @@ import {
   CARS,
   CHECKPOINT,
   CHECKPOINT_FUEL,
+  FUEL_PICKUP,
   PAINTS,
   Race,
   loadSave,
@@ -347,7 +348,7 @@ export class GameApp implements RemoteHost {
     for (const event of this.race.events) {
       switch (event) {
         case 'fuel':
-          this.notifications.feedback(t('fb.fuel'));
+          this.notifications.feedback(t('fb.fuel', { fuel: FUEL_PICKUP }));
           this.audio.tone(660, 0.22, 'square', 0.2);
           break;
         case 'checkpoint':

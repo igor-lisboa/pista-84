@@ -136,7 +136,7 @@ export const am = {
   'reason.fuel': 'ነዳጅ አለቀ! የኋላዎቹ መኪናዎች ደረሱብዎት።',
   'reason.traffic': 'በ {speed} {unit} ፍጥነት ከሌላ መኪና ጋር ተጋጩ!',
   'reason.wall': 'በ {speed} {unit} ፍጥነት ከመንገድ አጥር ጋር ተጋጩ!',
-  'fb.fuel': '+32 ነዳጅ',
+  'fb.fuel': '+{fuel} ነዳጅ',
   'fb.checkpoint': 'መቆጣጠሪያ {n} {unit} · +{fuel}% ነዳጅ',
   'fb.record': 'አዲስ ከፍተኛ ውጤት!',
   'set.label': 'በእርስዎ ምርጫ',

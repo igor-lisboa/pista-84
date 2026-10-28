@@ -144,7 +144,7 @@ export const ptBR = {
   'reason.traffic': 'Você bateu em outro carro a {speed} {unit}!',
   'reason.wall': 'Você bateu na barreira a {speed} {unit}!',
 
-  'fb.fuel': '+32 COMBUSTÍVEL',
+  'fb.fuel': '+{fuel} COMBUSTÍVEL',
   'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel}% COMBUSTÍVEL',
   'fb.record': 'NOVO RECORDE!',
 

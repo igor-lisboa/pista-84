@@ -136,7 +136,7 @@ export const bn = {
   'reason.fuel': 'জ্বালানি শেষ! পেছনের গাড়িগুলো ধরে ফেলেছে।',
   'reason.traffic': 'আপনি {speed} {unit} গতিতে অন্য গাড়িতে ধাক্কা খেয়েছেন!',
   'reason.wall': 'আপনি {speed} {unit} গতিতে রেলিংয়ে ধাক্কা খেয়েছেন!',
-  'fb.fuel': '+৩২ জ্বালানি',
+  'fb.fuel': '+{fuel} জ্বালানি',
   'fb.checkpoint': 'চেকপয়েন্ট {n} {unit} · +{fuel}% জ্বালানি',
   'fb.record': 'নতুন রেকর্ড!',
   'set.label': 'নিজের মতো করে',

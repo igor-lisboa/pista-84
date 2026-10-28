@@ -136,7 +136,7 @@ export const zhCN = {
   'reason.fuel': '燃油耗尽！后方车辆追上了你。',
   'reason.traffic': '你以 {speed} {unit} 撞上了其他车辆！',
   'reason.wall': '你以 {speed} {unit} 撞上了护栏！',
-  'fb.fuel': '+32 燃油',
+  'fb.fuel': '+{fuel} 燃油',
   'fb.checkpoint': '检查点 {n} {unit} · +{fuel}% 燃油',
   'fb.record': '新纪录！',
   'set.label': '随你所愿',

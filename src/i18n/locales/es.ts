@@ -136,7 +136,7 @@ export const es = {
   'reason.fuel': '¡Sin combustible! El tráfico te ha alcanzado.',
   'reason.traffic': '¡Has chocado con otro coche a {speed} {unit}!',
   'reason.wall': '¡Has chocado con la barrera a {speed} {unit}!',
-  'fb.fuel': '+32 COMBUSTIBLE',
+  'fb.fuel': '+{fuel} COMBUSTIBLE',
   'fb.checkpoint': 'CONTROL {n} {unit} · +{fuel}% COMBUSTIBLE',
   'fb.record': '¡NUEVO RÉCORD!',
   'set.label': 'A TU MANERA',

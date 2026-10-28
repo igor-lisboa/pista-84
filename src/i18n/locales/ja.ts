@@ -144,7 +144,7 @@ export const ja: Messages = {
   'reason.traffic': '時速{speed} {unit}で他の車に衝突！',
   'reason.wall': '時速{speed} {unit}でバリアに衝突！',
 
-  'fb.fuel': '+32 燃料',
+  'fb.fuel': '+{fuel} 燃料',
   'fb.checkpoint': 'チェックポイント {n} {unit} · 燃料 +{fuel}%',
   'fb.record': '新記録！',
 

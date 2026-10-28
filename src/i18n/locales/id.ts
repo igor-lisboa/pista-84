@@ -136,7 +136,7 @@ export const id = {
   'reason.fuel': 'Bahan bakar habis! Kendaraan lain menyusulmu.',
   'reason.traffic': 'Kamu menabrak kendaraan lain pada {speed} {unit}!',
   'reason.wall': 'Kamu menabrak pembatas pada {speed} {unit}!',
-  'fb.fuel': '+32 BAHAN BAKAR',
+  'fb.fuel': '+{fuel} BAHAN BAKAR',
   'fb.checkpoint': 'POS KONTROL {n} {unit} · +{fuel}% BAHAN BAKAR',
   'fb.record': 'REKOR BARU!',
   'set.label': 'SESUAI GAYAMU',

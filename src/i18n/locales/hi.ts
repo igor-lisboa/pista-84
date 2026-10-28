@@ -136,7 +136,7 @@ export const hi = {
   'reason.fuel': 'ईंधन खत्म! पीछे की गाड़ियाँ आप तक पहुँच गईं।',
   'reason.traffic': 'आप {speed} {unit} पर दूसरी गाड़ी से टकरा गए!',
   'reason.wall': 'आप {speed} {unit} पर बैरियर से टकरा गए!',
-  'fb.fuel': '+32 ईंधन',
+  'fb.fuel': '+{fuel} ईंधन',
   'fb.checkpoint': 'चेकपॉइंट {n} {unit} · +{fuel}% ईंधन',
   'fb.record': 'नया रिकॉर्ड!',
   'set.label': 'अपने अंदाज़ में',

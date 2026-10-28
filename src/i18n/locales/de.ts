@@ -144,7 +144,7 @@ export const de: Messages = {
   'reason.traffic': 'Du bist mit {speed} {unit} in ein anderes Auto gekracht!',
   'reason.wall': 'Du bist mit {speed} {unit} in die Leitplanke gekracht!',
 
-  'fb.fuel': '+32 KRAFTSTOFF',
+  'fb.fuel': '+{fuel} KRAFTSTOFF',
   'fb.checkpoint': 'CHECKPOINT {n} {unit} · +{fuel} % KRAFTSTOFF',
   'fb.record': 'NEUER REKORD!',
 

@@ -136,7 +136,7 @@ export const ru = {
   'reason.fuel': 'Топливо закончилось! Поток машин догнал вас.',
   'reason.traffic': 'Вы столкнулись с машиной на скорости {speed} {unit}!',
   'reason.wall': 'Вы врезались в ограждение на скорости {speed} {unit}!',
-  'fb.fuel': '+32 ТОПЛИВА',
+  'fb.fuel': '+{fuel} ТОПЛИВА',
   'fb.checkpoint': 'КОНТРОЛЬ {n} {unit} · +{fuel}% ТОПЛИВА',
   'fb.record': 'НОВЫЙ РЕКОРД!',
   'set.label': 'ПО-СВОЕМУ',

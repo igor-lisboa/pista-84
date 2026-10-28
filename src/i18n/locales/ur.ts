@@ -136,7 +136,7 @@ export const ur = {
   'reason.fuel': 'ایندھن ختم! پیچھے کی گاڑیاں آپ تک پہنچ گئیں۔',
   'reason.traffic': 'آپ {speed} {unit} کی رفتار پر دوسری گاڑی سے ٹکرا گئے!',
   'reason.wall': 'آپ {speed} {unit} کی رفتار پر رکاوٹ سے ٹکرا گئے!',
-  'fb.fuel': '+32 ایندھن',
+  'fb.fuel': '+{fuel} ایندھن',
   'fb.checkpoint': 'چیک پوائنٹ {n} {unit} · +{fuel}% ایندھن',
   'fb.record': 'نیا ریکارڈ!',
   'set.label': 'اپنے انداز میں',
