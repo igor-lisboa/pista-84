@@ -423,7 +423,7 @@ test('the road renders four lane dividers and five lanes using the race seed', a
 test('fuel exhaustion offers one paid continuation and deducts 1000 coins', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 2000, owned: ['fusca'], selected: 'fusca' })));
   await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
-  await page.route('**/app.js', async (route) => {
+  await page.route('**/game.js', async (route) => {
     const response = await route.fetch();
     const source = (await response.text()).replaceAll('this.fuel=100', 'this.fuel=.02').replace(/Math\.max\(\w+,this\.fuel\)/g, 'Math.max(.02,this.fuel)');
     await route.fulfill({ response, body: source });

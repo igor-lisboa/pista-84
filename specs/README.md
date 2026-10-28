@@ -2,7 +2,7 @@
 
 **Start here. This folder is the canonical specification for the game.**
 
-Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v10**. Updated **2026-10-27**. Game source is in [`../`](../).
+Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v21**. Updated **2026-10-27**. Game source is in [`../`](../).
 
 These specifications consolidate the original plan, subsequent interface changes, Safari fixes, the supplied visual reference, and the current implementation. Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
 

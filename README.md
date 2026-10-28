@@ -25,7 +25,7 @@ npm start
 
 Open **http://localhost:4173**. The terminal also shows the network address for accessing the game from your phone. Use `PORT` to change the port.
 
-`npm start` and `npm run dev` build the game before launching the local server. After editing `src/` or `web/`, stop the server with Ctrl+C and start it again, or run `npm run build` to refresh the assets while it is running. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/client.ts` and `web/sw.ts` into `www/app.js` and `www/sw.js`) and the Worker.
+`npm start` and `npm run dev` build the game before launching the local server. After editing `src/` or `web/`, stop the server with Ctrl+C and start it again, or run `npm run build` to refresh the assets while it is running. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/client.ts` and `web/sw.ts` into `www/game.js` and `www/sw.js`) and the Worker.
 
 If startup reports **port 4173 is already in use**, an existing server is still running. Open http://localhost:4173, stop that server with Ctrl+C before starting another, or set a different `PORT` in `.env`.
 

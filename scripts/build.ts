@@ -40,7 +40,8 @@ async function copyStaticFiles(): Promise<void> {
 async function bundleClient(): Promise<void> {
   await build({
     entryPoints: ['src/client.ts'],
-    outfile: `${WWW_DIR}/app.js`,
+    // Not `app.js`: Vercel runs a file called app/index/server/main found in the output directory as a Node server.
+    outfile: `${WWW_DIR}/game.js`,
     bundle: true,
     format: 'esm',
     platform: 'browser',

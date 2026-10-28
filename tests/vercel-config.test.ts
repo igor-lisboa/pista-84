@@ -27,17 +27,37 @@ test('the function builder is told not to load @types/node, which it cannot find
   assert.deepEqual(config.compilerOptions.types, []);
 });
 
-test('no file is named like a server entrypoint, so Vercel serves the static site instead of running it', async () => {
-  // Vercel's backend auto-detection runs the first of these it finds as a Node server for `/`.
+/** The names Vercel's backend auto-detection treats as a server entrypoint (@vercel/backends). */
+const ENTRYPOINT_NAMES = ['app', 'index', 'server', 'main'];
+const ENTRYPOINT_EXTENSIONS = ['js', 'cjs', 'mjs', 'ts', 'cts', 'mts'];
+
+async function entrypointsIn(dirs: string[]): Promise<string[]> {
   const {existsSync} = await import('node:fs');
-  const names = ['app', 'index', 'server', 'main'];
   const found: string[] = [];
-  for (const dir of ['', 'src/']) {
-    for (const name of names) {
-      for (const ext of ['js', 'cjs', 'mjs', 'ts', 'cts', 'mts']) {
+  for (const dir of dirs) {
+    for (const name of ENTRYPOINT_NAMES) {
+      for (const ext of ENTRYPOINT_EXTENSIONS) {
         if (existsSync(new URL(`../${dir}${name}.${ext}`, import.meta.url))) found.push(`${dir}${name}.${ext}`);
       }
     }
   }
-  assert.deepEqual(found, []);
+  return found;
+}
+
+test('no source file is named like a server entrypoint, so Vercel serves the static site instead of running it', async () => {
+  // Vercel runs the first of these it finds as a Node server answering `/`.
+  assert.deepEqual(await entrypointsIn(['', 'src/']), []);
+});
+
+test('the built browser files are not named like a server entrypoint either', async () => {
+  // Detection also searches the output directory, and the bundle once was www/app.js (it crashed with `location is not defined`).
+  const build = await readFile(new URL('../scripts/build.ts', import.meta.url), 'utf8');
+  const outputs = [...build.matchAll(/outfile: `\$\{WWW_DIR\}\/([^`]+)`/g)].map((match) => match[1]!);
+  assert.ok(outputs.length >= 2, 'expected the client and service worker bundles');
+  for (const output of outputs) {
+    const name = output.replace(/\.[^.]+$/, '');
+    assert.equal(ENTRYPOINT_NAMES.includes(name), false, `${output} would be run as a server by Vercel`);
+  }
+  const html = await readFile(new URL('../web/index.html', import.meta.url), 'utf8');
+  assert.match(html, /src="game\.js"/);
 });
