@@ -15,19 +15,21 @@ import {
   startNewPlayer,
   loadSave,
   paceMultiplier,
-  PREMIUM_PRICE,
   roadCurve,
   MAX_CURVE,
 } from '../src/game/index.ts';
 import { blendColor } from '../src/render/renderer.ts';
 
-test('the garage has fourteen distinct vehicles and exactly two top-tier ones priced in the millions of coins', () => {
-  assert.equal(CARS.length, 14);
+test('the garage has eighteen distinct coin vehicles with accessible sports car prices', () => {
+  assert.equal(CARS.length, 18);
   assert.equal(new Set(CARS.map((c) => c.id)).size, CARS.length);
-  const premium = CARS.filter((c) => coinPrice(c) >= PREMIUM_PRICE).map((c) => c.id);
-  assert.deepEqual(premium.sort(), ['gt', 'superbike']);
+  assert.equal(coinPrice(CARS.find((c) => c.id === 'gt')!), 30_000);
+  assert.equal(coinPrice(CARS.find((c) => c.id === 'superbike')!), 20_000);
+  for (const name of ['Fiat 147', 'Marea Turbo', 'Passat 85', 'Puma GT']) {
+    assert.ok(CARS.some((car) => car.name === name), name);
+  }
   for (const c of CARS) assert.ok(coinPrice(c) >= 0);
-  assert.ok(CARS.filter((c) => !premium.includes(c.id)).every((c) => coinPrice(c) <= 2000));
+  assert.ok(CARS.every((c) => coinPrice(c) <= 30_000));
   assert.equal(coinPrice(CARS[0]!), 0);
 });
 

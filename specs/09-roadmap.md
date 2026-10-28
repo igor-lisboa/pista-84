@@ -14,7 +14,7 @@ Implement authenticated server-issued race sessions, bounded/plausible progress 
 
 ## COM-01 — Payments, premium currency and paid vehicles
 
-**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected. The PREMIUM cars are now priced in coins (millions), so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
+**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** No payment provider is connected. All cars are priced in coins with no premium distinction, so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
 
 Create new migrations for `orders`, `payment_events`, `wallet_entries` and `entitlements`. Implement:
 
@@ -24,7 +24,7 @@ Create new migrations for `orders`, `payment_events`, `wallet_entries` and `enti
 - States `pending → paid → fulfilled`; cancellation/failure grants nothing; refund/revocation updates rights.
 - Native receipt validation and restore purchases for the corresponding stores.
 
-**Accept:** sandbox success/failure/cancel, duplicate and invalid webhooks, refunds, receipt restoration on a second device and forged balance attempts; a premium car is owned only after a confirmed entitlement, never because its id appears in an imported or edited local save. Activate real sales only after provider configuration and successful sandbox validation.
+**Accept:** sandbox success/failure/cancel, duplicate and invalid webhooks, refunds, receipt restoration on a second device and forged balance attempts; purchased coin packs are credited only after a confirmed entitlement. Activate real sales only after provider configuration and successful sandbox validation.
 
 ## ADS-01 — Rewarded ads and ad removal
 

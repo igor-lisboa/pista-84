@@ -10,7 +10,7 @@ These specifications consolidate the original plan, subsequent interface changes
 | --- | --- |
 | [01 — Product and scope](01-product-and-scope.md) | Concept, platforms, design decisions, delivery boundaries |
 | [02 — Gameplay](02-gameplay.md) | States, movement, fuel, fatal crashes, off-road, traffic, score, environment |
-| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 14-vehicle catalog, statistics, coin and premium prices, paints, score-based rewards |
+| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 18-vehicle catalog, statistics, coin prices, paints, score-based rewards |
 | [04 — Interface and controls](04-interface-and-controls.md) | Initial menu, top-bar race HUD, keyboard, touch, tilt, languages, Safari |
 | [05 — Art and audio](05-art-and-audio.md) | Reference direction, sunset-arcade look, camera, sprites, scenery, procedural music and sounds |
 | [06 — Architecture and data](06-architecture-and-data.md) | TypeScript modules, save schema, runtime config, database, backup, offline and native packaging |

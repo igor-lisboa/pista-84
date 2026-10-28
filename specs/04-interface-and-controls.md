@@ -31,7 +31,7 @@ The result displays the failure reason, score in points, distance, run coins and
 
 ## Garage
 
-Fourteen cards show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. Coin cars show their coin price; the two PREMIUM cars show a PREMIUM tag and a price in the millions, so their button stays disabled until the wallet can afford it. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
+Eighteen cards show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. All cars show their coin price, with purchase buttons disabled until the wallet can afford them. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
 
 ## Settings (Options)
 

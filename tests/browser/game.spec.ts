@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { hudSpeed, loadHarness } from './support/harness.ts';
 
-const CAR_COUNT = 14;
+const CAR_COUNT = 18;
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -146,7 +146,7 @@ test.describe('garage', () => {
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(380);
   });
 
-  test('garage purchases persist; premium cars cost millions and cannot be bought with few coins', async ({ page }) => {
+  test('garage purchases persist; all cars use coins and expensive cars require sufficient funds', async ({ page }) => {
     // A local .env may configure a balance; this test needs the stored one.
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.goto('/');
@@ -157,8 +157,8 @@ test.describe('garage', () => {
     await page.locator('#garageNav').click();
 
     await expect(page.locator('.car-card h3')).toHaveText([
-      'Fusca 76', 'Uno com Escada', 'CG 125', 'Brasília 80', 'Kombi 78', 'Chevette 82',
-      'Moto urbana', 'Palio 98', 'Gol Bolinha', 'Bruto 4×4', 'Opala SS', 'Maverick GT',
+      'Fusca 76', 'Uno com Escada', 'CG 125', 'Fiat 147', 'Brasília 80', 'Kombi 78', 'Chevette 82',
+      'Moto urbana', 'Palio 98', 'Gol Bolinha', 'Passat 85', 'Bruto 4×4', 'Opala SS', 'Puma GT', 'Maverick GT', 'Marea Turbo',
       'Raio 1000', 'Veloce GT',
     ]);
 
@@ -168,15 +168,36 @@ test.describe('garage', () => {
     await page.getByRole('button', { name: /Cereja/ }).click();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(260);
 
-    const premium = page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Veloce GT' }) });
-    await expect(premium.getByRole('button')).toContainText(/3\.000\.000/);
-    await expect(premium.getByRole('button')).toBeDisabled();
+    await expect(page.locator('.car-badge')).toHaveCount(0);
+    const gt = page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Veloce GT' }) });
+    await expect(gt.getByRole('button')).toContainText(/30\.000/);
+    await expect(gt.getByRole('button')).toBeDisabled();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).owned)).not.toContain('gt');
 
     await page.reload();
     await expect(page.locator('#carName')).toHaveText('BRASÍLIA 80');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).paint)).toBe('cherry');
   });
+});
+
+test('new models and high-price vehicles can be purchased and stay owned after reload', async ({ page }) => {
+  await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('pista84', JSON.stringify({
+    username: 'Tester', coins: 60_000, owned: ['fusca'], selected: 'fusca',
+  })));
+  await page.reload();
+  await page.locator('#garageNav').click();
+  for (const name of ['Fiat 147', 'Marea Turbo', 'Passat 85', 'Puma GT', 'Raio 1000', 'Veloce GT']) {
+    const card = page.locator('.car-card').filter({ has: page.getByRole('heading', { name, exact: true }) });
+    await card.getByRole('button').click();
+    await expect(card.getByRole('button')).toHaveText('SELECIONADO');
+  }
+  await page.reload();
+  const save = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
+  expect(save.coins).toBe(5760);
+  expect(save.owned).toEqual(expect.arrayContaining(['fiat147', 'marea', 'passat', 'puma', 'superbike', 'gt']));
+  expect(save.selected).toBe('gt');
 });
 
 test('the offline cache serves the app and sound can be switched on', async ({ page, context }) => {

@@ -20,8 +20,7 @@ export interface CarSpec {
 /** The visual subset of a car, enough to draw a sprite. */
 export type CarLook = Pick<CarSpec, 'id' | 'color' | 'shape'>;
 
-/** Every car is unlocked with race coins; the top-tier ones simply cost millions. */
-export const PREMIUM_PRICE = 1_000_000;
+/** Every car is unlocked with race coins. */
 export interface Purchase {
   readonly kind: 'coins';
   readonly price: number;
@@ -47,11 +46,14 @@ export const CARS: readonly CarSpec[] = [
   { id: 'uno', name: 'Uno com Escada', color: '#f1efe6', max: 150, accel: 30, consumption: 0.7, handling: 1.05, purchase: { kind: 'coins', price: 120 }, shape: 'box' },
   { id: 'chevette', name: 'Chevette 82', color: '#d9573b', max: 160, accel: 32, consumption: 0.78, handling: 1.05, purchase: { kind: 'coins', price: 240 }, shape: 'box' },
   { id: 'cg125', name: 'CG 125', color: '#d33a3a', max: 130, accel: 40, consumption: 0.4, handling: 1.45, purchase: { kind: 'coins', price: 140 }, shape: 'bike' },
-  { id: 'opala', name: 'Opala SS', color: '#2f6fb8', max: 215, accel: 40, consumption: 1.5, handling: 0.95, purchase: { kind: 'coins', price: 900 }, shape: 'sedan' },
-  { id: 'maverick', name: 'Maverick GT', color: '#f08a24', max: 240, accel: 52, consumption: 1.7, handling: 1.05, purchase: { kind: 'coins', price: 1600 }, shape: 'muscle' },
-  // Premium cars (millions of coins) always close the list.
-  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 64, consumption: 1.65, handling: 1.15, purchase: { kind: 'coins', price: 3_000_000 }, shape: 'sport' },
-  { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.4, handling: 1.5, purchase: { kind: 'coins', price: 2_000_000 }, shape: 'bike' },
+  { id: 'opala', name: 'Opala SS', color: '#2f6fb8', max: 215, accel: 40, consumption: 1.3, handling: 0.95, purchase: { kind: 'coins', price: 900 }, shape: 'sedan' },
+  { id: 'maverick', name: 'Maverick GT', color: '#f08a24', max: 240, accel: 52, consumption: 1.45, handling: 1.05, purchase: { kind: 'coins', price: 1600 }, shape: 'muscle' },
+  { id: 'fiat147', name: 'Fiat 147', color: '#e6b45b', max: 132, accel: 24, consumption: 0.68, handling: 1.02, purchase: { kind: 'coins', price: 160 }, shape: 'box' },
+  { id: 'marea', name: 'Marea Turbo', color: '#527a68', max: 220, accel: 52, consumption: 1.35, handling: 1.08, purchase: { kind: 'coins', price: 2400 }, shape: 'sedan' },
+  { id: 'passat', name: 'Passat 85', color: '#9b4840', max: 170, accel: 34, consumption: 0.88, handling: 1.04, purchase: { kind: 'coins', price: 480 }, shape: 'box' },
+  { id: 'puma', name: 'Puma GT', color: '#e8d7a6', max: 160, accel: 31, consumption: 0.83, handling: 1.18, purchase: { kind: 'coins', price: 1200 }, shape: 'sport' },
+  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 70, consumption: 1.2, handling: 1.15, purchase: { kind: 'coins', price: 30_000 }, shape: 'sport' },
+  { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.05, handling: 1.5, purchase: { kind: 'coins', price: 20_000 }, shape: 'bike' },
 ];
 
 export const PAINTS: readonly Paint[] = [

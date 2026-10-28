@@ -16,7 +16,7 @@ import {
 } from './road.ts';
 import { POINTS_PER_COIN, paceMultiplier } from './scoring.ts';
 import {
-  MAX_TRAFFIC,
+  maxTraffic,
   SPAWN_PROBE_SPEED,
   TRAFFIC_SPAWN_Z,
   approachCruise,
@@ -30,6 +30,7 @@ import {
   separateTraffic,
   steerTraffic,
   trafficIntensity,
+  trafficPressure,
   trafficOf,
   type Entity,
   type Random,
@@ -64,6 +65,8 @@ export const FUEL_PICKUP = 12;
 const IDLE_FUEL_BURN = 0.04;
 const DRIVING_FUEL_BURN = 0.45;
 const DRIVING_FUEL_SPEED = 40;
+/** Higher divisor = the speed-dependent part of the burn grows more slowly. */
+const SPEED_FUEL_DIVISOR = 300;
 const SECOND_CHANCE_SPEED = 90;
 const SECOND_CHANCE_FUEL = 45;
 const SECOND_CHANCE_INVINCIBLE = 3;
@@ -210,14 +213,15 @@ export class Race {
     this.time += dt;
     this.invincible = Math.max(0, this.invincible - dt);
     const intensity = trafficIntensity(this.time);
+    const pressure = trafficPressure(this.time);
 
     this.drive(dt, input);
     if (!this.keepOnRoad(dt)) return;
     const advance = this.advance(dt);
     if (!this.burnFuel(dt)) return;
 
-    this.spawnEntities(dt, intensity);
-    this.updateEntities(dt, advance, intensity);
+    this.spawnEntities(dt, intensity, pressure);
+    this.updateEntities(dt, advance, intensity, pressure);
     separateTraffic(this.entities);
     this.entities = this.entities.filter((e) => e.z > -0.15 && e.z < 1.5 && !(e.type === 'fuel' && e.collected));
   }
@@ -292,25 +296,25 @@ export class Race {
   private burnFuel(dt: number): boolean {
     // The engine keeps sipping at rest; smoothly reach the existing driving rate by 40 km/h.
     const baseBurn = IDLE_FUEL_BURN + (DRIVING_FUEL_BURN - IDLE_FUEL_BURN) * clamp(this.speed / DRIVING_FUEL_SPEED, 0, 1);
-    this.fuel = Math.max(0, this.fuel - dt * this.car.consumption * (baseBurn + this.speed / 190));
+    this.fuel = Math.max(0, this.fuel - dt * this.car.consumption * (baseBurn + this.speed / SPEED_FUEL_DIVISOR));
     if (this.fuel > 0) return true;
     this.finish('fuel');
     return false;
   }
 
-  private spawnEntities(dt: number, intensity: number): void {
+  private spawnEntities(dt: number, intensity: number, pressure: number): void {
     this.trafficTimer -= dt;
     this.fuelTimer -= dt;
 
     if (this.trafficTimer <= 0) {
       const lanes = pickWaveLanes(intensity, this.random);
-      if (trafficOf(this.entities).length < MAX_TRAFFIC) {
+      if (trafficOf(this.entities).length < maxTraffic(pressure)) {
         for (const lane of lanes) {
           if (!isLaneClear(this.entities, lane, TRAFFIC_SPAWN_Z, SPAWN_PROBE_SPEED)) continue;
           this.entities.push(createTraffic(lane, this.car, intensity, this.random));
         }
       }
-      this.trafficTimer = 1.1 - intensity * 0.7 + this.random() * 0.3;
+      this.trafficTimer = 1.1 - intensity * 0.7 - pressure * 0.15 + this.random() * 0.3;
     }
 
     if (this.fuelTimer <= 0) {
@@ -319,8 +323,8 @@ export class Race {
     }
   }
 
-  private updateEntities(dt: number, playerAdvance: number, intensity: number): void {
-    const steering = { entities: this.entities, playerLane: lanePosition(this.x), random: this.random };
+  private updateEntities(dt: number, playerAdvance: number, intensity: number, pressure: number): void {
+    const steering = { entities: this.entities, playerLane: lanePosition(this.x), random: this.random, pressure };
     for (const entity of this.entities) {
       let ownAdvance = 0;
       if (entity.type === 'traffic') {

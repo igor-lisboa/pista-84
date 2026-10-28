@@ -139,8 +139,7 @@ dialog p{font-size:14px;color:var(--muted);line-height:1.55}
 .car-card dl>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:7px}
 .car-card dt{color:var(--muted)}
 .car-card dd{margin:0;color:var(--sun);font-weight:700;white-space:nowrap;text-align:right}
-.car-badge{min-height:30px;font:700 10px/1.4 var(--body);color:var(--cyan);margin-top:auto;overflow-wrap:anywhere}
-.car-card button{display:flex;justify-content:center;align-items:center;flex:none;width:100%;height:72px;padding:8px 4px;text-align:center;overflow-wrap:anywhere;background:var(--sun);color:var(--ink);font:400 11px/1.4 var(--display);border:3px solid var(--ink);box-shadow:0 4px 0 var(--sun-d);outline:2px solid var(--cream);outline-offset:-5px}
+.car-card button{margin-top:auto;display:flex;justify-content:center;align-items:center;flex:none;width:100%;height:72px;padding:8px 4px;text-align:center;overflow-wrap:anywhere;background:var(--sun);color:var(--ink);font:400 11px/1.4 var(--display);border:3px solid var(--ink);box-shadow:0 4px 0 var(--sun-d);outline:2px solid var(--cream);outline-offset:-5px}
 .car-card button:disabled{opacity:1;background:var(--ink3);color:var(--muted);box-shadow:none;outline:0}
 .paint-shop{border-top:3px dashed var(--line);margin-top:20px;padding-top:15px}
 #paints{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -389,7 +388,6 @@ html[dir=rtl] .switch:after{left:auto;right:2px}
  .car-card dl>div:last-child{border-bottom:0}
  .car-card dt{font-size:11px;overflow-wrap:anywhere}
  .car-card dd{text-align:right;font-size:12px}
- .car-badge{min-height:0;margin:0 0 8px}.car-badge:empty{display:none}
  .car-card button{height:46px;padding:6px 8px;font-size:11px}
  /* paints: one row you swipe through, not a second wall of cards */
  #paints{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}

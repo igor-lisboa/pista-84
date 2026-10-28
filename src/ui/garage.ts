@@ -1,7 +1,6 @@
 import {
   CARS,
   PAINTS,
-  PREMIUM_PRICE,
   coinPrice,
   importSave,
   type BalanceConfig,
@@ -103,7 +102,6 @@ export class Garage {
     const { save } = this.deps;
     const owned = save.owned.includes(car.id);
     const selected = save.selected === car.id;
-    const premium = coinPrice(car) >= PREMIUM_PRICE;
 
     const card = document.createElement('article');
     card.className = `car-card ${selected ? 'active' : ''}`;
@@ -118,7 +116,6 @@ export class Garage {
         <div><dt>${t('garage.accel')}</dt><dd>${car.accel}</dd></div>
         <div><dt>${t('garage.fuel')}</dt><dd>${car.consumption.toFixed(2)}×</dd></div>
       </dl>
-      <div class="car-badge">${premium && !owned ? t('garage.premium') : ''}</div>
       <button></button>`;
     const button = body.querySelector('button')!;
     button.textContent = selected

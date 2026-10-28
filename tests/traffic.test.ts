@@ -4,11 +4,15 @@ import {
   CARS,
   LANES,
   MAX_TRAFFIC,
+  PRESSURE_EXTRA_TRAFFIC,
+  PRESSURE_RAMP,
   Race,
   TRAFFIC_RAMP,
   TRAFFIC_PAINTS,
   createTraffic,
+  maxTraffic,
   trafficIntensity,
+  trafficPressure,
   trafficOf,
   trafficSpeed,
 } from '../src/game/index.ts';
@@ -105,7 +109,14 @@ test('elapsed time increases traffic density and speed, with caps for every vehi
   assert.ok(late.rate >= 2.5);
   assert.ok(middle.speed > start.speed);
   assert.ok(late.speed > middle.speed);
-  assert.deepEqual(sample(3600), late);
+  // Late-game pressure keeps raising the rate after the ramp, then stops at a hard cap.
+  const maxPressure = sample(TRAFFIC_RAMP + PRESSURE_RAMP);
+  assert.ok(maxPressure.rate > late.rate);
+  assert.deepEqual(sample(3600), maxPressure);
+  assert.equal(trafficPressure(TRAFFIC_RAMP), 0);
+  assert.equal(trafficPressure(1e6), 1);
+  assert.equal(maxTraffic(0), MAX_TRAFFIC);
+  assert.equal(maxTraffic(1), MAX_TRAFFIC + PRESSURE_EXTRA_TRAFFIC);
 
   for (const player of CARS) {
     for (const npc of CARS) {

@@ -1,12 +1,12 @@
 # 03 — Vehicles, paints and economy
 
-[Specification index](README.md) · Catalog and save validation: [`src/game/cars.ts`](../src/game/cars.ts), [`src/game/save.ts`](../src/game/save.ts) · Premium store interface: [`src/ui/store.ts`](../src/ui/store.ts)
+[Specification index](README.md) · Catalog and save validation: [`src/game/cars.ts`](../src/game/cars.ts), [`src/game/save.ts`](../src/game/save.ts)
 
 ## Complete vehicle catalog
 
 Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 0.25 with a quadratic taper near top speed). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
-The garage lists coin cars in ascending price order, followed by the PREMIUM cars (millions of coins), which naturally sort last. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
+The garage lists all cars in ascending coin price order, with no premium category. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
 
 | ID | Display name | Shape | Max | Acceleration | Consumption | Handling | How it is unlocked |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -22,18 +22,18 @@ The garage lists coin cars in ascending price order, followed by the PREMIUM car
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
 | `opala` | Opala SS | sedan | 215 | 40 | 1.50 | 0.95 | 900 coins |
 | `maverick` | Maverick GT | muscle | 240 | 52 | 1.70 | 1.05 | 1600 coins |
-| `gt` | Veloce GT | sport | 350 | 64 | 1.65 | 1.15 | **PREMIUM:** 3,000,000 coins |
-| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | **PREMIUM:** 2,000,000 coins |
+| `fiat147` | Fiat 147 | box | 132 | 24 | 0.68 | 1.02 | 160 coins |
+| `marea` | Marea Turbo | sedan | 220 | 52 | 1.35 | 1.08 | 2400 coins |
+| `passat` | Passat 85 | box | 170 | 34 | 0.88 | 1.04 | 480 coins |
+| `puma` | Puma GT | sport | 160 | 31 | 0.83 | 1.18 | 1200 coins |
+| `gt` | Veloce GT | sport | 350 | 70 | 1.65 | 1.15 | 30,000 coins |
+| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | 20,000 coins |
 
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
-### Premium cars
-
-The two PREMIUM cars (Veloce GT and Raio 1000) are ordinary coin purchases whose price is in the millions (3,000,000 and 2,000,000 against 0-1600 for the rest). Their garage card shows a PREMIUM tag while unowned (any price at or above `PREMIUM_PRICE`, 1,000,000). There is no real-money flow and no `CashStore`.
-
 ### Art
 
-All fourteen cars use authored straight, mild-turn and strong-turn sprites. The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
+The original fourteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 

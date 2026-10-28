@@ -33,7 +33,7 @@ export const ptPT: Messages = {
   'about.label': 'O CRIADOR',
   'about.title': 'Olá, sou o Igor',
   'about.role': 'Engenheiro de software · Niterói, Brasil',
-  'about.p1': 'O PISTA 84 é uma homenagem às estradas brasileiras e aos carros clássicos que cresci a ver por aí.',
+  'about.p1': 'O meu pai jogava Atari e TK90X e, um dia, mostrou-me o Top Racer. Essa sensação ficou comigo, e criei o PISTA 84: uma corrida infinita para comparar com os amigos quem é o melhor piloto.',
   'about.p2': 'Sou engenheiro de software e fiz este jogo com a IA como parceira: eu decido como deve ser e ela ajuda-me a escrevê-lo e a testá-lo.',
   'about.p3': 'É um projeto independente e pequeno, feito nas horas vagas. Obrigado por jogares!',
   'about.quote': 'Feito com café, curiosidade e muita nostalgia.',
@@ -184,8 +184,11 @@ export const ptPT: Messages = {
 
   'toast.error': 'Erro: {m}',
 
-  'garage.premium': 'PREMIUM',
   'garage.balance': 'O seu saldo: {coins} · Cada 25 pontos de pontuação valem 1 moeda.',
-  'garage.disclaimer': 'Os carros desbloqueiam-se com moedas ganhas pela pontuação. Os carros PREMIUM custam milhões de moedas: só os melhores pilotos lá chegam.',
+  'tag.fiat147': 'Pequeno no tamanho, grande na personalidade',
+  'tag.marea': 'Cinco cilindros e força turbo',
+  'tag.passat': 'Um clássico dos anos oitenta',
+  'tag.puma': 'Desportivo brasileiro leve',
+  'garage.disclaimer': 'Os carros desbloqueiam-se com moedas ganhas pela pontuação.',
   'fb.offroad': 'RELVA! VOLTE AO ASFALTO',
 };

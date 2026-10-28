@@ -19,7 +19,7 @@ interface ServiceWorkerScope {
 const scope = self as unknown as ServiceWorkerScope;
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v22`;
+const CACHE = `${CACHE_PREFIX}v24`;
 const ASSETS = [
   '/',
   '/index.html',
@@ -32,6 +32,7 @@ const ASSETS = [
   '/assets/vehicle-atlas-v1.png',
   '/assets/vehicle-turns-v2.png',
   '/assets/vehicle-classics-v2.png',
+  '/assets/vehicle-brazilian-v1.png',
   '/game.js',
   '/runtime-config.json',
 ];

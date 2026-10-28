@@ -31,7 +31,7 @@ The experience is a playable racing game with an initial menu, rather than a das
 | Offline | Solo play after a successful first visit and asset caching |
 | Progress | Local browser save (v2), file export/import, manual account backup on hosted runtime |
 | Code | Full TypeScript; Node 24 runs `.ts` natively, `tsc --noEmit` type-checks, esbuild bundles |
-| Monetization | Two PREMIUM cars cost millions of coins (2,000,000 and 3,000,000) while regular cars cost 0-1600. No payment provider, premium wallet or ads are connected |
+| Monetization | All 18 vehicles use coins, with prices from 0 to 30,000 and no premium category. No payment provider, premium wallet or ads are connected |
 | Native | Android/iOS Capacitor projects exist; distributable builds are not validated or signed |
 
 ## Design priorities

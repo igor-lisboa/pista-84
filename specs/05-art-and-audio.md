@@ -38,6 +38,8 @@ Turn poses: [vehicle-turns-v2.png](../web/assets/vehicle-turns-v2.png) adds 16 t
 
 Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png with 18 transparent authored sprites: straight, gentle right turn and hard right turn for every model. Left turns mirror the authored poses. They share the original atlas renderer, alpha cropping, paint remapping and uniform scaling. The hand-composed sprites remain an asset-loading fallback. Prompts, crop layout, camera behavior and review instructions: [vehicle-classics-v2.md](../docs/vehicle-classics-v2.md).
 
+Fiat 147, Marea Turbo, Passat 85 and Puma GT use [vehicle-brazilian-v1.png](../web/assets/vehicle-brazilian-v1.png), with twelve transparent authored sprites, distinct turn views, model-specific proportions and brake lights. Generation prompts, tuning and review screenshots: [brazilian-cars-v1.md](../docs/brazilian-cars-v1.md).
+
 Atlas creation used the built-in imagegen tool followed by a badge-removal edit. Exact prompts and provenance remain in [ART_DIRECTION.md](../docs/ART_DIRECTION.md). The user-provided screenshot itself is not shipped as a game asset.
 
 [reference-scene.png](../docs/screenshots/reference-scene.png) is a deterministic composition drawn by the actual renderer, with a red sports car, yellow sports car, beige Fusca and blue hatch. It is a visual review scene, not a second game mode or evidence of player progression.
@@ -48,7 +50,7 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **14** vehicles has its own engine base frequency, speed ratio, oscillator waveform, low-pass base and braking-noise frequency. Engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking combines broad, lower-pitched friction noise with a quiet per-model tonal layer. The GT has no tonal squeal and a 680 Hz brake filter base. Envelopes respond in 60 ms and fade as the car stops. Music bus gain is 0.07 in menus and 0.0455 in races (previously 0.32); engine gain/filter open further while accelerating. The sound toggle controls the full mix.
+Each of the **18** vehicles has its own engine profile. Fiat 147, Marea Turbo, Passat 85, Puma GT and Veloce GT use model-specific periodic exhaust spectra, a low exhaust layer and firing rates derived from engine RPM and cylinder count, with automatic gear pitch drops. Marea adds quiet turbo air noise under load. The remaining profiles use individual base frequencies, speed ratios and oscillator waveforms. Legacy engine frequency is `base + speed × ratio`; filter frequency is `filterBase + speed × 2`. Braking combines broad, lower-pitched friction noise with a quiet per-model tonal layer. The GT has no tonal squeal and a 680 Hz brake filter base. Envelopes respond in 60 ms and fade as the car stops. Music bus gain is 0.07 in menus and 0.0455 in races (previously 0.32); engine gain/filter open further while accelerating. The sound toggle controls the full mix.
 
 | Vehicle ID | Engine base Hz | Speed ratio | Waveform | Filter base Hz | Brake base Hz |
 | --- | ---: | ---: | --- | ---: | ---: |

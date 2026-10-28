@@ -19,13 +19,14 @@ const SPRITE_CACHE_LIMIT = 150;
 const PAINT_CACHE_LIMIT = 80;
 const ALPHA_THRESHOLD = 80;
 const DEFAULT_BODY_COLOR = '#efce5e';
-const ATLAS_TILE_COUNT = 14;
-const TURN_TILE_COUNT = 28;
+const ATLAS_TILE_COUNT = 18;
+const TURN_TILE_COUNT = 36;
 const TURN_SHEET_SIZE = 1254;
 
 const DEFAULT_ATLAS_URL = './assets/vehicle-atlas-v1.png';
 const DEFAULT_TURN_ATLAS_URL = './assets/vehicle-turns-v2.png';
 const DEFAULT_CLASSICS_ATLAS_URL = './assets/vehicle-classics-v2.png';
+const DEFAULT_BRAZILIAN_ATLAS_URL = './assets/vehicle-brazilian-v1.png';
 
 const ATLAS_REGIONS: Readonly<Record<string, Region>> = {
   fusca: [0, 0.15, 0.25, 0.34],
@@ -54,6 +55,10 @@ const BASE_PAINTS: Readonly<Record<string, string>> = {
   cg125: '#d33a3a',
   opala: '#2f6fb8',
   maverick: '#f08a24',
+  fiat147: '#e6b45b',
+  marea: '#527a68',
+  passat: '#9b4840',
+  puma: '#e8d7a6',
 };
 
 /** Hue (0..1) of the paintable body area of each atlas tile. */
@@ -72,6 +77,10 @@ const BASE_HUES: Readonly<Record<string, number>> = {
   cg125: 0,
   opala: 0.61,
   maverick: 0.065,
+  fiat147: 0.12,
+  marea: 0.44,
+  passat: 0.98,
+  puma: 0.13,
 };
 
 const HUE_TOLERANCE = 0.13;
@@ -293,18 +302,36 @@ for (let row = 0; row < CLASSIC_IDS.length; row++) {
   }
 }
 
+// Actual transparent gutters between the authored columns, rather than equal slices.
+const BRAZILIAN_IDS = ['fiat147', 'marea', 'passat', 'puma'] as const;
+const BRAZILIAN_COLUMNS = [0, 320, 675, 1024] as const;
+const BRAZILIAN_REGIONS: Record<string, Region> = {};
+for (let row = 0; row < BRAZILIAN_IDS.length; row++) {
+  for (let pose = 0; pose < 3; pose++) {
+    BRAZILIAN_REGIONS[`${BRAZILIAN_IDS[row]}:${pose}`] = [
+      BRAZILIAN_COLUMNS[pose]! / 1024,
+      row / 4,
+      (BRAZILIAN_COLUMNS[pose + 1]! - BRAZILIAN_COLUMNS[pose]!) / 1024,
+      1 / 4,
+    ];
+  }
+}
+
 export async function loadSprites(
   url = DEFAULT_ATLAS_URL,
   turnUrl = DEFAULT_TURN_ATLAS_URL,
   classicsUrl = DEFAULT_CLASSICS_ATLAS_URL,
+  brazilianUrl = DEFAULT_BRAZILIAN_ATLAS_URL,
 ): Promise<boolean> {
   const classics = new Map<string, HTMLCanvasElement>();
+  const brazilian = new Map<string, HTMLCanvasElement>();
   await Promise.all([
     loadAtlas(url, ATLAS_REGIONS, atlasTiles),
     loadAtlas(turnUrl, TURN_REGIONS, turnTiles),
     loadAtlas(classicsUrl, CLASSIC_REGIONS, classics),
+    loadAtlas(brazilianUrl, BRAZILIAN_REGIONS, brazilian),
   ]);
-  for (const [key, tile] of classics) {
+  for (const [key, tile] of [...classics, ...brazilian]) {
     const [id, pose] = key.split(':');
     if (pose === '0') atlasTiles.set(id!, tile);
     else turnTiles.set(key, tile);
@@ -646,6 +673,14 @@ function sprite(car: CarLook, brake: boolean, turn: number): HTMLCanvasElement {
 const STRAIGHT_BRAKE_LAMPS = [0.12, 0.72] as const;
 const TURNING_BRAKE_LAMPS = [0.1, 0.58] as const;
 
+// Positions on the cropped authored images. These cars' lights sit higher than the bumper.
+const MODEL_BRAKE_LAMPS: Readonly<Record<string, { y: number; centers: readonly (readonly number[])[] }>> = {
+  fiat147: { y: 0.42, centers: [[0.09, 0.9], [0.08, 0.65], [0.09, 0.57]] },
+  marea: { y: 0.46, centers: [[0.11, 0.86], [0.09, 0.62], [0.1, 0.56]] },
+  passat: { y: 0.39, centers: [[0.1, 0.9], [0.09, 0.65], [0.1, 0.58]] },
+  puma: { y: 0.36, centers: [[0.13, 0.22, 0.79, 0.88], [0.09, 0.18, 0.61, 0.7], [0.1, 0.18, 0.55, 0.63]] },
+};
+
 /** Pick authored poses. Never shear, rotate or slice the rear image to fake yaw. */
 export function drawCar(ctx: Ctx, x: number, y: number, scale: number, car: CarLook, brake = false, turn = 0): void {
   const pose = steeringPose(turn);
@@ -664,8 +699,16 @@ export function drawCar(ctx: Ctx, x: number, y: number, scale: number, car: CarL
   if (tile && brake) {
     ctx.globalAlpha = 0.72;
     ctx.fillStyle = '#ff5445';
-    const lamps = leaning ? TURNING_BRAKE_LAMPS : STRAIGHT_BRAKE_LAMPS;
-    for (const lamp of lamps) ctx.fillRect(left + width * lamp, -height * 0.24, width * 0.13, Math.max(2, height * 0.045));
+    const model = MODEL_BRAKE_LAMPS[car.id];
+    if (model) {
+      const size = car.id === 'puma' ? 0.045 : 0.075;
+      for (const center of model.centers[pose]!) {
+        ctx.fillRect(left + width * (center - size / 2), -height * model.y, width * size, Math.max(2, height * 0.035));
+      }
+    } else {
+      const lamps = leaning ? TURNING_BRAKE_LAMPS : STRAIGHT_BRAKE_LAMPS;
+      for (const lamp of lamps) ctx.fillRect(left + width * lamp, -height * 0.24, width * 0.13, Math.max(2, height * 0.045));
+    }
   }
   ctx.restore();
 }

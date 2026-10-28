@@ -37,6 +37,12 @@ export const TRAFFIC_SPAWN_Z = 1.1;
 /** Seconds of play over which traffic density and speed ramp up to their maximum. */
 export const TRAFFIC_RAMP = 120;
 export const MAX_TRAFFIC = 16;
+/** Seconds after `TRAFFIC_RAMP` over which the late-game pressure builds up to its maximum. */
+export const PRESSURE_RAMP = 240;
+/** Extra cars allowed on the road at full pressure, on top of `MAX_TRAFFIC`. */
+export const PRESSURE_EXTRA_TRAFFIC = 4;
+/** Fraction of the lane-change delay removed at full pressure: drivers get twitchier. */
+const PRESSURE_RESTLESSNESS = 0.4;
 /** Smallest bumper-to-bumper depth between two cars sharing a lane. */
 const MIN_FOLLOW_GAP = 0.03;
 /** Depth within which a car starts matching the speed of the one ahead. */
@@ -59,6 +65,12 @@ export const TRAFFIC_PAINTS = [
 ] as const;
 
 export const trafficIntensity = (time: number): number => clamp(time / TRAFFIC_RAMP, 0, 1);
+
+/** 0..1 late-game pressure: starts once the intensity ramp is full and keeps building to a hard cap. */
+export const trafficPressure = (time: number): number => clamp((time - TRAFFIC_RAMP) / PRESSURE_RAMP, 0, 1);
+
+/** Most traffic cars allowed at once for the given pressure. */
+export const maxTraffic = (pressure: number): number => MAX_TRAFFIC + Math.round(PRESSURE_EXTRA_TRAFFIC * pressure);
 
 /** Cruising speed of an NPC, bounded by both the player's and its own top speed. */
 export function trafficSpeed(playerCar: CarSpec, trafficCar: CarSpec, intensity: number, cruise: number): number {
@@ -149,6 +161,8 @@ export interface SteeringContext {
   /** Player position in lane units. */
   readonly playerLane: number;
   readonly random: Random;
+  /** Late-game pressure, 0..1; makes drivers reconsider lanes more often. */
+  readonly pressure?: number;
 }
 
 /**
@@ -171,7 +185,7 @@ export function steerTraffic(car: TrafficEntity, dt: number, leader: TrafficEnti
   const shouldConsider = (blocked && car.cooldown <= 0) || car.timer <= 0;
   if (!shouldConsider) return;
 
-  car.timer = 2.5 + ctx.random() * 4.5;
+  car.timer = (2.5 + ctx.random() * 4.5) * (1 - PRESSURE_RESTLESSNESS * (ctx.pressure ?? 0));
   if (car.z < NO_CUT_IN_DEPTH) return;
   if (!blocked && ctx.random() > 0.8) return;
 

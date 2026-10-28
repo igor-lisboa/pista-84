@@ -370,7 +370,73 @@ function paintCg125(b: Brush, body: string, brake: boolean): void {
   b.plate(56, 62, 16, 7);
 }
 
+/** Compact hatch with upright glass and small rectangular tail lights. */
+function paintFiat147(b: Brush, body: string, brake: boolean): void {
+  b.tyre(24, 52, 13, 24);
+  b.tyre(91, 52, 13, 24);
+  b.lit([[31, 9], [97, 9], [105, 42], [23, 42]], body);
+  b.glass([[36, 15], [92, 15], [98, 36], [30, 36]]);
+  b.lit([[23, 40], [105, 40], [107, 66], [21, 66]], body);
+  b.rect(29, 42, 70, 2, shade(body, 0.65));
+  b.lamp(26, 49, 17, 8, TAIL_RED, brake);
+  b.lamp(85, 49, 17, 8, TAIL_RED, brake);
+  b.rect(47, 47, 11, 2, '#d9dde0');
+  b.plate(55, 56, 18, 7);
+  b.chrome(21, 65, 86, 5);
+}
+
+/** Rounded sedan, high boot and broad segmented lights. */
+function paintMarea(b: Brush, body: string, brake: boolean): void {
+  b.tyre(16, 52, 17, 25);
+  b.tyre(95, 52, 17, 25);
+  b.lit([[34, 7], [94, 7], [109, 40], [19, 40]], body, 1.25, 0.8, 6);
+  b.glass([[37, 13], [91, 13], [101, 33], [27, 33]]);
+  b.lit([[19, 38], [109, 38], [116, 62], [12, 62]], body, 1.3, 0.8, 6);
+  b.lit([[12, 53], [116, 53], [112, 70], [16, 70]], body);
+  b.lamp(18, 47, 26, 9, TAIL_RED, brake);
+  b.lamp(84, 47, 26, 9, TAIL_RED, brake);
+  b.rect(36, 49, 6, 3, '#eee5d1');
+  b.rect(86, 49, 6, 3, '#eee5d1');
+  b.plate(53, 54, 22, 8);
+  b.rect(19, 65, 90, 4, '#252b30');
+  b.chrome(91, 71, 12, 3);
+}
+
+/** Angular fastback with sloped rear glass and a chrome bumper. */
+function paintPassat(b: Brush, body: string, brake: boolean): void {
+  b.tyre(20, 52, 15, 24);
+  b.tyre(93, 52, 15, 24);
+  b.lit([[34, 6], [94, 6], [108, 44], [20, 44]], body, 1.22, 0.8, 1);
+  b.glass([[37, 12], [91, 12], [102, 37], [26, 37]]);
+  b.lit([[20, 42], [108, 42], [110, 67], [18, 67]], body, 1.2, 0.8, 1);
+  b.rect(25, 45, 78, 2, shade(body, 0.55));
+  b.lamp(23, 51, 25, 8, TAIL_RED, brake);
+  b.lamp(80, 51, 25, 8, TAIL_RED, brake);
+  b.rect(24, 51, 5, 8, TAIL_AMBER);
+  b.rect(99, 51, 5, 8, TAIL_AMBER);
+  b.plate(54, 53, 20, 8);
+  b.chrome(18, 65, 92, 5);
+}
+
+/** Low fibreglass coupe with a curved rear window and round tail lights. */
+function paintPuma(b: Brush, body: string, brake: boolean): void {
+  b.tyre(17, 55, 18, 22);
+  b.tyre(93, 55, 18, 22);
+  b.lit([[41, 16], [87, 16], [106, 43], [22, 43]], body, 1.3, 0.8, 8);
+  b.glass([[42, 21], [86, 21], [97, 39], [31, 39]]);
+  b.lit([[22, 42], [106, 42], [115, 62], [108, 70], [20, 70], [13, 62]], body, 1.3, 0.75, 8);
+  for (let y = 44; y < 51; y += 3) b.rect(44, y, 40, 1, shade(body, 0.5));
+  for (const x of [29, 42, 86, 99]) b.circle(x, 58, 5, brake ? BRAKE_RED : TAIL_RED);
+  b.plate(54, 57, 20, 8);
+  b.chrome(21, 68, 28, 3);
+  b.chrome(79, 68, 28, 3);
+}
+
 const PAINTERS: Readonly<Record<string, (brush: Brush, body: string, brake: boolean) => void>> = {
+  fiat147: paintFiat147,
+  marea: paintMarea,
+  passat: paintPassat,
+  puma: paintPuma,
   kombi: paintKombi,
   uno: paintUno,
   chevette: paintChevette,

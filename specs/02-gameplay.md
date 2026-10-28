@@ -87,6 +87,8 @@ The renderer integrates upcoming curvature using midpoint curvature and trapezoi
 
 Traffic ramps with `intensity = clamp(time / 120, 0, 1)` (`TRAFFIC_RAMP = 120` s of active play); it freezes while paused.
 
+After the ramp is full, **late-game pressure** `clamp((time - 120) / 240, 0, 1)` keeps building for four more minutes and then stops (hard cap): the spawn interval shortens by up to `0.15` s, up to **4** extra cars are allowed (`MAX_TRAFFIC + 4 = 20`), and drivers reconsider lane changes up to 40 % sooner. Traffic speeds stop at their intensity-1 values, because faster traffic lowers the closing speed and makes dodging easier.
+
 - First traffic wave: **1.6 s** after starting.
 - Subsequent interval: `1.5 - 0.95 * intensity + random * 0.3` seconds (1.5–1.8 s at the start, 0.55–0.85 s at full intensity).
 - A wave has **1** car in a random lane; with probability `0.25 + 0.6 * intensity` a second car in a different lane; and, when `intensity > 0.4`, with probability `0.55 * intensity` a third car in another free lane. At most three lanes are used, so at least two of the five stay open. A car is added only if its lane is clear at the spawn point. At most **16** traffic cars exist at once (`MAX_TRAFFIC`).
