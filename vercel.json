@@ -4,7 +4,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "www",
   "installCommand": "npm install",
-  "rewrites": [{ "source": "/health", "destination": "/api/health" }],
+  "rewrites": [
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/api/rooms/:path+", "destination": "/api/rooms?route=:path" }
+  ],
   "headers": [
     {
       "source": "/sw.js",

@@ -33,8 +33,26 @@ It was chosen to get an online leaderboard running without provisioning a databa
 **Related leftovers**
 
 - The Cloudflare D1 `player_progress` table (`db/schema.ts`, `drizzle/0001_*`) is no longer used by the code. `control_rooms` (phone pairing) still uses D1 on the Worker and the in-memory store locally.
-- Phone-controller pairing (`/api/rooms`, `/relay`) has no store on Vercel (serverless functions keep no memory and cannot hold WebSockets), so it only works on the Worker or `node dev-server.ts`.
 - **Vercel functions setup (learned the hard way).** `vercel.json` must not use the legacy `builds` array: it names each function after its file *with* the extension (`/api/leaderboard.ts`), so every `/api/*` call returned 404. It uses `buildCommand` + `outputDirectory` instead and the `api/` folder is picked up automatically. **Never name a file like a server entrypoint.** Vercel's backend auto-detection looks for `app`, `index`, `server` and `main` (`.js/.ts` variants, in the repo root and in `src/`) and, if it finds one, deploys it as a Node function that answers `/` instead of the static site (the browser entry `src/app.ts` once crashed there with `location is not defined`). The search also covers the **build output directory** (`www/`), and runtime stack traces are source-mapped, so a crash in the browser bundle `www/app.js` showed up as `/var/src/app.ts` even after the source file was renamed. That is why the browser entry is `src/client.ts`, its bundle `www/game.js`, and the local server `dev-server.ts`; a test guards all of these names. `api/tsconfig.json` sets `types: []` because the function builder compiles from a temp directory where TypeScript 7 cannot find `@types/node` and then emits nothing. Reproduce the real build locally with `npx vercel build` (needs a throwaway `.vercel/project.json`) and look at `.vercel/output/functions`.
+
+## TD-02 · Phone pairing rooms live in one serverless function's memory
+
+**Decision.** `/api/rooms/**` (the QR code for "phone as controller") is served by a single function, `api/rooms.ts`, which keeps the rooms in a `memoryStore()`. `vercel.json` rewrites every sub-route to it as `/api/rooms?route=<rest>` because separate functions cannot share memory. The Worker keeps using D1 and `dev-server.ts` its own in-memory store.
+
+It is not stored in Blob on purpose: a paired session makes about 10 calls a second (the main screen polls the room every 110 ms, the phone sends a heartbeat), so every call would cost a Blob operation and the free quota would be gone within minutes, starving the leaderboard.
+
+**Known limits**
+
+- **Instances do not share memory.** A cold start or a second instance in the middle of a pairing loses the room; the client then shows "Room expired. Generate a new QR code." and the player scans a new one. With one player on one device pair this is rare, under real traffic it will not be.
+- **Invocation cost.** ~10 function invocations per second per paired session (about 36,000 an hour) count against the plan's invocation and compute quotas.
+- **No relay guarantees.** The HTTPS fallback (used on Safari or when WebRTC cannot connect) depends on the same polling, so it is the first thing to degrade.
+- **No TURN server** (roadmap NET-01), so WebRTC across some mobile networks falls back to that relay.
+
+**Exit plan.** `RoomStore` (`src/server/signaling.ts`) is the only thing the pairing code knows about storage. Back it with Redis (keys with a ten-minute expiry) and rooms become shared across instances; polling could then also be replaced by server-sent events or WebSockets on a platform that supports them.
+
+**Related leftovers**
+
+- Verified only locally with `vercel build` and by calling the built function; try it on a preview deployment with a real phone.
 
 ## Setup
 

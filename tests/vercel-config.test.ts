@@ -12,14 +12,19 @@ test('vercel.json uses the standard setup, so api/ files are served without thei
   assert.equal(config.framework, null);
   assert.equal(config.outputDirectory, 'www');
   assert.equal(config.buildCommand, 'npm run build');
-  assert.deepEqual(config.rewrites, [{source: '/health', destination: '/api/health'}]);
+  assert.deepEqual(config.rewrites, [
+    {source: '/health', destination: '/api/health'},
+    // Every pairing route must land in the one function that holds the rooms in memory.
+    // No modifier in the destination: a trailing + would reach the function as an encoded space.
+    {source: '/api/rooms/:path+', destination: '/api/rooms?route=:path'},
+  ]);
 });
 
 test('every public endpoint the client calls has a function, and helpers are not exposed', async () => {
   const files = (await readdir(new URL('../api/', import.meta.url))).filter((name) => name.endsWith('.ts'));
-  for (const endpoint of ['health', 'leaderboard', 'score', 'progress']) assert.ok(files.includes(`${endpoint}.ts`), endpoint);
+  for (const endpoint of ['health', 'leaderboard', 'score', 'progress', 'rooms']) assert.ok(files.includes(`${endpoint}.ts`), endpoint);
   // Files starting with an underscore are shared helpers, never routes.
-  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts'].includes(name)), ['_store.ts']);
+  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts', 'rooms.ts'].includes(name)), ['_store.ts']);
 });
 
 test('the function builder is told not to load @types/node, which it cannot find from its temp directory', async () => {
