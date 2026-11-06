@@ -12,6 +12,9 @@ const LOW_FUEL = 25;
 /** The HUD text is refreshed at about 12 Hz; the canvas runs every frame. */
 const REFRESH_MS = 80;
 
+/** How long the red fuel penalty stays on screen; matches the CSS animation. */
+const FUEL_PENALTY_MS = 1100;
+
 const FUEL_OK = '#2de2e6';
 const FUEL_LOW = '#ff3c78';
 
@@ -23,10 +26,24 @@ export class Hud {
   private readonly score = byId('score');
   private readonly fuelLabel = byId('fuelLabel');
   private readonly fuelBar = byId('fuelBar');
+  private readonly fuelGauge = byId('fuelGauge');
+  private readonly fuelPenalty = byId('fuelPenalty');
+  private fuelPenaltyTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly curveHint = byId('curveHint');
   private readonly checkpointBar = byId('cpBar');
   private readonly checkpointLabel = byId('cpLabel');
   private readonly bestMark = byId('bestMark');
+
+  /** Flashes a red "-N%" under the fuel gauge so the player sees what the grass cost. */
+  showFuelPenalty(amount: number): void {
+    this.fuelPenalty.textContent = `-${amount}%`;
+    // Restart the animation even when a previous penalty is still fading out.
+    this.fuelGauge.classList.remove('penalised');
+    void this.fuelGauge.offsetWidth;
+    this.fuelGauge.classList.add('penalised');
+    clearTimeout(this.fuelPenaltyTimer);
+    this.fuelPenaltyTimer = setTimeout(() => this.fuelGauge.classList.remove('penalised'), FUEL_PENALTY_MS);
+  }
 
   /** Forces the next `update` to repaint (used after a language change). */
   invalidate(): void {

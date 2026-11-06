@@ -516,6 +516,19 @@ test('dropping onto the grass costs fuel at once and keeps draining it', () => {
   assert.ok(before - grass.fuel > OFFROAD_FUEL_BURN * 0.9, 'a second on the grass drains at least the grass burn');
 });
 
+test('a charged grass excursion raises one fuelPenalty event, none while the cooldown runs', () => {
+  const race = quietRace();
+  race.speed = 60;
+  const events: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    race.x = i % 2 === 0 ? 1.05 : 0;
+    race.update(0.02);
+    events.push(...race.events);
+  }
+  assert.equal(events.filter((event) => event === 'fuelPenalty').length, 1);
+  assert.ok(events.filter((event) => event === 'offroad').length > 1);
+});
+
 test('each grass excursion cuts the score multiplier until the next checkpoint', () => {
   const race = quietRace();
   race.speed = 100;

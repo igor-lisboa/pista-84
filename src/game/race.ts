@@ -39,7 +39,8 @@ import {
 export type RaceStatus = 'ready' | 'running' | 'paused' | 'over';
 /** Why a run ended; `traffic` and `wall` are crashes. */
 export type EndReason = 'fuel' | 'traffic' | 'wall';
-export type RaceEvent = 'fuel' | 'checkpoint' | 'hit' | 'crash' | 'offroad';
+/** `fuelPenalty` fires when a grass excursion is actually charged (not during its cooldown). */
+export type RaceEvent = 'fuel' | 'fuelPenalty' | 'checkpoint' | 'hit' | 'crash' | 'offroad';
 
 export interface DriveInput {
   /** -1 (full left) .. 1 (full right). */
@@ -57,9 +58,9 @@ const OFFROAD_TRACTION = 0.1;
 /** Exponential drag rate on the grass: the car sheds most excess speed in about half a second. */
 const OFFROAD_DRAG = 5.5;
 /** Fuel (percent of a tank) lost the moment the car drops onto the grass. */
-export const OFFROAD_ENTRY_FUEL = 3;
+export const OFFROAD_ENTRY_FUEL = 15;
 /** Extra fuel (percent of a tank per second) burnt while churning through the grass. */
-export const OFFROAD_FUEL_BURN = 1.5;
+export const OFFROAD_FUEL_BURN = 3;
 /** Score multiplier factor removed per grass excursion, until the next checkpoint. */
 export const OFFROAD_SCORE_PENALTY = 0.25;
 /** The grass penalty never cuts the multiplier below this factor. */
@@ -306,6 +307,7 @@ export class Race {
     this.offroadCooldown = OFFROAD_PENALTY_COOLDOWN;
     this.fuel = Math.max(0, this.fuel - OFFROAD_ENTRY_FUEL);
     this.scoreFactor = Math.max(MIN_SCORE_FACTOR, this.scoreFactor - OFFROAD_SCORE_PENALTY);
+    this.events.push('fuelPenalty');
   }
 
   /** Moves the car along the road, banks score and coins, handles checkpoints. Returns metres advanced. */

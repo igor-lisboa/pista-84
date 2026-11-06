@@ -4,6 +4,7 @@ import {
   CHECKPOINT,
   CHECKPOINT_FUEL,
   FUEL_PICKUP,
+  OFFROAD_ENTRY_FUEL,
   PAINTS,
   Race,
   loadSave,
@@ -350,6 +351,9 @@ export class GameApp implements RemoteHost {
         case 'fuel':
           this.notifications.feedback(t('fb.fuel', { fuel: FUEL_PICKUP }));
           this.audio.tone(660, 0.22, 'square', 0.2);
+          break;
+        case 'fuelPenalty':
+          this.hud.showFuelPenalty(OFFROAD_ENTRY_FUEL);
           break;
         case 'checkpoint':
           this.notifications.feedback(t('fb.checkpoint', { n: formatDistance(this.race.checkpoints * CHECKPOINT, 0), unit: distanceUnit(), fuel: CHECKPOINT_FUEL }));

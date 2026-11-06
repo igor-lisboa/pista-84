@@ -74,6 +74,11 @@ body[data-view=menu] .vignette{background:linear-gradient(90deg,#160a30f2 0%,#16
 .hud-side{display:flex;gap:10px;align-items:stretch;justify-content:flex-end;min-width:0}
 .fuel{padding:6px 10px 8px;width:128px;height:88px;display:grid;align-content:center}
 .fuel small{display:flex;justify-content:space-between;font:700 12px var(--body)}
+.fuel{position:relative}
+.fuel-penalty{position:absolute;right:4px;top:calc(100% + 6px);color:#ff3b3b;font:400 22px var(--display);text-shadow:3px 3px 0 var(--ink);pointer-events:none;opacity:0;white-space:nowrap}
+.fuel.penalised{border-color:#ff3b3b}
+.fuel.penalised .fuel-penalty{opacity:1;animation:fuel-penalty 1.1s ease-out forwards}
+@keyframes fuel-penalty{0%{opacity:0;transform:translateY(-8px) scale(1.4)}15%{opacity:1;transform:translateY(0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
 .fuel-track{margin-top:5px;height:12px;border:2px solid var(--cream);background:#000a;padding:1px}
 .fuel-track i{display:block;width:100%;height:100%;background:repeating-linear-gradient(90deg,currentColor 0 7px,#0000 7px 9px)}
 .pause-button{pointer-events:auto;flex:none;display:grid;place-items:center;width:48px;height:88px;border:3px solid var(--cream);background:var(--ink2);box-shadow:3px 3px 0 #000b;font-size:20px;font-family:var(--display)}
