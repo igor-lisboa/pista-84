@@ -56,6 +56,16 @@ export const SECOND_CHANCE_PRICE = 1000;
 const OFFROAD_TRACTION = 0.1;
 /** Exponential drag rate on the grass: the car sheds most excess speed in about half a second. */
 const OFFROAD_DRAG = 5.5;
+/** Fuel (percent of a tank) lost the moment the car drops onto the grass. */
+export const OFFROAD_ENTRY_FUEL = 3;
+/** Extra fuel (percent of a tank per second) burnt while churning through the grass. */
+export const OFFROAD_FUEL_BURN = 1.5;
+/** Score multiplier factor removed per grass excursion, until the next checkpoint. */
+export const OFFROAD_SCORE_PENALTY = 0.25;
+/** The grass penalty never cuts the multiplier below this factor. */
+export const MIN_SCORE_FACTOR = 0.25;
+/** Seconds after a grass penalty during which re-entering the grass is not charged again. */
+const OFFROAD_PENALTY_COOLDOWN = 1.5;
 const STEER_RESPONSE = 22;
 const BARRIER_BOUNCE = 0.16;
 /** Fuel (percent of a tank) restored at every checkpoint. */
@@ -101,6 +111,10 @@ export class Race {
   /** Seconds and metres since the last checkpoint; drive the pace multiplier. */
   kmTime = 0;
   kmMetres = 0;
+  /** Grass penalty on the score multiplier for the current kilometre: 1 is clean. */
+  scoreFactor = 1;
+  /** Seconds until another grass excursion is penalised. */
+  offroadCooldown = 0;
   checkpoints = 0;
   endReason: EndReason | null = null;
   crashSpeed = 0;
@@ -123,6 +137,11 @@ export class Race {
     this.reset();
   }
 
+  /** Score multiplier in effect: kilometre pace, cut by any grass excursions since the last checkpoint. */
+  get multiplier(): number {
+    return paceMultiplier(this.kmMetres, this.kmTime) * this.scoreFactor;
+  }
+
   get crashed(): boolean {
     return this.endReason === 'traffic' || this.endReason === 'wall';
   }
@@ -141,6 +160,8 @@ export class Race {
     this.score = 0;
     this.kmTime = 0;
     this.kmMetres = 0;
+    this.scoreFactor = 1;
+    this.offroadCooldown = 0;
     this.checkpoints = 0;
     this.endReason = null;
     this.crashSpeed = 0;
@@ -212,6 +233,7 @@ export class Race {
     const dt = clamp(rawDt, 0, MAX_STEP_SECONDS);
     this.time += dt;
     this.invincible = Math.max(0, this.invincible - dt);
+    this.offroadCooldown = Math.max(0, this.offroadCooldown - dt);
     const intensity = trafficIntensity(this.time);
     const pressure = trafficPressure(this.time);
 
@@ -230,9 +252,10 @@ export class Race {
   private drive(dt: number, input: DriveInput): void {
     // Accelerator, coast and brake are distinct. Automatic gearing gives strong
     // low-speed pull and less acceleration near the vehicle's top speed.
-    this.offroad = Math.abs(this.x) > EDGE;
+    // Local on purpose: keepOnRoad() owns `offroad` so it can detect the moment the car leaves the asphalt.
+    const onGrass = Math.abs(this.x) > EDGE;
     const speedRatio = clamp(this.speed / this.car.max, 0, 1);
-    const traction = this.offroad ? OFFROAD_TRACTION : 1;
+    const traction = onGrass ? OFFROAD_TRACTION : 1;
     const acceleration = vehicleAcceleration(this.car, this.speed) * traction;
     const coast = -(12 + this.speed * 0.025);
     const brakingGrip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.25 : 0.15);
@@ -253,11 +276,17 @@ export class Race {
     this.x += (this.steer * authority - this.drift) * dt;
   }
 
-  /** Grass slows the car to a crawl; the barrier ends the run. Returns false if the run ended. */
+  /**
+   * Grass slows the car to a crawl and costs fuel and score multiplier, so it is
+   * never a free emergency brake; the barrier ends the run. Returns false if the run ended.
+   */
   private keepOnRoad(dt: number): boolean {
     const wasOffroad = this.offroad;
     this.offroad = Math.abs(this.x) > EDGE;
-    if (this.offroad && !wasOffroad) this.events.push('offroad');
+    if (this.offroad && !wasOffroad) {
+      this.events.push('offroad');
+      this.penaliseOffroad();
+    }
     if (this.offroad && this.speed > OFFROAD_LIMIT) {
       // Ease toward the limit instead of snapping: a violent but smooth deceleration.
       this.speed = OFFROAD_LIMIT + (this.speed - OFFROAD_LIMIT) * Math.exp(-OFFROAD_DRAG * dt);
@@ -271,6 +300,14 @@ export class Race {
     return this.status === 'running';
   }
 
+  /** One charge per excursion; the cooldown stops a car riding the edge from being billed every frame. */
+  private penaliseOffroad(): void {
+    if (this.offroadCooldown > 0) return;
+    this.offroadCooldown = OFFROAD_PENALTY_COOLDOWN;
+    this.fuel = Math.max(0, this.fuel - OFFROAD_ENTRY_FUEL);
+    this.scoreFactor = Math.max(MIN_SCORE_FACTOR, this.scoreFactor - OFFROAD_SCORE_PENALTY);
+  }
+
   /** Moves the car along the road, banks score and coins, handles checkpoints. Returns metres advanced. */
   private advance(dt: number): number {
     const before = this.distance;
@@ -279,7 +316,7 @@ export class Race {
     this.path += metres;
     this.kmTime += dt;
     this.kmMetres += metres;
-    this.score += metres * paceMultiplier(this.kmMetres, this.kmTime);
+    this.score += metres * this.multiplier;
     this.coins = Math.floor(this.score / POINTS_PER_COIN);
 
     if (Math.floor(this.distance / CHECKPOINT) > Math.floor(before / CHECKPOINT)) {
@@ -288,6 +325,7 @@ export class Race {
       this.events.push('checkpoint');
       this.kmTime = 0;
       this.kmMetres = 0;
+      this.scoreFactor = 1;
     }
     return metres;
   }
@@ -296,7 +334,8 @@ export class Race {
   private burnFuel(dt: number): boolean {
     // The engine keeps sipping at rest; smoothly reach the existing driving rate by 40 km/h.
     const baseBurn = IDLE_FUEL_BURN + (DRIVING_FUEL_BURN - IDLE_FUEL_BURN) * clamp(this.speed / DRIVING_FUEL_SPEED, 0, 1);
-    this.fuel = Math.max(0, this.fuel - dt * this.car.consumption * (baseBurn + this.speed / SPEED_FUEL_DIVISOR));
+    const grassBurn = this.offroad ? OFFROAD_FUEL_BURN : 0;
+    this.fuel = Math.max(0, this.fuel - dt * (this.car.consumption * (baseBurn + this.speed / SPEED_FUEL_DIVISOR) + grassBurn));
     if (this.fuel > 0) return true;
     this.finish('fuel');
     return false;

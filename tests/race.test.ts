@@ -8,7 +8,11 @@ import {
   LANE_COUNT,
   LANE_DIVIDERS,
   LANE_WIDTH,
+  MIN_SCORE_FACTOR,
+  OFFROAD_ENTRY_FUEL,
+  OFFROAD_FUEL_BURN,
   OFFROAD_LIMIT,
+  OFFROAD_SCORE_PENALTY,
   PLAYER_DEPTH,
   PLAYER_T,
   Race,
@@ -489,6 +493,77 @@ test('braking on the shoulder reaches a standstill without ending the run', () =
   step(race, 3, { brake: true });
   assert.equal(race.status, 'running');
   assert.equal(race.speed, 0);
+});
+
+test('dropping onto the grass costs fuel at once and keeps draining it', () => {
+  const road = quietRace();
+  road.speed = 100;
+  road.x = 0;
+  road.update(0.02);
+  const grass = quietRace();
+  grass.speed = 100;
+  grass.x = 1.05;
+  grass.update(0.02);
+  assert.ok(grass.offroad);
+  const extra = (100 - grass.fuel) - (100 - road.fuel);
+  assert.ok(Math.abs(extra - (OFFROAD_ENTRY_FUEL + OFFROAD_FUEL_BURN * 0.02)) < 0.05, `extra burn ${extra}`);
+
+  const before = grass.fuel;
+  for (let i = 0; i < 50; i++) {
+    grass.x = 1.05;
+    grass.update(0.02);
+  }
+  assert.ok(before - grass.fuel > OFFROAD_FUEL_BURN * 0.9, 'a second on the grass drains at least the grass burn');
+});
+
+test('each grass excursion cuts the score multiplier until the next checkpoint', () => {
+  const race = quietRace();
+  race.speed = 100;
+  race.x = 0;
+  race.update(0.02);
+  const clean = race.multiplier;
+  race.x = 1.05;
+  race.update(0.02);
+  assert.equal(race.scoreFactor, 1 - OFFROAD_SCORE_PENALTY);
+  assert.ok(race.multiplier < clean);
+
+  race.distance = 999.9;
+  race.x = 0;
+  race.speed = 100;
+  race.update(0.05);
+  assert.ok(race.events.includes('checkpoint'));
+  assert.equal(race.scoreFactor, 1);
+});
+
+test('the grass penalty stacks per excursion down to a floor, but riding the edge is billed once', () => {
+  const race = quietRace();
+  race.speed = 60;
+  for (let i = 0; i < 10; i++) {
+    race.x = i % 2 === 0 ? 1.05 : 0;
+    race.update(0.02);
+  }
+  assert.equal(race.scoreFactor, 1 - OFFROAD_SCORE_PENALTY, 'wobbling across the edge within the cooldown');
+
+  for (let i = 0; i < 10; i++) {
+    race.x = 0;
+    step(race, 2);
+    race.x = 1.05;
+    race.update(0.02);
+  }
+  assert.equal(race.scoreFactor, MIN_SCORE_FACTOR);
+});
+
+test('the grass is no free brake: dodging through it scores less than staying on the asphalt', () => {
+  const drive = (dodge: boolean): Race => {
+    const race = quietRace();
+    for (let i = 0; i < 400; i++) {
+      race.x = dodge && i % 100 < 20 ? 1.05 : 0;
+      race.fuel = 100;
+      race.update(0.05, { accelerate: true });
+    }
+    return race;
+  };
+  assert.ok(drive(true).score < drive(false).score * 0.6);
 });
 
 // ---- score ---------------------------------------------------------------
