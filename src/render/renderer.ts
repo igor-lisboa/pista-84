@@ -8,7 +8,6 @@ import {
   WALL,
   clamp,
   depthToScreen,
-  environment,
   laneCenter,
   roadBend,
   screenToDepth,
@@ -269,7 +268,7 @@ export class Renderer {
     const clock = preview ? clockArg : race.time;
     const path = preview ? clock * PREVIEW_PATH_RATE : race.path;
     const speed = preview ? PREVIEW_SPEED : race.speed;
-    const env = environment(race.time);
+    const env = race.environment;
     const horizon = Math.round(h * HORIZON_RATIO);
     const playerHalf = w * roadHalfFraction(PLAYER_T);
     const wanted = race.x * playerHalf;

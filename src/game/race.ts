@@ -1,5 +1,5 @@
 import { CARS, type CarSpec } from './cars.ts';
-import { environment } from './environment.ts';
+import { environment, rollConditions, type Conditions, type Environment } from './environment.ts';
 import { clamp } from './math.ts';
 import { vehicleAcceleration, vehicleTuning } from './vehicle-tuning.ts';
 import {
@@ -89,9 +89,15 @@ const OPENING_TRAFFIC = 3;
 const OPENING_TRAFFIC_MIN_Z = 0.4;
 const OPENING_TRAFFIC_MAX_Z = 0.9;
 
+/** Supplies the player's local time; injectable so tests do not depend on when they run. */
+export type Clock = () => Date;
+
 export class Race {
   car: CarSpec;
   readonly random: Random;
+  readonly clock: Clock;
+  /** Time of day the run starts at and its weather plan. */
+  conditions!: Conditions;
 
   status: RaceStatus = 'ready';
   roadSeed = 0;
@@ -132,10 +138,16 @@ export class Race {
   trafficTimer = FIRST_TRAFFIC_DELAY;
   fuelTimer = FIRST_FUEL_DELAY;
 
-  constructor(car: CarSpec = CARS[0]!, random: Random = Math.random) {
+  constructor(car: CarSpec = CARS[0]!, random: Random = Math.random, clock: Clock = () => new Date()) {
     this.car = car;
     this.random = random;
+    this.clock = clock;
     this.reset();
+  }
+
+  /** Lighting and weather right now in this run. */
+  get environment(): Environment {
+    return environment(this.time, this.conditions);
   }
 
   /** Score multiplier in effect: kilometre pace, cut by any grass excursions since the last checkpoint. */
@@ -150,6 +162,7 @@ export class Race {
   reset(): void {
     this.status = 'ready';
     this.roadSeed = Math.floor(this.random() * 4294967296) >>> 0;
+    this.conditions = rollConditions(this.clock(), this.random);
     this.x = 0;
     this.speed = 0;
     this.fuel = 100;
@@ -179,7 +192,10 @@ export class Race {
   }
 
   start(): void {
+    // Keep the weather the menu preview was showing, but read the clock again for the light.
+    const previewWeather = this.status === 'ready' ? this.conditions.weather : null;
     this.reset();
+    if (previewWeather) this.conditions = { ...this.conditions, weather: previewWeather };
     this.status = 'running';
     this.seedTraffic();
   }
@@ -259,12 +275,12 @@ export class Race {
     const traction = onGrass ? OFFROAD_TRACTION : 1;
     const acceleration = vehicleAcceleration(this.car, this.speed) * traction;
     const coast = -(12 + this.speed * 0.025);
-    const brakingGrip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.25 : 0.15);
+    const brakingGrip = 1 - this.environment.rain * (this.car.shape === 'bike' ? 0.25 : 0.15);
     const deceleration = vehicleTuning(this.car).braking * brakingGrip;
     const force = input.brake ? -deceleration : input.accelerate ? acceleration : coast;
     this.speed = clamp(this.speed + force * dt, 0, this.car.max);
 
-    const grip = 1 - environment(this.time).rain * (this.car.shape === 'bike' ? 0.22 : 0.1);
+    const grip = 1 - this.environment.rain * (this.car.shape === 'bike' ? 0.22 : 0.1);
     const rolling = clamp(this.speed / 90, 0, 1);
     // Corners need attention at ordinary highway speeds and braking at extreme speeds.
     const load = clamp((this.speed / 120) ** 2, 0, 6);

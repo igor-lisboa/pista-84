@@ -399,13 +399,14 @@ test('the road renders four lane dividers and five lanes using the race seed', a
   await page.goto('/');
   await loadHarness(page);
   const result = await page.evaluate(async () => {
-    const { Renderer, Race, CARS, LANES, PLAYER_T, PATH_UNIT, laneCenter, screenToDepth, loadSprites } = window.Pista;
+    const { Renderer, Race, CALM_CONDITIONS, CARS, LANES, PLAYER_T, PATH_UNIT, laneCenter, screenToDepth, loadSprites } = window.Pista;
     await loadSprites();
     const canvas = document.createElement('canvas');
     canvas.style.cssText = 'width:960px;height:720px';
     document.body.replaceChildren(canvas);
     const race = new Race();
     race.start();
+    race.conditions = CALM_CONDITIONS;
     race.roadSeed = 1;
     race.entities = LANES.map((lane) => ({
       type: 'traffic' as const,

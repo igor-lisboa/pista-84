@@ -7,7 +7,12 @@ import {
   PAINTS,
   Race,
   coinPrice,
+  CALM_CONDITIONS,
+  cycleSecondAt,
   environment,
+  rollConditions,
+  rollWeather,
+  type Conditions,
   importSave,
   isPlayerId,
   kmhToUnit,
@@ -52,11 +57,13 @@ test('music: one calm menu loop and several distinct upbeat race tracks', () => 
   for (const track of RACE_TRACKS) assert.ok(track.kick.length > 0 && track.hats.length > 0);
 });
 
+const MIXED: Conditions = { cycleOffset: 0, weather: ['clear', 'rain', 'clear', 'fog'] };
+
 test('environment includes every light and weather state and changes continuously', () => {
   const lights = new Set<string>();
   const weather = new Set<string>();
   for (let t = 0; t < 360; t++) {
-    const e = environment(t);
+    const e = environment(t, MIXED);
     lights.add(e.light);
     weather.add(e.weather);
   }
@@ -64,15 +71,74 @@ test('environment includes every light and weather state and changes continuousl
   assert.equal(weather.size, 3);
 
   for (const end of [65, 95, 155, 180]) {
-    assert.ok(blendColor('#000000', '#ffffff', environment(end - 0.001).mix).startsWith('#'));
-    assert.ok(Math.abs(environment(end - 0.001).night - environment(end + 0.001).night) < 0.001);
+    assert.ok(blendColor('#000000', '#ffffff', environment(end - 0.001, MIXED).mix).startsWith('#'));
+    assert.ok(Math.abs(environment(end - 0.001, MIXED).night - environment(end + 0.001, MIXED).night) < 0.001);
   }
   for (let t = 1; t < 400; t++) {
-    const a = environment(t - 0.001);
-    const b = environment(t + 0.001);
+    const a = environment(t - 0.001, MIXED);
+    const b = environment(t + 0.001, MIXED);
     assert.ok(Math.abs(a.rain - b.rain) < 0.001);
     assert.ok(Math.abs(a.fog - b.fog) < 0.001);
   }
+});
+
+const at = (hours: number, minutes = 0): Date => new Date(2026, 10, 6, hours, minutes);
+
+test('a run starts at the light matching the local clock of the player', () => {
+  const lightAt = (date: Date): string => environment(0, { ...CALM_CONDITIONS, cycleOffset: cycleSecondAt(date) }).light;
+  assert.equal(lightAt(at(9)), 'day');
+  assert.equal(lightAt(at(14, 30)), 'day');
+  assert.equal(lightAt(at(18)), 'sunset');
+  assert.equal(lightAt(at(21)), 'night');
+  assert.equal(lightAt(at(0)), 'night');
+  assert.equal(lightAt(at(3)), 'night');
+  assert.equal(lightAt(at(6)), 'dawn');
+  assert.equal(cycleSecondAt(at(7)), 0);
+  assert.ok(environment(0, { ...CALM_CONDITIONS, cycleOffset: cycleSecondAt(at(23)) }).night > 0.9);
+
+  let previous = -1;
+  for (let minute = 7 * 60; minute < 7 * 60 + 24 * 60; minute += 10) {
+    const second = cycleSecondAt(at(Math.floor(minute / 60) % 24, minute % 60));
+    assert.ok(second >= previous && second < 180, `cycle second ${second} at minute ${minute}`);
+    previous = second;
+  }
+});
+
+test('the light keeps cycling from the local starting point during the run', () => {
+  const conditions: Conditions = { ...CALM_CONDITIONS, cycleOffset: cycleSecondAt(at(21)) };
+  assert.equal(environment(0, conditions).light, 'night');
+  const lights = new Set(Array.from({ length: 180 }, (_, t) => environment(t, conditions).light));
+  assert.equal(lights.size, 4);
+});
+
+test('each run rolls its own weather, and any of it can be rain or fog from the start', () => {
+  const plans = Array.from({ length: 40 }, () => rollWeather(Math.random).join());
+  assert.ok(new Set(plans).size > 30, 'plans vary between runs');
+
+  const counts = { clear: 0, rain: 0, fog: 0 };
+  let state = 7;
+  const seeded = () => ((state = (Math.imul(state, 1664525) + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < 200; i++) for (const weather of rollWeather(seeded)) counts[weather]++;
+  const total = counts.clear + counts.rain + counts.fog;
+  assert.ok(Math.abs(counts.clear / total - 0.5) < 0.05, `clear share ${counts.clear / total}`);
+  assert.ok(counts.rain / total > 0.2 && counts.fog / total > 0.2);
+
+  assert.equal(environment(0, { cycleOffset: 0, weather: ['rain'] }).rain, 1);
+  assert.equal(environment(0, { cycleOffset: 0, weather: ['fog', 'clear'] }).fog, 1);
+  assert.equal(environment(0, CALM_CONDITIONS).rain + environment(500, CALM_CONDITIONS).fog, 0);
+});
+
+test('a race rolls conditions from its clock and keeps the weather the menu was showing', () => {
+  const race = new Race(undefined, Math.random, () => at(21));
+  assert.equal(race.environment.light, 'night');
+  const preview = race.conditions.weather;
+  race.start();
+  assert.equal(race.conditions.weather, preview);
+  assert.equal(race.environment.light, 'night');
+  race.finish('fuel');
+  race.start();
+  assert.notEqual(race.conditions.weather, preview, 'a restart after a run rolls new weather');
+  assert.deepEqual(rollConditions(at(7), () => 0), { cycleOffset: 0, weather: Array(12).fill('clear') });
 });
 
 test('the endless road varies by seed and distance with smooth bounded bends and straights', () => {

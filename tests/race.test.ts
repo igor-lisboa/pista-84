@@ -254,8 +254,7 @@ test('rain reduces motorcycle steering grip', () => {
   const dry = quietRace(car('moto'));
   const wet = quietRace(car('moto'));
   dry.speed = wet.speed = 100;
-  dry.time = 10;
-  wet.time = 50;
+  wet.conditions = { cycleOffset: 0, weather: ['rain'] };
   dry.update(0.05, { steer: 1 });
   wet.update(0.05, { steer: 1 });
   assert.ok(wet.x < dry.x);

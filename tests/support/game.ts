@@ -1,4 +1,4 @@
-import { CARS, Race, type CarSpec, type DriveInput, type FuelEntity, type Random, type TrafficEntity } from '../../src/game/index.ts';
+import { CALM_CONDITIONS, CARS, Race, type CarSpec, type DriveInput, type FuelEntity, type Random, type TrafficEntity } from '../../src/game/index.ts';
 
 export const car = (id: string): CarSpec => {
   const found = CARS.find((candidate) => candidate.id === id);
@@ -24,6 +24,7 @@ export function step(race: Race, seconds: number, input: DriveInput = {}): void 
 export function quietRace(spec: CarSpec = CARS[0]!, random?: Random): Race {
   const race = new Race(spec, random);
   race.start();
+  race.conditions = CALM_CONDITIONS; // daylight and dry: physics checks must not depend on the sky
   race.entities = [];
   race.trafficTimer = 1e9;
   race.fuelTimer = 1e9;

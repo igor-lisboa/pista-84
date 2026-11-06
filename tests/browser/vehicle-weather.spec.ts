@@ -41,6 +41,7 @@ test('fog also veils the distant city above the road horizon', async ({ page }) 
       const canvas = document.createElement('canvas');
       const race = new Race(undefined, () => 0.25);
       race.start();
+      race.conditions = { cycleOffset: 0, weather: ['clear', 'clear', 'clear', 'fog'] };
       race.time = time;
       const renderer = new Renderer(canvas);
       renderer.draw(race, time);
