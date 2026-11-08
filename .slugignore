@@ -1,0 +1,17 @@
+.env
+.env.*
+.git
+.github
+.agents
+.claude
+.codex
+.vercel
+.sites
+android
+ios
+tests
+test-results
+playwright-report
+docs
+specs
+*.tar.gz

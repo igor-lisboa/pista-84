@@ -1,0 +1,15 @@
+{
+  "name": "PISTA 84",
+  "description": "Offline-first arcade racer with MongoDB saves and Redis-backed phone controllers.",
+  "stack": "heroku-24",
+  "buildpacks": [{"url": "heroku/nodejs"}],
+  "formation": {"web": {"quantity": 1, "size": "eco"}},
+  "env": {
+    "NODE_ENV": {"value": "production"},
+    "MONGODB_URI": {"description": "MongoDB connection URI. Kept server-side.", "required": true},
+    "MONGODB_DATABASE": {"value": "pista84"},
+    "REDIS_URL": {"description": "Redis TCP/TLS URL with Pub/Sub and EVAL permissions.", "required": true},
+    "SITE_URL": {"description": "Public HTTPS origin for canonical URLs; set before building.", "required": false},
+    "PISTA84_COINS": {"description": "Leave empty to preserve players' saved balances.", "required": false}
+  }
+}
