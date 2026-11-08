@@ -71,6 +71,10 @@ export class AccountDialog {
         username.value = known.username;
         username.readOnly = true;
       } else byId('accountSwitch').onclick = () => this.render(null, !signup);
+      byId<HTMLInputElement>('accountUsername').oninput = event => {
+        (event.target as HTMLInputElement).removeAttribute('aria-invalid');
+        byId('accountStatus').textContent = '';
+      };
       byId('accountForm').onsubmit = event => {
         event.preventDefault();
         const username = byId<HTMLInputElement>('accountUsername').value;
@@ -123,6 +127,13 @@ export class AccountDialog {
         this.busy = true;
       }
       byId('accountStatus').textContent = t(error instanceof AccountError ? errors[error.code] ?? 'auth.unavailable' : 'auth.unavailable');
+      if (error instanceof AccountError && error.code === 'taken') {
+        const username = byId<HTMLInputElement>('accountUsername');
+        username.setAttribute('aria-invalid', 'true');
+        username.setAttribute('aria-describedby', 'accountStatus');
+        username.focus();
+        username.select();
+      }
     } finally {
       this.deps.finished();
       this.busy = false;

@@ -37,7 +37,7 @@ The result displays the failure reason, score in points, distance, run coins and
 
 ## Garage
 
-Eighteen cards show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. All cars show their coin price, with purchase buttons disabled until the wallet can afford them. Paints have their own section. File import/export and hosted account-backup controls are available here. Changing vehicle returns to the initial menu; changing paint affects appearance only.
+Eighteen cards show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. All cars show their coin price, with purchase buttons disabled until the wallet can afford them. Paints have their own section. File import/export and hosted account-backup controls are available here when `PISTA84_PROGRESS_TOOLS=true` (the default). Setting it to `false` hides all four controls and their backup notes; automatic local saving and progress sync continue. Changing vehicle returns to the initial menu; changing paint affects appearance only.
 
 ## Settings (Options)
 
@@ -48,7 +48,7 @@ login/signup so returning users do not need to choose a guest name first. Closin
 the account form returns unnamed guests to the name screen. Forms use
 password-manager autocomplete; all account text is
 localized. Login merges local and cloud progress before adopting the account
-identity. Failures keep local progress and allow retry. Expired sessions allow
+identity. The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
 reauthentication to the same account. Signed-in name/new-player actions open the
 account screen, preventing accidental account renaming or identity replacement.
 Logout explains that local records and unsynced data are cleared while the cloud

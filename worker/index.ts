@@ -4,7 +4,7 @@ import {proxyApi} from '../src/server/proxy.ts';
 import {assets} from './generated-assets.ts';
 
 declare const __PISTA_CONFIG__: RuntimeConfig | undefined;
-type Env = Record<string, string | undefined> & { API_ORIGIN?: string; PISTA84_COINS?: string };
+type Env = Record<string, string | undefined> & { API_ORIGIN?: string; PISTA84_COINS?: string; PISTA84_PROGRESS_TOOLS?: string };
 
 /** Edge hosting serves assets and proxies APIs to the Node MongoDB/Redis backend. */
 export default {

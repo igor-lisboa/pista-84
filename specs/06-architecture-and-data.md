@@ -65,7 +65,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/net/remote.ts` | Pairing and controller commands; `room-api.ts` and `room-socket.ts` own HTTP and socket lifecycles |
 | `src/server/signaling.ts` | Shared room protocol; Redis in production, memory only for isolated tests/local fallback |
 | `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
-| `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`) |
+| `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`, `PISTA84_PROGRESS_TOOLS`) |
 | `src/client.ts` | Entry point: fetch `/runtime-config.json`, then mount the game or the controller page |
 | `scripts/node-server.ts` | Shared Node static server, MongoDB/Redis APIs, public config, local network/QR, health and socket relay |
 | `dev-server.ts`, `production-server.ts` | Local and production launchers; production requires MongoDB/Redis and ignores local env files |
@@ -99,9 +99,9 @@ No active entities, room tokens, running-state snapshot or paid entitlement belo
 
 ## Environment balance override and runtime config
 
-The local server and build load `.env` through Node's `loadEnvFile` (`scripts/env.ts`). `PISTA84_COINS` accepts a nonnegative safe integer; empty disables the override; an invalid value throws. The only value exposed to the browser is the allowlisted object `{ "coins": number | null }`, served as JSON by **`GET /runtime-config.json`** (`Cache-Control: no-store`) from the Node server and from the Worker, and written to `www/runtime-config.json` at build time for static and native packaging. `src/client.ts` fetches it at startup and falls back to `{ coins: null }` if it is unavailable. Other environment values are never exposed. The Worker embeds the build-time config through an esbuild `define` and lets a Worker runtime `PISTA84_COINS` take precedence.
+The local server and build load `.env` through Node's `loadEnvFile` (`scripts/env.ts`). `PISTA84_COINS` accepts a nonnegative safe integer; empty disables the override; an invalid value throws. `PISTA84_PROGRESS_TOOLS` accepts `true` or `false` (case insensitive); unset/empty keeps the fallback, which defaults to true. It controls garage export/import and manual cloud save/restore visibility, without disabling automatic saving or sync. The only values exposed to the browser are the allowlisted object `{ "coins": number | null, "progressTools": boolean }`, served as JSON by **`GET /runtime-config.json`** (`Cache-Control: no-store`) from the Node server and from the Worker, and written to `www/runtime-config.json` at build time for static and native packaging. `src/client.ts` fetches it at startup and falls back to `{ coins: null, progressTools: true }` if it is unavailable. Other environment values are never exposed. The Worker embeds the build-time config through an esbuild `define` and lets a Worker runtime `PISTA84_COINS` and `PISTA84_PROGRESS_TOOLS` take precedence.
 
-The override is applied when loading local, imported or restored progress, and when reading a cloud backup. Reads do not change database rows or revisions. Purchases and rewards still change the session balance; reloading reapplies the configured value. This setting applies to all players of the configured environment. Clearing it restores normal saved-balance behavior. `.env` is ignored by Git; `.env.example` documents the options (`PISTA84_COINS`, `PORT`, optional `PUBLIC_ORIGIN`).
+The override is applied when loading local, imported or restored progress, and when reading a cloud backup. Reads do not change database rows or revisions. Purchases and rewards still change the session balance; reloading reapplies the configured value. This setting applies to all players of the configured environment. Clearing it restores normal saved-balance behavior. `.env` is ignored by Git; `.env.example` documents the options (`PISTA84_COINS`, `PISTA84_PROGRESS_TOOLS`, `PORT`, optional `PUBLIC_ORIGIN`).
 
 ## Online data and cloud backup
 

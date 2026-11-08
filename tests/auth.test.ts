@@ -39,7 +39,18 @@ test('signup atomically reserves normalized usernames and never returns a passwo
   for (const flag of ['__Host-pista84-session=', 'HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/']) assert.ok(cookie.includes(flag));
   const duplicate = await authApi(request('/api/auth', {action: 'signup', username: 'ＤＲＩＶＥＲ', password}), accounts);
   assert.equal(duplicate.status, 409);
+  assert.equal((await duplicate.json()).code, 'taken');
   assert.equal(usernameKey('  ＤＲＩＶＥＲ '), 'driver');
+});
+
+test('simultaneous signups with the same normalized username create only one account', async () => {
+  const accounts = memoryAccountStore();
+  const responses = await Promise.all(['Driver', 'driver'].map(username =>
+    authApi(request('/api/auth', {action: 'signup', username, password}), accounts)));
+  assert.deepEqual(responses.map(response => response.status).sort(), [200, 409]);
+  const duplicate = responses.find(response => response.status === 409)!;
+  assert.equal((await duplicate.json()).code, 'taken');
+  assert.equal(duplicate.headers.has('set-cookie'), false);
 });
 
 test('login rotates the session and logout revokes the server record', async () => {

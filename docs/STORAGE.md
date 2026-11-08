@@ -82,6 +82,7 @@ Set these in **Settings > Config Vars**:
 | `MONGODB_URI` | Your provider's MongoDB connection URI, including credentials |
 | `MONGODB_DATABASE` | `pista84`, or the database your account can access |
 | `REDIS_URL` | Your provider's Redis connection URI; use `rediss://` for TLS |
+| `PISTA84_PROGRESS_TOOLS` | Boolean `true` (default) or `false`; false hides garage export/import and manual cloud save/restore. Automatic saves/sync remain enabled. |
 | `PISTA84_COINS` | Omit for normal saved balances; setting it overrides every player's balance |
 
 Do not set `PORT`: Heroku assigns it. Leave `API_ORIGIN` unset on this dyno;
@@ -137,7 +138,10 @@ compatible; they do not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.
 There is no automatic account claim based on a leaderboard name. Existing guest
 display names are not reserved account names; new guest submissions cannot use a
-registered username. Historical leaderboard rows are retained.
+registered username. A signed-in pilot always uses the account username, including
+on launch and after import/restore. Signup rejects an existing normalized username
+with HTTP 409 (`taken`); the form explains that the pilot name/username is in use
+and focuses the name field to choose another. Historical leaderboard rows are retained.
 
 `POST /api/auth` accepts JSON `{action: "signup" | "login", username, password}`
 or `{action: "logout"}`. `GET /api/auth` returns only `{user: {id, username} | null}`.

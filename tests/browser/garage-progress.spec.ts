@@ -1,0 +1,25 @@
+import {test, expect} from '@playwright/test';
+
+test.use({serviceWorkers: 'block'});
+
+for (const viewport of [{width: 1280, height: 720}, {width: 390, height: 844}, {width: 844, height: 390}]) {
+  for (const progressTools of [true, false]) {
+    test(`garage progress tools ${progressTools ? 'shown' : 'hidden'} at ${viewport.width}x${viewport.height}`, async ({page}) => {
+      await page.setViewportSize(viewport);
+      await page.route('**/runtime-config.json', route => route.fulfill({json: {coins: 1000, progressTools}}));
+      await page.route('**/health', route => route.fulfill({json: {ok: true, cloudBackup: true}}));
+      await page.goto('/');
+      await page.locator('#garageNav').click();
+      await expect(page.locator('#garageGrid .car-card')).toHaveCount(18);
+      await expect.poll(() => page.locator('#cloudUpload').isVisible()).toBe(progressTools);
+      for (const id of ['cloudUpload', 'cloudRestore', 'exportSave', 'importSave']) {
+        await expect(page.locator(`#${id}`)).toHaveCount(progressTools ? 1 : 0);
+      }
+      expect(await page.locator('#modal').evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      // Buying still works when progress tools are hidden, including after garage rerender.
+      await page.locator('.car-card').filter({has: page.getByRole('heading', {name: 'Uno com Escada'})}).getByRole('button').click();
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(880);
+      await expect(page.locator('#exportSave')).toHaveCount(progressTools ? 1 : 0);
+    });
+  }
+}

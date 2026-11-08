@@ -1,5 +1,6 @@
 import { AudioEngine } from '../audio/audio.ts';
 import {ProgressSync} from '../net/progress-sync.ts';
+import type {RuntimeConfig} from '../shared/config.ts';
 import {ACCOUNT_KEY, clearAccountDevice, localAccount} from '../net/account.ts';
 import {AccountDialog} from './account.ts';
 import {
@@ -107,9 +108,10 @@ export class GameApp implements RemoteHost {
   private syncing = false;
   private installPrompt: (InstallPrompt & Event) | null = null;
 
-  constructor(config: BalanceConfig) {
+  constructor(config: RuntimeConfig) {
     this.config = config;
     const localSave = loadSave(this.storage);
+    this.applyAccountIdentity(localSave);
     // Persist generated IDs for legacy saves before queueing their first durable copy.
     try { this.storage.setItem(SAVE_KEY, JSON.stringify(localSave)); } catch { /* Offline play still works. */ }
     this.progressSync.queue(localSave);
@@ -127,6 +129,7 @@ export class GameApp implements RemoteHost {
         this.accountOwner = user;
         this.race.reset();
         Object.assign(this.save, save);
+        this.applyAccountIdentity(this.save);
         setUnits(this.save.units);
         setLang(isLang(this.save.lang) ? this.save.lang : detectLang(navigator.languages));
         applyStatic();
@@ -152,6 +155,7 @@ export class GameApp implements RemoteHost {
       refreshFeatured: () => this.paintFeaturedCar(),
       toast: (message) => this.notifications.toast(message),
       cloudEnabled: () => this.cloudBackup,
+      progressToolsEnabled: config.progressTools ?? true,
       imported: () => {
         setUnits(this.save.units);
         this.hud.invalidate();
@@ -495,11 +499,7 @@ export class GameApp implements RemoteHost {
 
   private persist(): void {
     if (this.accountTransition || !this.sameAccount()) return;
-    if (this.accountOwner) {
-      this.save.playerId = this.accountOwner.id;
-      this.save.username = this.accountOwner.username;
-      this.save.history = [];
-    }
+    this.applyAccountIdentity(this.save);
     this.save.updatedAt = Date.now();
     try {
       this.storage.setItem(SAVE_KEY, JSON.stringify(this.save));
@@ -508,6 +508,14 @@ export class GameApp implements RemoteHost {
     }
     this.progressSync.queue(this.save);
     this.refresh();
+  }
+
+  private applyAccountIdentity(save: SaveData): void {
+    if (this.accountOwner) {
+      save.playerId = this.accountOwner.id;
+      save.username = this.accountOwner.username;
+      save.history = [];
+    }
   }
 
   /** The selected car with the chosen paint applied. */

@@ -29,6 +29,7 @@ export interface GarageDeps {
   refreshFeatured(): void;
   toast(message: string): void;
   cloudEnabled(): boolean;
+  readonly progressToolsEnabled: boolean;
   /** Called after a save was imported or restored, so the new identity and scores can be shared online. */
   imported(): void;
 }
@@ -75,7 +76,7 @@ export class Garage {
         <p>${t('garage.paintNote')}</p>
         <div id="paints"></div>
       </section>
-      <div id="cloudTools" class="backup-tools" ${cloud ? '' : 'hidden'}>
+      ${this.deps.progressToolsEnabled ? `<div id="cloudTools" class="backup-tools" ${cloud ? '' : 'hidden'}>
         <button id="cloudUpload">${t('garage.cloudUp')}</button>
         <button id="cloudRestore">${t('garage.cloudDown')}</button>
       </div>
@@ -84,7 +85,7 @@ export class Garage {
         <button id="exportSave">${t('garage.export')}</button>
         <label>${t('garage.import')}<input type="file" id="importSave" accept="application/json"></label>
       </div>
-      <p>${t('garage.disclaimer')}</p>`;
+      <p>${t('garage.disclaimer')}</p>` : ''}`;
 
     const grid = byId('garageGrid');
     const carsByPrice = [...CARS].sort((a, b) => coinPrice(a) - coinPrice(b));
@@ -92,10 +93,12 @@ export class Garage {
     const paints = byId('paints');
     for (const paint of PAINTS) paints.append(this.paintButton(paint));
 
-    byId('cloudUpload').onclick = () => void this.syncCloud(false);
-    byId('cloudRestore').onclick = () => void this.syncCloud(true);
-    byId('exportSave').onclick = () => this.exportSave();
-    byId<HTMLInputElement>('importSave').onchange = (event) => void this.importSave(event);
+    if (this.deps.progressToolsEnabled) {
+      byId('cloudUpload').onclick = () => void this.syncCloud(false);
+      byId('cloudRestore').onclick = () => void this.syncCloud(true);
+      byId('exportSave').onclick = () => this.exportSave();
+      byId<HTMLInputElement>('importSave').onchange = (event) => void this.importSave(event);
+    }
   }
 
   private carCard(car: CarSpec): HTMLElement {

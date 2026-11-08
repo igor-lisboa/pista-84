@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 
 test.use({serviceWorkers: 'block'});
 
-test('a returning offline player queues the existing garage until pausing after reconnecting', async ({page}) => {
+test('hidden garage tools preserve offline progress and sync on pause after reconnecting', async ({page}) => {
   let online = false;
   const uploads: {save: {coins: number; owned: string[]; playerId: string}; revision: number}[] = [];
   await page.addInitScript(() => {
@@ -13,7 +13,7 @@ test('a returning offline player queues the existing garage until pausing after 
       localStorage.setItem('migration-test', 'yes');
     }
   });
-  await page.route('**/runtime-config.json', route => route.fulfill({json: {coins: null}}));
+  await page.route('**/runtime-config.json', route => route.fulfill({json: {coins: null, progressTools: false}}));
   await page.route('**/api/progress?device=*', async route => {
     if (!online) return route.abort();
     if (route.request().method() === 'GET') return route.fulfill({json: {save: null, revision: 0}});
@@ -22,6 +22,9 @@ test('a returning offline player queues the existing garage until pausing after 
   });
   await page.goto('/');
   await expect(page.locator('#start')).toBeEnabled();
+  await page.locator('#garageNav').click();
+  await expect(page.locator('#exportSave, #importSave, #cloudUpload, #cloudRestore')).toHaveCount(0);
+  await page.locator('#closeModal').click();
   expect(uploads).toHaveLength(0);
   const id = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).playerId);
   await page.locator('#start').click();

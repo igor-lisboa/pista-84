@@ -29,6 +29,7 @@ export default defineConfig({
       DYNO: '',
       PUBLIC_ORIGIN: '',
       PORT: '4173',
+      PISTA84_PROGRESS_TOOLS: 'true',
     },
     url: `${BASE_URL}/health`,
     reuseExistingServer: false,

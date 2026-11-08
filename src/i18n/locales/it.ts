@@ -12,7 +12,7 @@ export const it: Messages = {
   'auth.help': "Gioca come ospite o accedi per unire i progressi tra dispositivi.",
   'auth.logoutHelp': "Uscendo, tutti i dati del giocatore su questo dispositivo vengono cancellati. Il tuo account resta salvato online. I progressi non sincronizzati potrebbero andare persi.",
   'auth.rules': "Nome: 3–16 lettere, numeri, _, . o -. Password: 15–128 caratteri.",
-  'auth.taken': "Questo nome utente è già in uso.",
+  'auth.taken': "Questo nome pilota/utente è già in uso. Scegli un altro nome utente.",
   'auth.credentials': "Nome utente o password errati.",
   'auth.invalid': "Controlla i requisiti del nome e della password.",
   'auth.limited': "Troppi tentativi. Riprova tra 15 minuti.",

@@ -80,6 +80,56 @@ async function logIn(page: Page, signup = false) {
   await expect(page.locator('#modal')).toBeHidden();
 }
 
+test('signup asks for another pilot username when a normalized name is already registered', async ({page, context}) => {
+  const store = await backend(context);
+  await store.accounts.create({id: crypto.randomUUID(), username: 'Driver', usernameKey: 'driver', passwordHash: 'unused', createdAt: Date.now()});
+  await page.goto('/');
+  await openAccount(page);
+  await page.locator('#accountSwitch').click();
+  await page.locator('#accountUsername').fill('DRIVER');
+  await page.locator('#accountPassword').fill(password);
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#accountStatus')).toContainText('Escolha outro nome');
+  await expect(page.locator('#accountUsername')).toBeFocused();
+  await expect(page.locator('#accountUsername')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#accountPassword')).toHaveValue('');
+  expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
+  await page.locator('#accountUsername').fill('NewDriver');
+  await expect(page.locator('#accountStatus')).toBeEmpty();
+  await expect(page.locator('#accountUsername')).not.toHaveAttribute('aria-invalid');
+  await page.locator('#accountPassword').fill(password);
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#modal')).toBeHidden();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).username)).toBe('NewDriver');
+});
+
+test('signed-in pilot names match the account on launch and after importing progress', async ({page, context}) => {
+  await backend(context);
+  await page.goto('/');
+  await openAccount(page);
+  await logIn(page, true);
+  const identity = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84.account')!));
+  await page.evaluate(() => {
+    const save = JSON.parse(localStorage.getItem('pista84')!);
+    save.username = 'OldPilot';
+    localStorage.setItem('pista84', JSON.stringify(save));
+  });
+  await page.reload();
+  await page.locator('#settingsNav').click();
+  await expect(page.locator('#username')).toContainText('Driver');
+  await page.locator('#username').click();
+  await expect(page.locator('#accountName')).toHaveText('Driver');
+  await expect(page.locator('#usernameInput')).toHaveCount(0);
+  await page.locator('#closeModal').click();
+  await page.locator('#garageNav').click();
+  await page.locator('#importSave').setInputFiles({
+    name: 'progress.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({...defaultSave(), username: 'AnotherPilot', coins: 42})),
+  });
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!)))
+    .toMatchObject({playerId: identity.id, username: 'Driver', coins: 42});
+});
+
 test('signup merges guest progress, persists a session and logout clears this device and another open tab', async ({page, context}) => {
   await backend(context);
   await page.addInitScript(() => {
