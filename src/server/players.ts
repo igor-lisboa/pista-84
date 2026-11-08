@@ -13,7 +13,7 @@ import {compareScores, pagination, leaderboardEntry} from './leaderboard.ts';
  *
  * Rows hang off the permanent GUID, so renaming never loses a score.
  */
-export type StoreKey = 'scores' | 'backups';
+export type StoreKey = 'scores' | 'backups' | 'device-backups';
 
 /**
  * `playerId` scopes a read/update to one player. Score callbacks receive a
@@ -142,8 +142,11 @@ export async function leaderboardPage(
 export async function readBackup(
   store: PlayerStore,
   playerId: string,
+  deviceId?: string,
 ): Promise<{save: SaveData | null; revision: number}> {
-  const backup = (await store.read<BackupsDoc>('backups', {}, playerId))[playerId];
+  const id = deviceId ? `${playerId}:${deviceId}` : playerId;
+  const key = deviceId ? 'device-backups' : 'backups';
+  const backup = (await store.read<BackupsDoc>(key, {}, id))[id];
   return {save: backup?.save ?? null, revision: backup?.revision ?? 0};
 }
 
@@ -157,6 +160,7 @@ export async function writeBackup(
   playerId: string,
   save: unknown,
   revision: number,
+  deviceId?: string,
 ): Promise<{revision: number; updated: number} | null> {
   const clean = loadSave({getItem: () => JSON.stringify(save)});
   // The key is the identity: a backup can never claim another player's GUID.
@@ -167,13 +171,18 @@ export async function writeBackup(
     clean.best = Math.max(clean.best, ranked[3]);
   }
 
-  const result = await store.update<BackupsDoc, {revision: number; updated: number} | null>('backups', {}, (doc) => {
-    const current = doc[playerId]?.revision ?? 0;
+  const id = deviceId ? `${playerId}:${deviceId}` : playerId;
+  const key = deviceId ? 'device-backups' : 'backups';
+  const result = await store.update<BackupsDoc, {revision: number; updated: number} | null>(key, {}, (doc) => {
+    const previous = doc[id];
+    const current = previous?.revision ?? 0;
     if (current !== revision) return null;
+    // A stale tab on this device must not replace newer offline progress.
+    if (deviceId && previous && clean.updatedAt < previous.save.updatedAt) return null;
     const updated = Date.now();
-    doc[playerId] = {revision: current + 1, created: doc[playerId]?.created ?? doc[playerId]?.updated ?? updated, updated, save: clean};
+    doc[id] = {revision: current + 1, created: previous?.created ?? previous?.updated ?? updated, updated, save: clean};
     return {revision: current + 1, updated};
-  }, playerId);
+  }, id);
   if (result && clean.username && clean.bestScore > 0) {
     await submitScore(store, {playerId, username: clean.username, score: clean.bestScore, distance: clean.best});
   }

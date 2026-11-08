@@ -39,6 +39,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; te
 | Vehicles and audio | 18 distinct cars, all purchased with coins, one engine voice per car, motorcycle rain grip, menu and race music tracks (`world.test.ts`, `race.test.ts`) |
 | Environment | Road bounds/direction changes by seed; continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, per-user backup and revision conflict (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
+| Automatic backups | Legacy local saves upload after reconnect; outbox survives reload/failure; changes during upload and retired players remain queued; device/manual isolation and stale writes (`progress-sync.test.ts`, `progress-sync.spec.ts`) |
 | Languages | Fifteen languages offered; full locales cover every key with the same placeholders; no unknown keys; browser language mapping (`i18n.test.ts`) |
 | Room services | Memory room protocol and live Redis diagnostics, token/role checks, atomic answer, expiration/deletion, compatibility input, cross-origin/oversized/invalid JSON rejection (`signaling.test.ts`) |
 | Browser flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; fuel exhaustion gives one continuation (`game.spec.ts`) |
@@ -50,6 +51,24 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; te
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Hosted verification
+
+### Automatic local-save synchronization (2026-11-08)
+
+- Production build, TypeScript checking and all 111 Node tests passed on Node 24.
+- The 36 affected Chromium/WebKit cases in `game.spec.ts`, `new-player.spec.ts`
+  and `progress-sync.spec.ts` were exercised. A WebKit offline failure was fixed
+  by retaining the outbox without fetching when the browser reports offline;
+  all four offline-cache/migration cases passed in the final targeted rerun.
+- Legacy saves without GUIDs preserved their garage, coins and stable generated
+  identity through reconnect/reload, including the fallback UUID generator.
+- Real `.env` MongoDB/Redis diagnostics passed: manual/device snapshot round trips
+  and isolation, revision conflicts, controller claims, expiry and deletion.
+  Unique probe records were cleaned up.
+
+Existing players migrate when their browser visits the updated game with
+connectivity. Automatic snapshots do not replace manual backups or restore over
+local progress. This validation does not cover a deployed release, the full
+Playwright suite or physical devices. No commit or deployment was made.
 
 ### MongoDB/Redis migration review (2026-11-07)
 

@@ -60,7 +60,7 @@ class Records {
 const ALICE = '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b';
 const BOB = '7a2d3b4f-8c5e-4f60-9b8c-1d2e3f4a5b6c';
 function setup() {
-  const records = {scores: new Records(), backups: new Records()};
+  const records = {scores: new Records(), backups: new Records(), 'device-backups': new Records()};
   const adapter = () => mongoPlayerStore(async (key) => records[key] as unknown as Collection<Doc>);
   return {records, first: adapter(), second: adapter()};
 }

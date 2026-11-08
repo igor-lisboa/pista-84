@@ -6,9 +6,10 @@
 | --- | --- | --- |
 | Scores, display names, best distance and timestamps | MongoDB `scores`, `_id` = player GUID | Durable, no TTL |
 | Manual progress backups and revisions | MongoDB `backups`, `_id` = player GUID | Durable, no TTL |
+| Automatic offline progress snapshots | MongoDB `device-backups`, `_id` = player GUID + device GUID | Durable, no TTL |
 | Pairing offer, host/join tokens and claimed answer | Redis `pista84:room:{id}` hash | 10 minutes from creation |
 | Latest controller input and timestamp | Redis `pista84:room:{id}:input` | 2 seconds, capped by remaining room TTL |
-| Offline save, preferences, pending score synchronization | Browser localStorage / exported save | Device-owned, works without network |
+| Offline save, preferences, pending score and progress synchronization | Browser localStorage / exported save | Device-owned, works without network |
 | Local WebSocket handles | Node process memory | Disconnect or 1 hour; swept every minute |
 
 MongoDB is the durable online source. Redis never stores backups or authoritative
@@ -24,12 +25,13 @@ Local scripts load `.env.local`, then `.env`; existing process values take prece
 used). Use `rediss://` when your Redis provider requires TLS. Keep credentials out
 of browser config, Git, logs and screenshots.
 
-`npm run online:check` exercises scores, backup revision conflicts, exclusive room
+`npm run online:check` exercises scores, manual/device backup isolation and revision conflicts, exclusive room
 claims, controller input and Redis TTLs. It uses random probe IDs and removes its
 records in `finally`; MongoDB and Redis cleanup are attempted independently. This
 is an explicit live-service check; normal Node/browser tests do not load `.env` or
 write to live services. If a process is forcibly terminated, remove only the known
-probe GUID from `scores`/`backups`; Redis probes expire on their own.
+probe GUID from `scores`/`backups` and its player/device key from `device-backups`;
+Redis probes expire on their own.
 
 The MongoDB account needs read/write and index creation permission on the selected
 database. The driver reuses a pool of up to five connections per instance and creates
@@ -54,6 +56,31 @@ configuration; it is not embedded from `.env`. Missing backend configuration ret
 The historical D1 schema/migrations are retained for reference, not used by the runtime.
 
 ## Consistency
+
+### Automatic local-save migration and synchronization
+
+On launch, the game normalizes the existing `pista84` local save and persists any
+new identity assigned to a legacy save. It queues that snapshot before applying
+the environment balance override. No score or username is required to migrate.
+Every subsequent local persist also updates a durable local outbox. Upload runs
+on launch, every 30 seconds, on reconnect and best-effort on page exit. Offline
+failures leave the outbox for the next attempt or browser launch. Saves for a
+retired player remain queued when a new player starts.
+
+`src/net/progress-sync.ts` serializes uploads through
+`GET/PUT /api/progress?device=<device-guid>`. Acknowledged snapshots are remembered
+locally so unchanged saves are not repeatedly uploaded. Changes made during an
+upload remain queued. Each device has its own latest durable snapshot, isolated
+from other devices and from manual backups. Revisions reject racing writes;
+older save timestamps cannot replace newer snapshots on the same device.
+
+Automatic uploads never restore or merge server data into active local play.
+The existing garage buttons continue to manage the explicit manual backup in
+`backups`. Automatic snapshots are readable through the device-scoped progress
+API for recovery; a cross-device snapshot picker is not implemented. Storage
+failure prevents persistence of the outbox but still permits in-session upload.
+Players must revisit the updated game while connected for existing local data
+to reach MongoDB; a closed/offline browser cannot be uploaded remotely.
 
 Backend responsibilities are separated for maintenance:
 

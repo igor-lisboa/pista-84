@@ -1,4 +1,5 @@
 import { AudioEngine } from '../audio/audio.ts';
+import {ProgressSync} from '../net/progress-sync.ts';
 import {
   CARS,
   CHECKPOINT,
@@ -69,6 +70,7 @@ export class GameApp implements RemoteHost {
 
   private readonly config: BalanceConfig;
   private readonly storage = createStorage();
+  private readonly progressSync = new ProgressSync(this.storage);
   private readonly save: SaveData;
   private readonly race: Race;
   private readonly audio = new AudioEngine();
@@ -101,7 +103,11 @@ export class GameApp implements RemoteHost {
 
   constructor(config: BalanceConfig) {
     this.config = config;
-    this.save = loadSave(this.storage, config);
+    const localSave = loadSave(this.storage);
+    // Persist generated IDs for legacy saves before queueing their first durable copy.
+    try { this.storage.setItem(SAVE_KEY, JSON.stringify(localSave)); } catch { /* Offline play still works. */ }
+    this.progressSync.queue(localSave);
+    this.save = loadSave({getItem: () => JSON.stringify(localSave)}, config);
     setLang(isLang(this.save.lang) ? this.save.lang : detectLang(navigator.languages));
     setUnits(this.save.units);
     this.race = new Race(this.selectedCar());
@@ -192,7 +198,12 @@ export class GameApp implements RemoteHost {
     });
 
     this.checkOnline();
-    window.addEventListener('online', () => this.checkOnline());
+    void this.progressSync.flush();
+    setInterval(() => void this.progressSync.flush(), 30_000);
+    window.addEventListener('online', () => {
+      this.checkOnline();
+      void this.progressSync.flush();
+    });
 
     this.bindWindowEvents();
     window.addEventListener('resize', () => this.resize());
@@ -447,6 +458,7 @@ export class GameApp implements RemoteHost {
     } catch {
       this.notifications.toast(t('toast.storage'));
     }
+    this.progressSync.queue(this.save);
     this.refresh();
   }
 
@@ -637,6 +649,7 @@ export class GameApp implements RemoteHost {
     window.addEventListener('pagehide', () => {
       if (this.race.distance > 0) this.settle();
       this.input.clear();
+      void this.progressSync.flush();
     });
     // Safari may fire blur when its browser chrome changes focus; on touch devices
     // visibility is the pause authority instead.

@@ -17,6 +17,7 @@ async function check(): Promise<void> {
   const cleanup = new MongoClient(process.env.MONGODB_URI!, {serverSelectionTimeoutMS: 5000});
   const rooms = redisRoomStore({}, redis)!;
   const playerId = randomUUID();
+  const deviceId = randomUUID();
   const id = randomBytes(24).toString('hex');
   try {
     stage = 'MongoDB writes';
@@ -26,7 +27,10 @@ async function check(): Promise<void> {
     assert.ok(await writeBackup(store, playerId, save, 0));
     assert.equal(await writeBackup(store, playerId, save, 0), null);
     assert.equal((await readBackup(store, playerId)).save?.coins, 1);
-    console.log('OK    MongoDB: score, backup round-trip and revision conflict.');
+    assert.ok(await writeBackup(store, playerId, {...save, coins: 42}, 0, deviceId));
+    assert.equal((await readBackup(store, playerId, deviceId)).save?.coins, 42);
+    assert.equal((await readBackup(store, playerId)).save?.coins, 1);
+    console.log('OK    MongoDB: score, manual/device backup round-trips, isolation and revision conflict.');
 
     stage = 'Redis connection';
     assert.equal(await redis.sendCommand(['PING']), 'PONG');
@@ -60,6 +64,7 @@ async function check(): Promise<void> {
     const results = await Promise.allSettled([
       db.collection<{_id: string}>('scores').deleteOne({_id: playerId}),
       db.collection<{_id: string}>('backups').deleteOne({_id: playerId}),
+      db.collection<{_id: string}>('device-backups').deleteOne({_id: `${playerId}:${deviceId}`}),
       rooms.remove(id),
     ]);
     await Promise.allSettled([cleanup.close(), store.close(), redis.close()]);

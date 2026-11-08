@@ -73,10 +73,12 @@ export async function cloudProgress(
   const playerId = request.headers.get(PLAYER_HEADER);
   if (!isPlayerId(playerId)) return json({error: 'Missing player id.'}, 401);
   if (!sameOrigin(request)) return json({error: 'Invalid origin.'}, 403);
+  const deviceId = new URL(request.url).searchParams.get('device') ?? undefined;
+  if (deviceId !== undefined && !isPlayerId(deviceId)) return json({error: 'Invalid device id.'}, 400);
 
   if (request.method === 'GET') {
     return guarded(async () => {
-      const {save, revision} = await readBackup(store, playerId);
+      const {save, revision} = await readBackup(store, playerId, deviceId);
       if (!save) return json({save: null, revision});
       const capped = loadSave({getItem: () => JSON.stringify(save)}, config);
       return json({save: capped, revision});
@@ -89,7 +91,7 @@ export async function cloudProgress(
   const body = parsed.body as Partial<ProgressUpload> | null;
   if (!isValidUpload(body)) return json({error: 'Invalid progress.'}, 400);
   return guarded(async () => {
-    const result = await writeBackup(store, playerId, body.save, body.revision);
+    const result = await writeBackup(store, playerId, body.save, body.revision, deviceId);
     if (!result) {
       return json({error: 'The backup changed on another device. Load the current version before saving.'}, 409);
     }

@@ -31,6 +31,12 @@ If startup reports **port 4173 is already in use**, an existing server is still 
 
 ## Local configuration (.env)
 
+Existing local progress is automatically copied to MongoDB when players visit
+the updated game online. Later saves sync through a persistent offline outbox
+every 30 seconds and on reconnect. Automatic snapshots are isolated per player
+and device; the garage's manual backup/restore remains a separate saved snapshot.
+See [storage and recovery details](docs/STORAGE.md).
+
 The `.env` file at the root is read by the server and by the build. Use `.env.example` as a template:
 
 ```dotenv
