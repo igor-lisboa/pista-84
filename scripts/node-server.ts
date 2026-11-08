@@ -6,7 +6,8 @@ import {networkInterfaces} from 'node:os';
 import QRCode from 'qrcode';
 import {runtimeConfig} from './env.ts';
 import {signaling, memoryStore} from '../src/server/signaling.ts';
-import {cloudProgress, leaderboardApi, onlineHealth, storageUnavailable} from '../src/server/cloud.ts';
+import {onlineHealth, storageUnavailable} from '../src/server/cloud.ts';
+import {playerApi} from '../src/server/player-api.ts';
 import {mongoStore} from '../src/server/mongo-store.ts';
 import {redisRoomStore} from '../src/server/redis-rooms.ts';
 import {redisSocketStore} from '../src/server/redis-sockets.ts';
@@ -97,10 +98,7 @@ async function handlePlayersApi(req: IncomingMessage, res: ServerResponse, url: 
     headers: req.headers as Record<string, string>,
     ...(['GET', 'HEAD'].includes(method) ? {} : {body}),
   });
-  const response = !playerStore ? storageUnavailable() :
-    url.pathname === '/api/progress'
-      ? await cloudProgress(request, playerStore, runtimeConfig)
-      : await leaderboardApi(request, playerStore);
+  const response = playerStore ? await playerApi(request, playerStore, runtimeConfig) : storageUnavailable();
   res.writeHead(response.status, Object.fromEntries(response.headers));
   res.end(await response.text());
 }
@@ -141,7 +139,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const {pathname} = url;
   if (pathname.startsWith('/api/rooms')) {
     await handleRoomsApi(req, res, url);
-  } else if (['/api/progress', '/api/score', '/api/leaderboard'].includes(pathname)) {
+  } else if (['/api/progress', '/api/score', '/api/leaderboard', '/api/auth', '/api/account'].includes(pathname)) {
     await handlePlayersApi(req, res, url);
   } else if (pathname === '/runtime-config.json') {
     sendJson(res, runtimeConfig, {'cache-control': 'no-store'});

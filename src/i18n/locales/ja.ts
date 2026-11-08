@@ -1,6 +1,22 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  'auth.secure': "ログインやアカウント作成にはHTTPS接続を使用してください。",
+  'auth.account': "アカウント",
+  'auth.login': "ログイン",
+  'auth.signup': "アカウント作成",
+  'auth.logout': "ログアウト",
+  'auth.username': "ユーザー名",
+  'auth.password': "パスワード",
+  'auth.sync': "進行状況を同期",
+  'auth.help': "ゲストで遊ぶか、ログインして端末間の進行状況を統合できます。",
+  'auth.logoutHelp': "ログアウトすると、この端末のプレイヤーデータがすべて消去されます。アカウントはオンラインに保存されます。未同期の進行状況は失われる場合があります。",
+  'auth.rules': "名前：3～16文字の文字、数字、_、.、-。パスワード：15～128文字。",
+  'auth.taken': "このユーザー名は使用されています。",
+  'auth.credentials': "ユーザー名またはパスワードが違います。",
+  'auth.invalid': "ユーザー名とパスワードの条件を確認してください。",
+  'auth.limited': "試行回数が多すぎます。15分後に再試行してください。",
+  'auth.unavailable': "アカウントに接続できません。接続を確認して再試行してください。",
   'over.secondBalance': '所持コイン: {coins}枚 · 1レースにつき1回購入可能。',
   'shop.menu': 'コインを購入',
   'shop.title': 'ロードコイン',

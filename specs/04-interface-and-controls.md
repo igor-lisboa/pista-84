@@ -41,6 +41,24 @@ Eighteen cards show model sprite, tagline, maximum speed, acceleration, consumpt
 
 ## Settings (Options)
 
+The player group includes an optional Account screen with login, signup, explicit
+sync and logout. Guest play does not require an account. The forms use labelled
+username/password fields; the first-launch name screen also links directly to
+login/signup so returning users do not need to choose a guest name first. Closing
+the account form returns unnamed guests to the name screen. Forms use
+password-manager autocomplete; all account text is
+localized. Login merges local and cloud progress before adopting the account
+identity. Failures keep local progress and allow retry. Expired sessions allow
+reauthentication to the same account. Signed-in name/new-player actions open the
+account screen, preventing accidental account renaming or identity replacement.
+Logout explains that local records and unsynced data are cleared while the cloud
+account remains; only sound, language and units carry into the empty guest save.
+Successful logout also refreshes other open game tabs. A network failure during
+session revocation reports failure and leaves local records available.
+
+The sound switch displays the saved preference while the browser unlocks audio.
+A delayed audio-context resume cannot override a later explicit sound choice.
+
 Language picker (a wrapping grid of fifteen SVG flag buttons, active one highlighted), a single sound toggle for music + engine + effects, optional tilt, calibration, fullscreen, an always-visible installation button (native prompt when available; Home Screen instructions otherwise; disabled when running as an installed app), compact control help and the version label. Sound state is saved (default **on**). Tilt is enabled per session, not automatically granted from a saved preference. Fullscreen failure must not block play; Safari can use Add to Home Screen instead.
 
 ## Languages

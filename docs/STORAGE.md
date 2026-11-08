@@ -7,6 +7,10 @@
 | Scores, display names, best distance and timestamps | MongoDB `scores`, `_id` = player GUID | Durable, no TTL |
 | Manual progress backups and revisions | MongoDB `backups`, `_id` = player GUID | Durable, no TTL |
 | Automatic offline progress snapshots | MongoDB `device-backups`, `_id` = player GUID + device GUID | Durable, no TTL |
+| Account credentials and unique normalized usernames | MongoDB `accounts`, `_id` = server-issued account GUID | Durable, no TTL |
+| Merged account progress | MongoDB `account-progress`, `_id` = account GUID | Durable, separate from manual/device backups |
+| Hashed account sessions | MongoDB `sessions`, `_id` = SHA-256 of random session token | 30 days; TTL cleanup plus expiry checks on reads |
+| Shared authentication attempt budgets | MongoDB `auth-attempts` | Fixed windows; TTL cleanup |
 | Pairing offer, host/join tokens and claimed answer | Redis `pista84:room:{id}` hash | 10 minutes from creation |
 | Latest controller input and timestamp | Redis `pista84:room:{id}:input` | 2 seconds, capped by remaining room TTL |
 | Socket presence and reconnect ownership | Redis `pista84:room:{id}:host` / `:controller` | 15 seconds, renewed every 5 seconds, capped by room TTL |
@@ -37,7 +41,11 @@ Redis probes expire on their own.
 
 The MongoDB account needs read/write and index creation permission on the selected
 database. The driver reuses a pool of up to five connections per instance and creates
-the ranking index `{score: -1, achieved: 1, _id: 1}`. Writes require majority
+the ranking index `{score: -1, achieved: 1, _id: 1}`, a unique account index
+`{usernameKey: 1}`, session lookup index `{accountId: 1}`, and TTL indexes on
+`sessions.expires` and `auth-attempts.expires` with `expireAfterSeconds: 0`.
+Account progress and backups use MongoDB's existing unique `_id` indexes; no
+additional scan index is needed for those keyed reads. Writes require majority
 acknowledgment. Equal score/achievement timestamps are ordered by GUID for stable
 pagination. Redis needs hashes, strings,
 expiry, deletion, `EVAL`, `PUBLISH`, `SUBSCRIBE` and `UNSUBSCRIBE`. Scripts use shared
@@ -111,6 +119,95 @@ The historical D1 schema/migrations are retained for reference, not used by the 
 
 ## Consistency
 
+### Optional accounts and account reconciliation
+
+The static game and Canvas simulation remain offline-capable. Next.js is not a
+dependency: server rendering would not remove the browser simulation, and the
+current static PWA/Capacitor/edge packaging remains supported. Sensitive work is
+already performed by Node APIs. All Node/Vercel player entrypoints use
+`player-api.ts` for account authorization before the existing score/backup rules.
+The entry script loads the game or phone controller on demand; controllers avoid
+downloading the game renderer. Build-generated chunk lists keep the PWA's lazy
+modules available offline.
+
+Settings > Account offers sign up, log in, progress synchronization and log out.
+The first-launch guest name screen also links directly to login/signup.
+Guest play still works without an account or network. Guest GUID backups remain
+compatible; they do not establish ownership of an account. New account GUIDs are
+server-issued, and existing guest GUIDs/names never become account credentials.
+There is no automatic account claim based on a leaderboard name. Existing guest
+display names are not reserved account names; new guest submissions cannot use a
+registered username. Historical leaderboard rows are retained.
+
+`POST /api/auth` accepts JSON `{action: "signup" | "login", username, password}`
+or `{action: "logout"}`. `GET /api/auth` returns only `{user: {id, username} | null}`.
+Usernames use NFKC normalization, trimming and lowercase uniqueness, enforced by
+MongoDB's unique index even for concurrent registrations. Account names retain
+their display case and follow the existing 3–16-character name rules. Account
+renaming and password recovery are not implemented.
+
+Passwords are 15–128 Unicode characters, without composition rules or truncation.
+Node's asynchronous scrypt uses N=131072, r=8, p=1, a random 16-byte salt and a
+64-byte key; comparisons use `timingSafeEqual`. Only the versioned salt/hash
+encoding is stored. Passwords are never logged, returned, cached or persisted in
+browser storage. Password work is capped at two concurrent derivations per
+instance. MongoDB shares budgets of ten attempts per normalized name per
+15-minute window and 300 total attempts per minute across instances. Unknown
+users incur the same derivation cost as an incorrect password. Authentication
+fails closed with 503 on storage errors; there is no memory account fallback.
+
+Sessions use 32 random bytes. MongoDB stores only their SHA-256 digests. HTTPS
+uses a host-only `__Host-pista84-session` cookie with Secure, HttpOnly,
+SameSite=Strict and Path=/; local HTTP development uses `pista84-session`.
+Deploy accounts behind HTTPS and configure `PUBLIC_ORIGIN` correctly. The browser
+refuses to send login/signup credentials over HTTP except on loopback development
+hosts, and production APIs reject HTTP account requests. Login
+rotates the browser's previous session; logout deletes only that device's
+session. Other devices remain signed in. Expired sessions cannot authorize reads
+even before TTL deletion. Mutations check Origin and reject cross-site fetches;
+credential mutations require JSON. The edge proxy forwards only game session
+cookies and preserves Set-Cookie; neither the proxy nor the service worker caches
+account responses. Every account score/backup read or write requires the matching
+session, regardless of a supplied GUID. Account names on writes come from MongoDB.
+
+After authentication, `PUT /api/account` sends `{save}` once and atomically
+reconciles the guest/local save with `account-progress` using the existing CAS
+adapter. Scores/distances take maxima, unlocks form a union, creation takes the
+earliest time and tutorial completion is retained. A guest merge keeps the larger
+coin balance, rather than adding duplicate balances. For subsequent account
+snapshots, the later save timestamp wins for coins and selections so purchases
+can reduce the balance. Preferences follow the later snapshot. Retired-player
+history is not imported into an account. Repeated unchanged reconciliation does
+not add coins. Concurrent merges retry against the latest account document.
+The account's highest published score/distance must remain intact.
+
+The browser adopts the account identity and acknowledges the old guest outbox
+only after reconciliation succeeds. Failed responses leave guest data intact
+and offer a retry using the established session. Expired sessions offer login
+to the same account; its offline play remains available. Later successful
+device/manual progress writes also reconcile account progress. Automatic uploads
+remain confined to pause/end/menu/exit events; explicit account login/sync is a
+user-triggered exception. These background uploads do not replace the active
+in-memory save. Login or explicit account sync restores the combined cloud save.
+Manual backups and device snapshots keep their separate records and revisions.
+
+Logout attempts the last account snapshot, revokes the server session and then
+clears all `pista84`/`pista84.*` records on this device, including outboxes,
+acknowledgements, history and the device GUID. It creates a fresh, empty guest
+save carrying only language, sound and units. In-flight progress uploads are
+aborted and stale replies cannot recreate local data; other tabs reload when
+the account marker changes. An unavailable logout endpoint leaves the device
+data intact and reports failure so a still-active session is not silently left
+behind. Explicit logout can discard unsynced progress if the final merge fails;
+the account screen explains this before the action. Cloud account records remain
+available on the next login; logout is not account deletion.
+
+Accounts add no environment variables or external auth provider. Deploy source,
+ensure MongoDB permits index creation and serve APIs over HTTPS. Index creation
+runs on first database use and failures become guarded 503 responses. Normal
+tests use isolated account/player stores; the account browser tests route to the
+same production API functions with those fakes and never touch live services.
+
 ### Automatic local-save migration and synchronization
 
 On launch, the game normalizes the existing `pista84` local save and persists any
@@ -136,6 +233,7 @@ from other devices and from manual backups. Revisions reject racing writes;
 older save timestamps cannot replace newer snapshots on the same device.
 
 Automatic uploads never restore or merge server data into active local play.
+Explicit account login/sync reconciles account data as described above.
 The existing garage buttons continue to manage the explicit manual backup in
 `backups`. Automatic snapshots are readable through the device-scoped progress
 API for recovery; a cross-device snapshot picker is not implemented. Storage
@@ -182,9 +280,14 @@ before switching traffic; browser saves and manual exports remain available.
 Uninstall/disconnect the old remote service separately after retaining any data
 you need. No old provider credentials or SDK are required by this project.
 
-Scores remain client-reported and GUIDs remain backup credentials. This is casual
-game progress, not a trusted paid wallet. Stronger authentication and anti-cheat
-remain future work. WebSocket delivery works across instances;
+Scores remain client-reported and guest GUIDs remain guest backup credentials.
+Account records require sessions, but this is casual game progress, not a trusted
+paid wallet. Timestamp-based reconciliation is not a currency ledger or anti-cheat
+system; edited saves and device clock skew remain limitations. Password recovery,
+email verification, MFA, account deletion and remote logout of all devices are
+not implemented. Native builds require a separately verified same-origin HTTPS
+API/cookie setup; packaged static assets alone do not provide an account backend.
+WebSocket delivery works across instances;
 direct WebRTC/TURN transport is no longer part of the active client.
 
 ## AI maintenance entrypoints

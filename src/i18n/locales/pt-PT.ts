@@ -2,6 +2,22 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  'auth.secure': "Use uma ligação HTTPS para entrar ou criar uma conta.",
+  'auth.account': "Conta",
+  'auth.login': "Entrar",
+  'auth.signup': "Criar conta",
+  'auth.logout': "Terminar sessão",
+  'auth.username': "Nome de utilizador",
+  'auth.password': "Palavra-passe",
+  'auth.sync': "Sincronizar progresso",
+  'auth.help': "Jogue como visitante ou entre para juntar o seu progresso entre dispositivos.",
+  'auth.logoutHelp': "Terminar a sessão apaga todos os registos do jogador neste dispositivo. A conta continua guardada online. O progresso não sincronizado pode perder-se.",
+  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Palavra-passe: 15–128 caracteres.",
+  'auth.taken': "Este nome de utilizador já está em uso.",
+  'auth.credentials': "Nome de utilizador ou palavra-passe incorretos.",
+  'auth.invalid': "Verifique as regras do nome de utilizador e da palavra-passe.",
+  'auth.limited': "Demasiadas tentativas. Tente novamente dentro de 15 minutos.",
+  'auth.unavailable': "Não foi possível aceder à conta. Verifique a ligação e tente novamente.",
   'over.secondBalance': 'O seu saldo: {coins} moedas · uma compra por corrida.',
   'shop.menu': 'COMPRAR MOEDAS',
   'shop.title': 'Moedas da estrada',

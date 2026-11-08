@@ -97,6 +97,7 @@ export class AudioUnavailableError extends Error {}
 /** Engine, brake and effect sounds plus the background music, behind one on/off switch. */
 export class AudioEngine {
   enabled = false;
+  private stateVersion = 0;
 
   private ctx: AudioContext | null = null;
   private effects: GainNode | null = null;
@@ -121,9 +122,16 @@ export class AudioEngine {
 
   /** Turns audio on or off, creating the audio graph on first use. Returns the new state. */
   async toggle(): Promise<boolean> {
+    return this.setEnabled(!this.enabled);
+  }
+
+  /** A delayed context resume must not override a more recent user choice. */
+  async setEnabled(enabled: boolean): Promise<boolean> {
+    const version = ++this.stateVersion;
     const ctx = this.ensureContext();
     await ctx.resume();
-    this.enabled = !this.enabled;
+    if (version !== this.stateVersion) return this.enabled;
+    this.enabled = enabled;
     this.effects!.gain.value = this.enabled ? EFFECTS_VOLUME : 0;
     this.musicBus!.gain.value = this.enabled ? MUSIC_VOLUME : 0;
     if (this.enabled) this.music!.play(this.wantedMusic);

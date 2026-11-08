@@ -1,6 +1,22 @@
 import type { MessageKey } from '../types.ts';
 
 export const es = {
+  'auth.secure': "Usa una conexión HTTPS para iniciar sesión o crear una cuenta.",
+  'auth.account': "Cuenta",
+  'auth.login': "Iniciar sesión",
+  'auth.signup': "Crear cuenta",
+  'auth.logout': "Cerrar sesión",
+  'auth.username': "Nombre de usuario",
+  'auth.password': "Contraseña",
+  'auth.sync': "Sincronizar progreso",
+  'auth.help': "Juega como invitado o inicia sesión para combinar tu progreso entre dispositivos.",
+  'auth.logoutHelp': "Cerrar sesión borra todos los registros del jugador en este dispositivo. Tu cuenta sigue guardada en línea. El progreso sin sincronizar puede perderse.",
+  'auth.rules': "Nombre: 3–16 letras, números, _, . o -. Contraseña: 15–128 caracteres.",
+  'auth.taken': "Este nombre de usuario ya está en uso.",
+  'auth.credentials': "Nombre de usuario o contraseña incorrectos.",
+  'auth.invalid': "Revisa los requisitos del nombre y la contraseña.",
+  'auth.limited': "Demasiados intentos. Inténtalo de nuevo en 15 minutos.",
+  'auth.unavailable': "No se puede acceder a la cuenta. Comprueba la conexión e inténtalo de nuevo.",
   'over.secondBalance': 'Tu saldo: {coins} monedas · una compra por carrera.',
   'shop.menu': 'COMPRAR MONEDAS',
   'shop.title': 'Monedas de la carretera',

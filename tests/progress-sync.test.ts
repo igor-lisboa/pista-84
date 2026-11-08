@@ -6,6 +6,24 @@ import {cloudProgress} from '../src/server/cloud.ts';
 import {readBackup, writeBackup} from '../src/server/players.ts';
 import {memoryPlayerStore} from './support/memory-player-store.ts';
 
+test('logout cancels an in-flight upload and stale acknowledgements cannot recreate local records', async () => {
+  const local = storage();
+  let finish!: (response: Response) => void;
+  const sync = new ProgressSync(local, async (_url, options) => {
+    if (options?.method !== 'PUT') return Response.json({revision: 0});
+    return new Promise<Response>(resolve => { finish = resolve; });
+  });
+  const save = defaultSave();
+  sync.queue(save);
+  const flushing = sync.flush();
+  while (!finish) await new Promise(resolve => setTimeout(resolve, 0));
+  sync.clear();
+  finish(Response.json({revision: 1}));
+  await flushing;
+  assert.equal(local.getItem('pista84.progress-outbox'), '{}');
+  assert.equal(local.getItem(`pista84.progress-ack:${save.playerId}`), null);
+});
+
 function storage() {
   const values = new Map<string, string>();
   return {getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); }};

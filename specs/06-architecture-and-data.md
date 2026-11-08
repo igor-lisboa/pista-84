@@ -129,8 +129,35 @@ runtime uses MONGODB_URI and optional MONGODB_DATABASE (default pista84).
 Each collection has one record per player GUID. Score records mirror indexed
 score/achievement fields; backups contain sanitized saves and public revisions.
 Updates compare internal versions and retry conflicts; stale backup revisions
-return HTTP 409. GUID identity uses x-player-id, not a gateway account header.
+return HTTP 409. Guest GUID identity uses x-player-id. Account GUIDs require a
+matching server-side session and cannot be authorized by that header alone.
 Local device progress and export/import remain available offline.
+
+Optional username/password accounts use `accounts` (unique normalized username),
+`sessions` (hashed random token plus expiry) and `auth-attempts` (shared expiring
+budgets). Node hashes passwords with salted scrypt; the browser receives only a
+user DTO and a Secure/HttpOnly/SameSite cookie over HTTPS. `player-api.ts` applies
+the same authorization to Node and Vercel entrypoints. The edge Worker forwards
+only game session cookies and preserves Set-Cookie without caching responses.
+
+`PUT /api/account` reconciles guest/local data with the session's separate
+`account-progress` record on login or explicit sync. Maxima preserve records,
+unions preserve unlocks, guest coins use the larger balance and later account
+timestamps preserve spending/selections. CAS retries protect concurrent merges;
+manual backups/device snapshots remain separate. Failed merges retain local data.
+Logout revokes that device's session, cancels uploads and clears all local player
+records before creating a new guest; other tabs reload. Cloud records remain.
+Details, password/session parameters and limitations are in
+[storage documentation](../docs/STORAGE.md#optional-accounts-and-account-reconciliation).
+
+The static game/PWA/Capacitor shell remains in place; no Next.js migration or SSR
+runtime is introduced. Browser gameplay needs the simulation and renderer offline.
+Private database queries, password work, sessions and response filtering already
+run only on the Node backend. Account response DTOs never expose password hashes.
+The small `game.js` entry dynamically imports either the game or the controller;
+esbuild emits shared chunks under `www/chunks/`. A controller does not download
+the game renderer. The build injects every emitted client chunk into the service
+worker's precache list so installed game launches still work offline.
 
 Redis owns ephemeral pairing rooms (ten minutes) and latest controller input
 (two seconds, capped by the room lifetime), plus socket presence leases (fifteen
@@ -164,6 +191,6 @@ and audience; publishing is separate from local changes.
 
 ## Offline and native
 
-Service worker cache **pista84-v21** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, both atlases, `game.js`, `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper.
+Service worker cache **pista84-v25** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` and relay traffic. No cloud backup, pairing token or API response is cached. Remote control and cloud backup require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version.

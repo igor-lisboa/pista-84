@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import {ptBR} from '../../src/i18n/locales/pt-BR.ts';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
@@ -14,8 +15,14 @@ test('settings are grouped, switches show their state and nothing spills sideway
 
   const sound = page.locator('#sound');
   const before = await sound.getAttribute('aria-pressed');
+  const supportsAudio = await page.evaluate(() => Boolean(window.AudioContext ||
+    (window as unknown as {webkitAudioContext?: typeof AudioContext}).webkitAudioContext));
   await sound.click();
-  await expect(sound).not.toHaveAttribute('aria-pressed', before!);
+  if (supportsAudio) await expect(sound).not.toHaveAttribute('aria-pressed', before!);
+  else {
+    await expect(sound).toHaveAttribute('aria-pressed', before!);
+    await expect(page.locator('#toast')).toHaveText(ptBR['toast.audio']);
+  }
   // The label changed but the row still has its icon and switch.
   await expect(sound.locator('.row-icon svg')).toHaveCount(1);
   await expect(sound.locator('.switch')).toHaveCount(1);

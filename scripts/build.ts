@@ -66,11 +66,14 @@ Sitemap: ${origin}/sitemap.xml
   }
 }
 
-async function bundleClient(): Promise<void> {
-  await build({
-    entryPoints: ['src/client.ts'],
+async function bundleClient(): Promise<string[]> {
+  const result = await build({
+    entryPoints: {game: 'src/client.ts'},
     // Not `app.js`: Vercel runs a file called app/index/server/main found in the output directory as a Node server.
-    outfile: `${WWW_DIR}/game.js`,
+    outdir: WWW_DIR,
+    chunkNames: 'chunks/[name]-[hash]',
+    splitting: true,
+    metafile: true,
     bundle: true,
     format: 'esm',
     platform: 'browser',
@@ -78,9 +81,11 @@ async function bundleClient(): Promise<void> {
     minify: true,
     sourcemap: true,
   });
+  return Object.keys(result.metafile.outputs).filter(path => path.endsWith('.js'))
+    .map(path => '/' + path.replaceAll('\\', '/').slice(WWW_DIR.length + 1));
 }
 
-async function bundleServiceWorker(): Promise<void> {
+async function bundleServiceWorker(clientAssets: string[]): Promise<void> {
   await build({
     entryPoints: [`${WEB_DIR}/sw.ts`],
     outfile: `${WWW_DIR}/sw.js`,
@@ -89,6 +94,7 @@ async function bundleServiceWorker(): Promise<void> {
     platform: 'browser',
     target: BROWSER_TARGET,
     minify: true,
+    define: {__PISTA_CLIENT_ASSETS__: JSON.stringify(clientAssets)},
   });
 }
 
@@ -145,8 +151,8 @@ async function main(): Promise<void> {
   await mkdir('dist/.openai', {recursive: true});
   await copyStaticFiles();
   await writeSeoFiles();
-  await bundleClient();
-  await bundleServiceWorker();
+  const clientAssets = await bundleClient();
+  await bundleServiceWorker(clientAssets);
   await writeRuntimeConfig();
   await generateWorkerAssets();
   await bundleWorker();

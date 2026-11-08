@@ -1,6 +1,22 @@
 import type { Messages } from '../types.ts';
 
 export const it: Messages = {
+  'auth.secure': "Usa una connessione HTTPS per accedere o creare un account.",
+  'auth.account': "Account",
+  'auth.login': "Accedi",
+  'auth.signup': "Registrati",
+  'auth.logout': "Esci",
+  'auth.username': "Nome utente",
+  'auth.password': "Password",
+  'auth.sync': "Sincronizza progressi",
+  'auth.help': "Gioca come ospite o accedi per unire i progressi tra dispositivi.",
+  'auth.logoutHelp': "Uscendo, tutti i dati del giocatore su questo dispositivo vengono cancellati. Il tuo account resta salvato online. I progressi non sincronizzati potrebbero andare persi.",
+  'auth.rules': "Nome: 3–16 lettere, numeri, _, . o -. Password: 15–128 caratteri.",
+  'auth.taken': "Questo nome utente è già in uso.",
+  'auth.credentials': "Nome utente o password errati.",
+  'auth.invalid': "Controlla i requisiti del nome e della password.",
+  'auth.limited': "Troppi tentativi. Riprova tra 15 minuti.",
+  'auth.unavailable': "Accesso all’account non disponibile. Controlla la connessione e riprova.",
   'over.secondBalance': 'Il tuo saldo: {coins} monete · un acquisto per gara.',
   'shop.menu': 'ACQUISTA MONETE',
   'shop.title': 'Monete della strada',

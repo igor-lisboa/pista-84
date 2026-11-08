@@ -57,6 +57,7 @@ export interface SettingsDeps {
   changeLanguage(lang: Lang): void;
   /** Opens the player-name dialog. */
   editUsername(): void;
+  openAccount(): void;
   changeUnits(units: SaveData['units']): void;
   /** Opens the how-to-play tutorial. */
   showTutorial(): void;
@@ -81,7 +82,7 @@ export class SettingsDialog {
   }
 
   render(): void {
-    const { audio, input, save } = this.deps;
+    const { input, save } = this.deps;
     const flags = (Object.entries(LANGS) as [Lang, string][])
       .map(([code, name]) => {
         const active = code === getLang();
@@ -95,6 +96,7 @@ export class SettingsDialog {
         <section class="settings-group">
           <h3 class="group-title">${t('set.groupPlayer')}</h3>
           <div class="setting-card">
+            ${row('account', 'user', t('auth.account'), { end: 'arrow' })}
             ${row('username', 'user', t('set.username', { name: save.username ?? '—' }), { end: 'arrow' })}
             ${row('newPlayer', 'restart', t('newp.menu'), { end: 'arrow', danger: true })}
           </div>
@@ -104,7 +106,7 @@ export class SettingsDialog {
           <div class="setting-card">
             <div class="language-picker"><span class="label">${t('set.language')}</span><div class="flags" role="radiogroup" aria-label="${t('set.language')}">${flags}</div></div>
             ${row('units', 'swap', t(save.units === 'mi' ? 'set.unitsMi' : 'set.unitsKm'))}
-            ${row('sound', 'volume', audio.enabled ? t('set.soundOn') : t('set.soundOff'), { switch: true, pressed: audio.enabled })}
+            ${row('sound', 'volume', save.sound ? t('set.soundOn') : t('set.soundOff'), { switch: true, pressed: save.sound })}
             ${row('tutorial', 'help', t('set.tutorial'), { end: 'arrow' })}
           </div>
         </section>
@@ -135,6 +137,7 @@ export class SettingsDialog {
       };
     }
     byId('username').onclick = () => this.deps.editUsername();
+    byId('account').onclick = () => this.deps.openAccount();
     byId('units').onclick = () => {
       const units = save.units === 'km' ? 'mi' : 'km';
       this.deps.changeUnits(units);
@@ -195,7 +198,7 @@ export class SettingsDialog {
   private async toggleSound(): Promise<void> {
     const { audio, save } = this.deps;
     try {
-      save.sound = await audio.toggle();
+      save.sound = await audio.setEnabled(!save.sound);
       setRow('sound', audio.enabled ? t('set.soundOn') : t('set.soundOff'), audio.enabled);
       this.deps.persist();
     } catch (error) {

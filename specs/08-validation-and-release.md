@@ -124,6 +124,16 @@ The local server must be running for game screenshots. Do not confuse a staged r
 
 ## Release checks
 
+Account validation uses `tests/auth.test.ts`, `tests/merge-progress.test.ts`,
+MongoDB adapter tests, and `tests/browser/account.spec.ts` in Chromium/WebKit.
+Verify unique normalized usernames, salted hashes, cookie expiry/revocation,
+forged GUID rejection, guest/account merge retries, expired-session login and
+logout cleanup across tabs. Browser account APIs run production handlers against
+isolated fakes with live services disabled. Emulation is not a native cookie or
+production HTTPS deployment verification.
+`tests/browser/client-loading.spec.ts` checks that controllers avoid downloading
+the game renderer and that an installed game reloads with its chunks offline.
+
 1. Update affected canonical specs and roadmap status.
 2. Run `npm run typecheck` and the checks relevant to changed behavior; confirm save compatibility and required assets.
 3. Build from current source; sync native assets if native source is part of the change.

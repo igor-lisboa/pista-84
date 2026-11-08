@@ -1,6 +1,22 @@
 import type { MessageKey } from '../types.ts';
 
 export const am = {
+  'auth.secure': "ለመግባት ወይም መለያ ለመፍጠር የHTTPS ግንኙነት ይጠቀሙ።",
+  'auth.account': "መለያ",
+  'auth.login': "ግባ",
+  'auth.signup': "መለያ ፍጠር",
+  'auth.logout': "ውጣ",
+  'auth.username': "የተጠቃሚ ስም",
+  'auth.password': "የይለፍ ቃል",
+  'auth.sync': "ሂደትን አመሳስል",
+  'auth.help': "እንደ እንግዳ ይጫወቱ ወይም በመሣሪያዎች መካከል ሂደትን ለማዋሃድ ይግቡ።",
+  'auth.logoutHelp': "ሲወጡ በዚህ መሣሪያ ያሉ የተጫዋች መዝገቦች ሁሉ ይሰረዛሉ። መለያዎ በመስመር ላይ ይቀመጣል። ያልተመሳሰለ ሂደት ሊጠፋ ይችላል።",
+  'auth.rules': "ስም፦ 3–16 ፊደላት፣ ቁጥሮች፣ _፣ . ወይም -። የይለፍ ቃል፦ 15–128 ቁምፊዎች።",
+  'auth.taken': "ይህ የተጠቃሚ ስም ተይዟል።",
+  'auth.credentials': "የተጠቃሚ ስም ወይም የይለፍ ቃል ስህተት ነው።",
+  'auth.invalid': "የስምና የይለፍ ቃል መስፈርቶችን ያረጋግጡ።",
+  'auth.limited': "ብዙ ሙከራዎች። ከ15 ደቂቃ በኋላ ይሞክሩ።",
+  'auth.unavailable': "መለያው አይገኝም። ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
   'over.secondBalance': 'ቀሪ ሂሳብ፦ {coins} ሳንቲሞች · በአንድ ውድድር አንድ ግዢ።',
   'shop.menu': 'ሳንቲሞች ይግዙ',
   'shop.title': 'የመንገድ ሳንቲሞች',

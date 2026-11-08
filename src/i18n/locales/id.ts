@@ -1,6 +1,22 @@
 import type { MessageKey } from '../types.ts';
 
 export const id = {
+  'auth.secure': "Gunakan koneksi HTTPS untuk masuk atau membuat akun.",
+  'auth.account': "Akun",
+  'auth.login': "Masuk",
+  'auth.signup': "Daftar",
+  'auth.logout': "Keluar",
+  'auth.username': "Nama pengguna",
+  'auth.password': "Kata sandi",
+  'auth.sync': "Sinkronkan progres",
+  'auth.help': "Main sebagai tamu atau masuk untuk menggabungkan progres antarperangkat.",
+  'auth.logoutHelp': "Keluar akan menghapus semua catatan pemain di perangkat ini. Akun tetap tersimpan daring. Progres yang belum disinkronkan dapat hilang.",
+  'auth.rules': "Nama: 3–16 huruf, angka, _, . atau -. Kata sandi: 15–128 karakter.",
+  'auth.taken': "Nama pengguna ini sudah digunakan.",
+  'auth.credentials': "Nama pengguna atau kata sandi salah.",
+  'auth.invalid': "Periksa persyaratan nama pengguna dan kata sandi.",
+  'auth.limited': "Terlalu banyak percobaan. Coba lagi dalam 15 menit.",
+  'auth.unavailable': "Akun tidak dapat diakses. Periksa koneksi dan coba lagi.",
   'over.secondBalance': 'Saldo: {coins} koin · satu pembelian per balapan.',
   'shop.menu': 'BELI KOIN',
   'shop.title': 'Koin jalan raya',

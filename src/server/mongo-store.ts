@@ -3,6 +3,8 @@ import type {Db} from 'mongodb';
 import {mongoPlayerStore} from './mongo-player-store.ts';
 import type {PlayerRecord} from './mongo-player-store.ts';
 import type {PlayerStore} from './players.ts';
+import {mongoAccountStore} from './mongo-account-store.ts';
+import type {AccountStore} from './accounts.ts';
 
 export interface MongoEnv {
   MONGODB_URI?: string;
@@ -10,7 +12,7 @@ export interface MongoEnv {
 }
 
 /** Owns connection lifetime and index setup; queries live in mongo-player-store.ts. */
-export function mongoStore(env: MongoEnv): (PlayerStore & {close(): Promise<void>}) | null {
+export function mongoStore(env: MongoEnv): (PlayerStore & {accounts: AccountStore; close(): Promise<void>}) | null {
   const uri = env.MONGODB_URI;
   if (!uri) return null;
 
@@ -30,6 +32,10 @@ export function mongoStore(env: MongoEnv): (PlayerStore & {close(): Promise<void
     await client.connect();
     const database = client.db(env.MONGODB_DATABASE || 'pista84');
     await database.collection('scores').createIndex({score: -1, achieved: 1, _id: 1});
+    await database.collection('accounts').createIndex({usernameKey: 1}, {unique: true});
+    await database.collection('sessions').createIndex({expires: 1}, {expireAfterSeconds: 0});
+    await database.collection('sessions').createIndex({accountId: 1});
+    await database.collection('auth-attempts').createIndex({expires: 1}, {expireAfterSeconds: 0});
     return database;
   }
 
@@ -50,6 +56,7 @@ export function mongoStore(env: MongoEnv): (PlayerStore & {close(): Promise<void
 
   return {
     ...store,
+    accounts: mongoAccountStore(database),
     async close() {
       await client?.close();
     },

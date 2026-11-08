@@ -22,9 +22,9 @@ test('vercel.json uses the standard setup, so api/ files are served without thei
 
 test('every public endpoint the client calls has a function, and helpers are not exposed', async () => {
   const files = (await readdir(new URL('../api/', import.meta.url))).filter((name) => name.endsWith('.ts'));
-  for (const endpoint of ['health', 'leaderboard', 'score', 'progress', 'rooms', 'controller']) assert.ok(files.includes(`${endpoint}.ts`), endpoint);
+  for (const endpoint of ['health', 'leaderboard', 'score', 'progress', 'rooms', 'controller', 'auth', 'account']) assert.ok(files.includes(`${endpoint}.ts`), endpoint);
   // Files starting with an underscore are shared helpers, never routes.
-  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts', 'rooms.ts', 'controller.ts'].includes(name)).sort(), ['_rooms.ts', '_store.ts']);
+  assert.deepEqual(files.filter((name) => !['health.ts', 'leaderboard.ts', 'score.ts', 'progress.ts', 'rooms.ts', 'controller.ts', 'auth.ts', 'account.ts'].includes(name)).sort(), ['_rooms.ts', '_store.ts']);
 });
 
 test('the function builder is told not to load @types/node, which it cannot find from its temp directory', async () => {
@@ -58,7 +58,8 @@ test('the built browser files are not named like a server entrypoint either', as
   // Detection also searches the output directory, and the bundle once was www/app.js (it crashed with `location is not defined`).
   const build = await readFile(new URL('../scripts/build.ts', import.meta.url), 'utf8');
   const outputs = [...build.matchAll(/outfile: `\$\{WWW_DIR\}\/([^`]+)`/g)].map((match) => match[1]!);
-  assert.ok(outputs.length >= 2, 'expected the client and service worker bundles');
+  assert.ok(outputs.includes('sw.js'), 'expected the service worker bundle');
+  assert.match(build, /entryPoints: \{game: 'src\/client\.ts'\}/);
   for (const output of outputs) {
     const name = output.replace(/\.[^.]+$/, '');
     assert.equal(ENTRYPOINT_NAMES.includes(name), false, `${output} would be run as a server by Vercel`);

@@ -13,7 +13,7 @@ import {compareScores, pagination, leaderboardEntry} from './leaderboard.ts';
  *
  * Rows hang off the permanent GUID, so renaming never loses a score.
  */
-export type StoreKey = 'scores' | 'backups' | 'device-backups';
+export type StoreKey = 'scores' | 'backups' | 'device-backups' | 'account-progress';
 
 /**
  * `playerId` scopes a read/update to one player. Score callbacks receive a

@@ -7,6 +7,7 @@ export interface UsernameDeps {
   persist(): void;
   /** Called after a valid name is stored. */
   onSaved(name: string): void;
+  openAccount(): void;
 }
 
 /** Asks for the leaderboard name; on first launch the dialog cannot be dismissed. */
@@ -35,8 +36,10 @@ export class UsernameDialog {
           aria-label="${t('user.title')}" aria-describedby="usernameRules" value="${save.username ?? ''}">
         <p id="usernameRules" class="username-rules">${t('user.rules')}</p>
         <button class="primary" type="submit"><span>${t('user.confirm')}</span></button>
-      </form>`;
+      </form>
+      <button id="usernameAccount" class="menu-button" type="button"><span>${t('auth.login')} / ${t('auth.signup')}</span></button>`;
     byId('closeModal').hidden = this.required;
+    byId('usernameAccount').onclick = () => this.deps.openAccount();
 
     const input = byId<HTMLInputElement>('usernameInput');
     byId<HTMLFormElement>('usernameForm').onsubmit = (event) => {

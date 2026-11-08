@@ -1,6 +1,22 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  'auth.secure': "Use an HTTPS connection to log in or create an account.",
+  'auth.account': "Account",
+  'auth.login': "Log in",
+  'auth.signup': "Sign up",
+  'auth.logout': "Log out",
+  'auth.username': "Username",
+  'auth.password': "Password",
+  'auth.sync': "Sync progress",
+  'auth.help': "Play as a guest or sign in to merge your progress across devices.",
+  'auth.logoutHelp': "Logging out clears all player records on this device. Your account stays saved online. Unsynced progress may be lost.",
+  'auth.rules': "Username: 3–16 letters, numbers, _, . or -. Password: 15–128 characters.",
+  'auth.taken': "This username is already taken.",
+  'auth.credentials': "Incorrect username or password.",
+  'auth.invalid': "Check the username and password requirements.",
+  'auth.limited': "Too many attempts. Try again in 15 minutes.",
+  'auth.unavailable': "Account access is unavailable. Check your connection and try again.",
   'over.secondBalance': 'Your balance: {coins} coins · one purchase per run.',
   'shop.menu': 'BUY COINS',
   'shop.title': 'Road coins',

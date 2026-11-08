@@ -44,3 +44,17 @@ test('edge API proxy preserves origin checks and only forwards API credentials',
   assert.deepEqual(await response.json(), {revision: 2});
   assert.equal(calls, 1);
 });
+
+test('edge proxy forwards only game session cookies and preserves secure cookie attributes', async (t) => {
+  const cookie = '__Host-pista84-session=token; Path=/; Secure; HttpOnly; SameSite=Strict';
+  t.mock.method(globalThis, 'fetch', async (_url: URL, options: RequestInit) => {
+    assert.equal(new Headers(options.headers).get('cookie'), '__Host-pista84-session=token');
+    return new Response('{}', {headers: {'set-cookie': cookie, 'retry-after': '900'}});
+  });
+  const response = await proxyApi(new Request('https://game.test/api/auth', {
+    headers: {cookie: 'unrelated=secret; __Host-pista84-session=token'},
+  }), 'https://backend.test');
+  assert.equal(response.headers.get('set-cookie'), cookie);
+  assert.equal(response.headers.get('retry-after'), '900');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+});

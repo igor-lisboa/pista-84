@@ -5,6 +5,9 @@ import {mongoStore} from '../src/server/mongo-store.ts';
 import {mongoPlayerStore} from '../src/server/mongo-player-store.ts';
 import {leaderboardPage, readBackup, submitScore, writeBackup} from '../src/server/players.ts';
 import type {ScoresDoc} from '../src/server/players.ts';
+import type {BackupsDoc} from '../src/server/players.ts';
+import {syncAccountProgress} from '../src/server/account-progress.ts';
+import {defaultSave} from '../src/game/save.ts';
 
 type Doc = {_id: string; version: number; value: unknown; score?: number; achieved?: number};
 type Query = Record<string, any>;
@@ -60,7 +63,7 @@ class Records {
 const ALICE = '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b';
 const BOB = '7a2d3b4f-8c5e-4f60-9b8c-1d2e3f4a5b6c';
 function setup() {
-  const records = {scores: new Records(), backups: new Records(), 'device-backups': new Records()};
+  const records = {scores: new Records(), backups: new Records(), 'device-backups': new Records(), 'account-progress': new Records()};
   const adapter = () => mongoPlayerStore(async (key) => records[key] as unknown as Collection<Doc>);
   return {records, first: adapter(), second: adapter()};
 }
@@ -68,6 +71,22 @@ const score = (playerId: string, value: number) => ({playerId, username: 'Driver
 
 test('MongoDB is unconfigured without a URI and never substitutes volatile storage', () => {
   assert.equal(mongoStore({}), null);
+});
+
+test('concurrent account reconciliations preserve unlocks and records without touching manual backups', async () => {
+  const {first, second, records} = setup();
+  const user = {id: ALICE, username: 'Alice'};
+  const guestA = {...defaultSave(1000), coins: 500, bestScore: 9000, owned: ['fusca', 'gol']};
+  const guestB = {...defaultSave(2000), coins: 900, best: 7000, paints: ['original', 'scarlet']};
+  await Promise.all([syncAccountProgress(first, user, guestA), syncAccountProgress(second, user, guestB)]);
+  const merged = (await first.read<BackupsDoc>('account-progress', {}, ALICE))[ALICE]!.save;
+  assert.equal(merged.bestScore, 9000);
+  assert.equal(merged.best, 7000);
+  assert.equal(merged.coins, 900);
+  assert.ok(merged.owned.includes('gol'));
+  assert.ok(merged.paints.includes('scarlet'));
+  assert.equal(records.backups.docs.size, 0);
+  assert.equal(records['device-backups'].docs.size, 0);
 });
 
 test('malformed MongoDB configuration fails on requests rather than crashing API imports', async () => {

@@ -17,10 +17,11 @@ interface ServiceWorkerScope {
 }
 
 const scope = self as unknown as ServiceWorkerScope;
+declare const __PISTA_CLIENT_ASSETS__: readonly string[];
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v24`;
-const ASSETS = [
+const CACHE = `${CACHE_PREFIX}v25`;
+const ASSETS = [...new Set([
   '/',
   '/index.html',
   '/style.css',
@@ -33,9 +34,9 @@ const ASSETS = [
   '/assets/vehicle-turns-v2.png',
   '/assets/vehicle-classics-v2.png',
   '/assets/vehicle-brazilian-v1.png',
-  '/game.js',
+  ...__PISTA_CLIENT_ASSETS__,
   '/runtime-config.json',
-];
+])];
 
 function shouldHandle(request: Request): URL | null {
   const url = new URL(request.url);

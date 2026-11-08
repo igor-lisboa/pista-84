@@ -1,5 +1,7 @@
 import { AudioEngine } from '../audio/audio.ts';
 import {ProgressSync} from '../net/progress-sync.ts';
+import {ACCOUNT_KEY, clearAccountDevice, localAccount} from '../net/account.ts';
+import {AccountDialog} from './account.ts';
 import {
   CARS,
   CHECKPOINT,
@@ -70,8 +72,10 @@ export class GameApp implements RemoteHost {
 
   private readonly config: BalanceConfig;
   private readonly storage = createStorage();
+  private accountOwner = localAccount();
+  private accountTransition = false;
   private readonly progressSync = new ProgressSync(this.storage,
-    (input, init) => fetch(input, init), () => !this.isRunning());
+    (input, init) => fetch(input, init), () => !this.isRunning() && !this.accountTransition && this.sameAccount());
   private readonly save: SaveData;
   private readonly race: Race;
   private readonly audio = new AudioEngine();
@@ -80,6 +84,7 @@ export class GameApp implements RemoteHost {
   private readonly renderer = new Renderer(byId<HTMLCanvasElement>('game'));
   private readonly garage: Garage;
   private readonly settingsDialog: SettingsDialog;
+  private readonly accountDialog: AccountDialog;
   private readonly remoteDialog: RemoteDialog;
   private readonly usernameDialog: UsernameDialog;
   private readonly newPlayerDialog: NewPlayerDialog;
@@ -113,6 +118,30 @@ export class GameApp implements RemoteHost {
     setUnits(this.save.units);
     this.race = new Race(this.selectedCar());
 
+    this.accountDialog = new AccountDialog({
+      save: this.save,
+      switching: () => { this.accountTransition = true; this.progressSync.cancel(); },
+      finished: () => { this.accountTransition = false; },
+      signedIn: (save, user) => {
+        this.progressSync.discard(this.save.playerId);
+        this.accountOwner = user;
+        this.race.reset();
+        Object.assign(this.save, save);
+        setUnits(this.save.units);
+        setLang(isLang(this.save.lang) ? this.save.lang : detectLang(navigator.languages));
+        applyStatic();
+        this.hud.invalidate();
+        this.resetForCar();
+        this.accountTransition = false;
+        this.persist();
+      },
+      signedOut: () => {
+        this.progressSync.clear();
+        clearAccountDevice(this.save);
+        location.reload();
+      },
+    });
+
     this.garage = new Garage({
       save: this.save,
       race: this.race,
@@ -138,6 +167,7 @@ export class GameApp implements RemoteHost {
       persist: () => this.persist(),
       changeLanguage: (lang) => this.changeLanguage(lang),
       editUsername: () => this.openUsername(),
+      openAccount: () => this.openAccount(),
       changeUnits: (units) => this.changeUnits(units),
       showTutorial: () => this.openTutorial(false),
       newPlayer: () => this.openNewPlayer(),
@@ -149,6 +179,7 @@ export class GameApp implements RemoteHost {
     });
     this.usernameDialog = new UsernameDialog({
       save: this.save,
+      openAccount: () => this.openAccount(),
       persist: () => this.persist(),
       onSaved: (name) => {
         this.notifications.toast(t('user.welcome', { name }));
@@ -191,9 +222,13 @@ export class GameApp implements RemoteHost {
     byId('closeModal').onclick = () => byId<HTMLDialogElement>('modal').close();
     // Without a name the dialog is mandatory, so Escape must not dismiss it.
     byId<HTMLDialogElement>('modal').addEventListener('cancel', (event) => {
-      if (this.usernameDialog.required) event.preventDefault();
+      if (this.usernameDialog.required && document.getElementById('usernameForm')) event.preventDefault();
     });
     byId<HTMLDialogElement>('modal').addEventListener('close', () => {
+      if (this.usernameDialog.required && !byId<HTMLDialogElement>('modal').open) {
+        this.openUsername();
+        return;
+      }
       // A modal re-opened in the same tick (name dialog -> tutorial) is still open: ignore its stale close.
       if (this.tutorialActive && !byId<HTMLDialogElement>('modal').open) this.finishTutorial();
     });
@@ -393,7 +428,7 @@ export class GameApp implements RemoteHost {
   }
 
   private async syncAtRest(): Promise<void> {
-    if (this.isRunning() || navigator.onLine === false) return;
+    if (this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount()) return;
     void this.progressSync.flush();
     if (!this.cloudBackup) await this.checkOnline();
     await this.syncScore();
@@ -421,7 +456,7 @@ export class GameApp implements RemoteHost {
    */
   private async syncScore(): Promise<void> {
     const { save } = this;
-    if (this.isRunning() || navigator.onLine === false ||
+    if (this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount() ||
       !this.cloudBackup || this.syncing || !save.username || save.bestScore <= 0) return;
     const marker = `${save.playerId}|${save.username}|${save.bestScore}`;
     if (this.readSyncMarker() === marker) return;
@@ -434,7 +469,7 @@ export class GameApp implements RemoteHost {
         signal: AbortSignal.timeout(10000),
         keepalive: true,
       });
-      if (response.ok) this.writeSyncMarker(marker);
+      if (response.ok && this.sameAccount() && !this.accountTransition) this.writeSyncMarker(marker);
     } catch {
       // Offline: the marker is unchanged, so the next trigger retries.
     } finally {
@@ -459,6 +494,12 @@ export class GameApp implements RemoteHost {
   }
 
   private persist(): void {
+    if (this.accountTransition || !this.sameAccount()) return;
+    if (this.accountOwner) {
+      this.save.playerId = this.accountOwner.id;
+      this.save.username = this.accountOwner.username;
+      this.save.history = [];
+    }
     this.save.updatedAt = Date.now();
     try {
       this.storage.setItem(SAVE_KEY, JSON.stringify(this.save));
@@ -552,6 +593,7 @@ export class GameApp implements RemoteHost {
   }
 
   openNewPlayer(): void {
+    if (this.accountOwner) { this.openAccount(); return; }
     this.openModal();
     this.newPlayerDialog.render();
   }
@@ -569,6 +611,7 @@ export class GameApp implements RemoteHost {
   }
 
   openUsername(): void {
+    if (this.accountOwner) { this.openAccount(); return; }
     this.openModal();
     this.usernameDialog.render();
   }
@@ -576,6 +619,15 @@ export class GameApp implements RemoteHost {
   private openSettings(): void {
     this.openModal();
     this.settingsDialog.render();
+  }
+
+  private openAccount(): void {
+    this.openModal();
+    void this.accountDialog.open();
+  }
+
+  private sameAccount(): boolean {
+    return localAccount()?.id === this.accountOwner?.id;
   }
 
   private setView(view: View): void {
@@ -607,7 +659,7 @@ export class GameApp implements RemoteHost {
 
   /** Browsers only allow audio after a user gesture, so the first one switches it on. */
   private unlockAudio(): void {
-    if (this.save.sound && !this.audio.enabled) this.audio.toggle().catch(() => undefined);
+    if (this.save.sound && !this.audio.enabled) this.audio.setEnabled(true).catch(() => undefined);
   }
 
   private async keepScreenAwake(): Promise<void> {
@@ -619,6 +671,13 @@ export class GameApp implements RemoteHost {
   }
 
   private bindWindowEvents(): void {
+    window.addEventListener('storage', event => {
+      if ((event.key === ACCOUNT_KEY || event.key === null) && !this.sameAccount()) {
+        this.accountTransition = true;
+        this.progressSync.cancel();
+        location.reload();
+      }
+    });
     window.addEventListener('appinstalled', () => { this.installPrompt = null; });
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();

@@ -1,6 +1,22 @@
 import type { MessageKey } from '../types.ts';
 
 export const zhCN = {
+  'auth.secure': "请使用HTTPS连接登录或创建账户。",
+  'auth.account': "账户",
+  'auth.login': "登录",
+  'auth.signup': "注册",
+  'auth.logout': "退出登录",
+  'auth.username': "用户名",
+  'auth.password': "密码",
+  'auth.sync': "同步进度",
+  'auth.help': "以游客身份游玩，或登录以合并不同设备上的进度。",
+  'auth.logoutHelp': "退出登录将清除此设备上的所有玩家记录。账户仍保存在云端。未同步的进度可能丢失。",
+  'auth.rules': "用户名：3–16个字母、数字、_、.或-。密码：15–128个字符。",
+  'auth.taken': "此用户名已被使用。",
+  'auth.credentials': "用户名或密码错误。",
+  'auth.invalid': "请检查用户名和密码要求。",
+  'auth.limited': "尝试次数过多。请在15分钟后重试。",
+  'auth.unavailable': "无法访问账户。请检查网络连接后重试。",
   'over.secondBalance': '余额：{coins} 金币 · 每局限购一次。',
   'shop.menu': '购买金币',
   'shop.title': '公路金币',

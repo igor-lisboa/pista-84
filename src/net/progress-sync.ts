@@ -11,6 +11,8 @@ export class ProgressSync {
   private readonly deviceId: string;
   private running = false;
   private retryRequested = false;
+  private generation = 0;
+  private controller = new AbortController();
 
   constructor(
     privateStorage: SaveStorage,
@@ -65,6 +67,28 @@ export class ProgressSync {
     this.write(OUTBOX_KEY, JSON.stringify(pending));
   }
 
+  /** Cancel requests before switching identities; stale replies cannot repopulate storage. */
+  cancel(): void {
+    this.generation++;
+    this.controller.abort();
+    this.controller = new AbortController();
+    this.retryRequested = false;
+  }
+
+  discard(playerId: string): void {
+    this.cancel();
+    const pending = this.pending();
+    delete pending[playerId];
+    this.write(OUTBOX_KEY, JSON.stringify(pending));
+    this.write(ACK_PREFIX + playerId, '');
+  }
+
+  clear(): void {
+    this.cancel();
+    this.fallback.clear();
+    this.write(OUTBOX_KEY, '{}');
+  }
+
   async flush(): Promise<void> {
     // Keep the outbox untouched while the browser already knows it is offline.
     if (!this.canUpload() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
@@ -73,21 +97,24 @@ export class ProgressSync {
       return;
     }
     this.running = true;
+    const generation = this.generation;
+    const signal = AbortSignal.any([this.controller.signal, AbortSignal.timeout(10000)]);
     try {
       for (const [playerId, save] of Object.entries(this.pending())) {
-        if (!this.canUpload()) return;
+        if (!this.canUpload() || generation !== this.generation) return;
         const url = `/api/progress?device=${this.deviceId}`;
         const headers = {'x-player-id': playerId, 'content-type': 'application/json'};
         try {
-          const current = await this.request(url, {headers, signal: AbortSignal.timeout(10000)});
+          const current = await this.request(url, {headers, signal});
           if (!current.ok) continue;
           const {revision} = await current.json() as {revision: number};
           if (!Number.isSafeInteger(revision) || revision < 0) continue;
-          if (!this.canUpload()) return;
+          if (!this.canUpload() || generation !== this.generation) return;
           const response = await this.request(url, {
             method: 'PUT', headers, body: JSON.stringify({save, revision}),
-            signal: AbortSignal.timeout(10000), keepalive: true,
+            signal, keepalive: true,
           });
+          if (generation !== this.generation) return;
           if (!response.ok) continue;
           const snapshot = JSON.stringify(save);
           this.write(ACK_PREFIX + playerId, snapshot);
