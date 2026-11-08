@@ -116,9 +116,16 @@ The historical D1 schema/migrations are retained for reference, not used by the 
 On launch, the game normalizes the existing `pista84` local save and persists any
 new identity assigned to a legacy save. It queues that snapshot before applying
 the environment balance override. No score or username is required to migrate.
-Every subsequent local persist also updates a durable local outbox. Upload runs
-on launch, every 30 seconds, on reconnect and best-effort on page exit. Offline
-failures leave the outbox for the next attempt or browser launch. Saves for a
+Every subsequent local persist also updates a durable local outbox. Five-second
+racing autosaves are local-only. Automatic progress and score uploads run on
+pause, game end (crash or fuel exhaustion), return to the menu and best-effort
+page exit/backgrounding. There are no periodic, launch or reconnect uploads.
+A one-time launch `/health` check enables manual backup controls; runtime config,
+explicit leaderboard/backup actions and the controller WebSocket remain available.
+Resuming play prevents a pending revision lookup from starting its PUT or a
+queued retry; unsent snapshots stay local until the next permitted event. Offline
+failures leave the outbox and score acknowledgement marker unchanged for that
+next event, including after a browser restart. Saves for a
 retired player remain queued when a new player starts.
 
 `src/net/progress-sync.ts` serializes uploads through
@@ -133,8 +140,9 @@ The existing garage buttons continue to manage the explicit manual backup in
 `backups`. Automatic snapshots are readable through the device-scoped progress
 API for recovery; a cross-device snapshot picker is not implemented. Storage
 failure prevents persistence of the outbox but still permits in-session upload.
-Players must revisit the updated game while connected for existing local data
-to reach MongoDB; a closed/offline browser cannot be uploaded remotely.
+Players must revisit the updated game and pause/end/leave while connected for
+existing local data to reach MongoDB; a closed/offline browser cannot be uploaded
+remotely. Page-exit upload is best-effort, never a prerequisite for a local save.
 
 Backend responsibilities are separated for maintenance:
 

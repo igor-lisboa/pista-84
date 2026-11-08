@@ -44,7 +44,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; te
 | Vehicles and audio | 18 distinct cars, all purchased with coins, one engine voice per car, motorcycle rain grip, menu and race music tracks (`world.test.ts`, `race.test.ts`) |
 | Environment | Road bounds/direction changes by seed; continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, per-user backup and revision conflict (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
-| Automatic backups | Legacy local saves upload after reconnect; outbox survives reload/failure; changes during upload and retired players remain queued; device/manual isolation and stale writes (`progress-sync.test.ts`, `progress-sync.spec.ts`) |
+| Automatic backups | No score/progress uploads through 35 seconds of active racing or reconnect; local autosaves continue; pause/end/exit upload; failed outbox survives reload and retries at the next boundary; resumed play defers pending PUT; device/manual isolation and stale writes (`progress-sync.test.ts`, `progress-sync.spec.ts`) |
 | Languages | Fifteen languages offered; full locales cover every key with the same placeholders; no unknown keys; browser language mapping (`i18n.test.ts`) |
 | Room services | Memory room protocol and live Redis diagnostics, token/role checks, atomic answer, expiration/deletion, compatibility input, cross-origin/oversized/invalid JSON rejection (`signaling.test.ts`) |
 | Browser flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; fuel exhaustion gives one continuation (`game.spec.ts`) |
@@ -73,6 +73,10 @@ pages and verify a WebSocket upgrade on `/api/controller`. The four browser case
 are targeted coverage, not the full browser suite or physical iPhone certification.
 
 ### Automatic local-save synchronization (2026-11-08)
+
+The launch/reconnect/periodic upload behavior verified below is historical.
+The current contract uploads only at pause/end/exit boundaries, with local-only
+racing autosaves; see the automatic-backup regression coverage above.
 
 - Production build, TypeScript checking and all 111 Node tests passed on Node 24.
 - The 36 affected Chromium/WebKit cases in `game.spec.ts`, `new-player.spec.ts`

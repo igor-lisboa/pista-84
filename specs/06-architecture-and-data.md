@@ -105,9 +105,11 @@ The override is applied when loading local, imported or restored progress, and w
 
 ## Online data and cloud backup
 
-Existing local saves are automatically uploaded on launch and after reconnect,
-without requiring a score, username or manual backup action. Later local changes
-are coalesced in a persistent outbox and uploaded every 30 seconds. Legacy saves
+Existing local saves are queued on launch without requiring a score, username
+or manual backup action. Later local changes are coalesced in a persistent outbox.
+Autosaves remain local during play; automatic uploads occur only on pause, game
+end, return to the menu or page exit/backgrounding, never on a timer or reconnect.
+Failed uploads remain queued across reloads for the next such event. Legacy saves
 receive a stable GUID before upload. Per-player/device snapshots live durably in
 MongoDB `device-backups`; they preserve each device's local progress separately
 from manual backups. Failed uploads stay queued, including across page reloads

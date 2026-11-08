@@ -12,9 +12,14 @@ export class ProgressSync {
   private running = false;
   private retryRequested = false;
 
-  constructor(privateStorage: SaveStorage, request: typeof fetch = (input, init) => fetch(input, init)) {
+  constructor(
+    privateStorage: SaveStorage,
+    request: typeof fetch = (input, init) => fetch(input, init),
+    canUpload: () => boolean = () => true,
+  ) {
     this.storage = privateStorage;
     this.request = request;
+    this.canUpload = canUpload;
     const existing = this.read(DEVICE_KEY);
     this.deviceId = isPlayerId(existing) ? existing : newPlayerId();
     this.write(DEVICE_KEY, this.deviceId);
@@ -22,6 +27,7 @@ export class ProgressSync {
 
   private readonly storage: SaveStorage;
   private readonly request: typeof fetch;
+  private readonly canUpload: () => boolean;
   private readonly fallback = new Map<string, string>();
 
   private read(key: string): string | null {
@@ -61,7 +67,7 @@ export class ProgressSync {
 
   async flush(): Promise<void> {
     // Keep the outbox untouched while the browser already knows it is offline.
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    if (!this.canUpload() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
     if (this.running) {
       this.retryRequested = true;
       return;
@@ -69,6 +75,7 @@ export class ProgressSync {
     this.running = true;
     try {
       for (const [playerId, save] of Object.entries(this.pending())) {
+        if (!this.canUpload()) return;
         const url = `/api/progress?device=${this.deviceId}`;
         const headers = {'x-player-id': playerId, 'content-type': 'application/json'};
         try {
@@ -76,6 +83,7 @@ export class ProgressSync {
           if (!current.ok) continue;
           const {revision} = await current.json() as {revision: number};
           if (!Number.isSafeInteger(revision) || revision < 0) continue;
+          if (!this.canUpload()) return;
           const response = await this.request(url, {
             method: 'PUT', headers, body: JSON.stringify({save, revision}),
             signal: AbortSignal.timeout(10000), keepalive: true,

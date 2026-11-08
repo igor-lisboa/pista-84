@@ -70,7 +70,8 @@ export class GameApp implements RemoteHost {
 
   private readonly config: BalanceConfig;
   private readonly storage = createStorage();
-  private readonly progressSync = new ProgressSync(this.storage);
+  private readonly progressSync = new ProgressSync(this.storage,
+    (input, init) => fetch(input, init), () => !this.isRunning());
   private readonly save: SaveData;
   private readonly race: Race;
   private readonly audio = new AudioEngine();
@@ -197,13 +198,7 @@ export class GameApp implements RemoteHost {
       if (this.tutorialActive && !byId<HTMLDialogElement>('modal').open) this.finishTutorial();
     });
 
-    this.checkOnline();
-    void this.progressSync.flush();
-    setInterval(() => void this.progressSync.flush(), 30_000);
-    window.addEventListener('online', () => {
-      this.checkOnline();
-      void this.progressSync.flush();
-    });
+    void this.checkOnline();
 
     this.bindWindowEvents();
     window.addEventListener('resize', () => this.resize());
@@ -266,6 +261,7 @@ export class GameApp implements RemoteHost {
     if (this.race.status !== 'running') return;
     this.race.status = 'paused';
     this.settle();
+    void this.syncAtRest();
     this.input.clear();
     this.setView('overlay');
     showPause({
@@ -291,10 +287,12 @@ export class GameApp implements RemoteHost {
     this.previousStatus = 'ready';
     this.setView('menu');
     this.refresh();
+    void this.syncAtRest();
   }
 
   private gameOver(): void {
     this.settle();
+    void this.syncAtRest();
     this.audio.tone(this.race.crashed ? 55 : 65, 0.5, 'sawtooth', 0.3);
     this.setView('overlay');
     showGameOver(this.race, this.save, {
@@ -392,32 +390,39 @@ export class GameApp implements RemoteHost {
     this.save.best = Math.max(this.save.best, this.race.distance);
     this.save.bestScore = Math.max(this.save.bestScore, Math.floor(this.race.score));
     this.persist();
-    void this.syncScore();
+  }
+
+  private async syncAtRest(): Promise<void> {
+    if (this.isRunning() || navigator.onLine === false) return;
+    void this.progressSync.flush();
+    if (!this.cloudBackup) await this.checkOnline();
+    await this.syncScore();
   }
 
   /**
-   * Asks the server whether online storage exists, then pushes any score the
-   * server has not seen. Offline or failing servers are ignored: the game only
-   * ever depends on the local save.
+   * Checks availability for the manual backup controls, without uploading saves.
    */
-  private checkOnline(): void {
-    fetch('/health')
-      .then((response) => response.json() as Promise<{ cloudBackup?: boolean }>)
-      .then((data) => {
-        this.cloudBackup = data.cloudBackup === true;
-        return this.syncScore();
-      })
-      .catch(() => undefined);
+  private async checkOnline(): Promise<void> {
+    if (this.isRunning() || navigator.onLine === false) return;
+    try {
+      const response = await fetch('/health', {signal: AbortSignal.timeout(10000)});
+      if (!response.ok) return;
+      const data = await response.json() as {cloudBackup?: boolean};
+      this.cloudBackup = data.cloudBackup === true;
+    } catch {
+      // Online features are optional; local progress remains authoritative.
+    }
   }
 
   /**
    * Sends the best score and current name once per change. The last value the
    * server accepted is remembered on this device, so a run played offline (or
-   * a rename) is retried on the next launch, run or reconnection.
+   * a rename) is retried on the next pause, game end or exit.
    */
   private async syncScore(): Promise<void> {
     const { save } = this;
-    if (!this.cloudBackup || this.syncing || !save.username || save.bestScore <= 0) return;
+    if (this.isRunning() || navigator.onLine === false ||
+      !this.cloudBackup || this.syncing || !save.username || save.bestScore <= 0) return;
     const marker = `${save.playerId}|${save.username}|${save.bestScore}`;
     if (this.readSyncMarker() === marker) return;
     this.syncing = true;
@@ -426,6 +431,8 @@ export class GameApp implements RemoteHost {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ playerId: save.playerId, username: save.username, score: save.bestScore, distance: save.best }),
+        signal: AbortSignal.timeout(10000),
+        keepalive: true,
       });
       if (response.ok) this.writeSyncMarker(marker);
     } catch {
@@ -644,12 +651,20 @@ export class GameApp implements RemoteHost {
       if (document.hidden) {
         this.input.clear();
         if (this.race.status === 'running') this.pause();
+        else {
+          this.persist();
+          void this.syncAtRest();
+        }
       }
     });
     window.addEventListener('pagehide', () => {
-      if (this.race.distance > 0) this.settle();
+      if (this.isRunning()) {
+        this.pause();
+        return;
+      }
+      this.settle();
       this.input.clear();
-      void this.progressSync.flush();
+      void this.syncAtRest();
     });
     // Safari may fire blur when its browser chrome changes focus; on touch devices
     // visibility is the pause authority instead.

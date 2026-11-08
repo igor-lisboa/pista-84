@@ -99,7 +99,7 @@ test('invalid device IDs are rejected by the API', async () => {
   assert.equal(response.status, 400);
 });
 
-test('reconnecting during a failed request retries without waiting for the timer', async () => {
+test('another permitted sync trigger during a failed request retries once', async () => {
   const local = storage();
   let rejectOffline!: (reason: Error) => void;
   let attempts = 0;
@@ -109,9 +109,53 @@ test('reconnecting during a failed request retries without waiting for the timer
   });
   sync.queue(defaultSave());
   const firstAttempt = sync.flush();
-  await sync.flush(); // The browser's online event arrives before the first request fails.
+  await sync.flush();
   rejectOffline(new Error('offline'));
   await firstAttempt;
   assert.equal(attempts, 3);
+  assert.equal(local.getItem('pista84.progress-outbox'), '{}');
+});
+
+test('local queueing and blocked flushes never make requests while playing', async () => {
+  const local = storage();
+  let playing = true;
+  let requests = 0;
+  const sync = new ProgressSync(local, async (_url, options) => {
+    requests++;
+    return Response.json({revision: options?.method === 'PUT' ? 1 : 0});
+  }, () => !playing);
+  const save = defaultSave();
+  sync.queue(save);
+  sync.queue({...save, coins: 150, updatedAt: save.updatedAt + 1});
+  await sync.flush();
+  assert.equal(requests, 0);
+  assert.equal(JSON.parse(local.getItem('pista84.progress-outbox')!)[save.playerId].coins, 150);
+  playing = false;
+  await sync.flush();
+  assert.equal(requests, 2);
+  assert.equal(local.getItem('pista84.progress-outbox'), '{}');
+});
+
+test('resuming during revision lookup defers PUT and overlapping retries until the next pause', async () => {
+  const local = storage();
+  let playing = false;
+  let finishLookup!: (response: Response) => void;
+  let requests = 0;
+  const sync = new ProgressSync(local, async (_url, options) => {
+    if (++requests === 1) return new Promise<Response>(resolve => { finishLookup = resolve; });
+    return Response.json({revision: options?.method === 'PUT' ? 1 : 0});
+  }, () => !playing);
+  const save = defaultSave();
+  sync.queue(save);
+  const pending = sync.flush();
+  await sync.flush();
+  playing = true;
+  finishLookup(Response.json({revision: 0}));
+  await pending;
+  assert.equal(requests, 1);
+  assert.notEqual(local.getItem('pista84.progress-outbox'), '{}');
+  playing = false;
+  await sync.flush();
+  assert.equal(requests, 3);
   assert.equal(local.getItem('pista84.progress-outbox'), '{}');
 });
