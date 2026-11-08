@@ -1,6 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {DELETE, GET, POST} from '../api/rooms.ts';
+import {createRoomsHandler} from '../api/rooms.ts';
+import {memoryStore} from '../src/server/signaling.ts';
+
+const handler = createRoomsHandler(memoryStore());
+const GET = handler, POST = handler, DELETE = handler;
+
+test('unconfigured serverless pairing fails explicitly instead of storing rooms in memory', async () => {
+  const response = await createRoomsHandler(null)(new Request('https://pista.test/api/rooms', {method: 'POST', body: '{}'}));
+  assert.equal(response.status, 503);
+});
 
 const ORIGIN = 'https://pista.test';
 

@@ -1,4 +1,4 @@
-import {blobStore} from '../src/server/blob-store.ts';
+import {mongoStore} from '../src/server/mongo-store.ts';
 
-/** `null` until the Blob store token is set on the project. */
-export const store = blobStore(process.env);
+/** No volatile fallback: cloud saves are acknowledged only by MongoDB. */
+export const store = mongoStore(process.env);

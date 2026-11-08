@@ -21,15 +21,13 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm start',
-    // Tests must never write fake players into the real Blob store: empty values win over .env.
+    // Tests must never write fake players into live services: empty values win over .env.
     env: {
-      BLOB_STORAGE_READ_WRITE_TOKEN: '',
-      BLOB_STORAGE_STORE_ID: '',
-      BLOB_READ_WRITE_TOKEN: '',
-      BLOB_STORE_ID: '',
+      MONGODB_URI: '',
+      REDIS_URL: '',
     },
     url: `${BASE_URL}/health`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
   reporter: 'list',
 });

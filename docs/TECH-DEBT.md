@@ -1,66 +1,15 @@
-# PISTA 84 — tech debt
+# PISTA 84 tech debt
 
-## TD-01 · Online storage is two JSON files in Vercel Blob
+Online storage now uses per-player MongoDB records and expiring Redis keys.
+See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency.
 
-**Decision.** Everything online lives in a private Vercel Blob store, as two JSON documents so the hot path stays tiny:
+## Remaining limitations
 
-- `pista84/scores.json` — one compact `[guid, name, score, distance, achievedAt, createdAt, updatedAt]` row per player, kept sorted best-first. Every finished run touches only this, and the leaderboard reads only this, paginated five at a time by the server.
-- `pista84/backups.json` — the heavy per-player cloud saves, written only by the backup button.
-
-Rows hang off each player's permanent GUID, so renaming never loses a score. Code: `src/server/players.ts` (rules), `src/server/blob-store.ts` (store), `src/server/cloud.ts` (HTTP handlers), `api/*.ts` (Vercel functions), `src/ui/leaderboard.ts` (menu dialog).
-
-It was chosen to get an online leaderboard running without provisioning a database. It is a stop-gap: Blob is object storage, not a database.
-
-**What is already handled**
-
-- **Concurrent writers.** Every change is conditional on the blob's ETag (`ifMatch`) and retried up to six times against the newer copy, so two players finishing at the same moment both land in the ranking. After six lost races the request answers 503 and the client retries later.
-- **No pointless writes.** A document that did not change is never uploaded (a lower score with the same name changes nothing).
-- **Cheap reads.** The ranking is cached in memory for 10 seconds per server instance, and a write refreshes that cache.
-
-**Known limits**
-
-- **Operation quotas.** On the free plan the store allows roughly 2,000 advanced operations (writes) and 10,000 simple operations (reads) a month, as last seen in the dashboard; verify. Each changed score costs one read and one write, each uncached leaderboard view one read. A busy game will exceed this long before storage becomes a problem.
-- **Whole-document rewrites.** Each change re-uploads the entire file. At about 90 bytes a row that is fine for thousands of players, then grows linearly in cost and latency. Writes above 4 MB are refused with HTTP 507.
-- **Scores are trusted.** The client sends its own score; there is no server-side validation of a run, so the leaderboard can be cheated.
-- **Names are not unique.** Two players can share a display name. Ranking is by GUID, so nothing collides, but the board can show duplicates.
-- **GUID is the only credential.** `x-player-id` identifies the caller for backups. It is never returned by the leaderboard, but anyone who learns a GUID can overwrite that player's backup. A per-player secret or signed token is needed before this holds anything valuable.
-- **No pruning.** Players who never come back stay in the file forever.
-
-**What keeps working regardless.** The game is offline-first: the local save is the source of truth, nothing waits on the network, and a failing or unconfigured store answers 503 which the client ignores. The last submitted score and name are remembered on the device (`pista84.synced`) and retried on the next launch, run, rename, import or when the browser comes back online.
-
-**Exit plan.** `PlayerStore` (`read`, `update`) is the only thing the handlers know about storage. Replace `blobStore` with a Redis (sorted set for ranks, hash per player) or Postgres implementation; no handler or client code needs to change. A real database also removes the per-operation quotas and the whole-file rewrites.
-
-**Related leftovers**
-
-- The Cloudflare D1 `player_progress` table (`db/schema.ts`, `drizzle/0001_*`) is no longer used by the code. `control_rooms` (phone pairing) still uses D1 on the Worker and the in-memory store locally.
-- **Vercel functions setup (learned the hard way).** `vercel.json` must not use the legacy `builds` array: it names each function after its file *with* the extension (`/api/leaderboard.ts`), so every `/api/*` call returned 404. It uses `buildCommand` + `outputDirectory` instead and the `api/` folder is picked up automatically. **Never name a file like a server entrypoint.** Vercel's backend auto-detection looks for `app`, `index`, `server` and `main` (`.js/.ts` variants, in the repo root and in `src/`) and, if it finds one, deploys it as a Node function that answers `/` instead of the static site (the browser entry `src/app.ts` once crashed there with `location is not defined`). The search also covers the **build output directory** (`www/`), and runtime stack traces are source-mapped, so a crash in the browser bundle `www/app.js` showed up as `/var/src/app.ts` even after the source file was renamed. That is why the browser entry is `src/client.ts`, its bundle `www/game.js`, and the local server `dev-server.ts`; a test guards all of these names. `api/tsconfig.json` sets `types: []` because the function builder compiles from a temp directory where TypeScript 7 cannot find `@types/node` and then emits nothing. Reproduce the real build locally with `npx vercel build` (needs a throwaway `.vercel/project.json`) and look at `.vercel/output/functions`.
-
-## TD-02 · Phone pairing rooms are Blob objects, and every poll is a billed operation
-
-**Symptom that led here.** With the rooms kept in one serverless function's memory, the phone's `GET /api/rooms/<id>` was answered by a different instance than the one that created the room and failed with `410 Room expired. Generate a new QR code.` Serverless functions do not share memory, and Vercel cannot host a WebSocket server, so there is no way to "just open a socket" between the two devices without an outside service.
-
-**Decision.** `/api/rooms/**` is served by the single function `api/rooms.ts` (`vercel.json` rewrites every sub-route to it as `/api/rooms?route=<rest>`). Its rooms live in the same private Blob store as the leaderboard (`src/server/blob-rooms.ts`): per room an object for the fixed part (tokens, offer), one for the answer (created without overwrite, so only one phone can take a room) and one for the latest command. If no Blob token is set the function falls back to `memoryStore()`, which is fine locally and unreliable on Vercel. `/health` reports `pairing: "shared"` or `"memory"`. The Worker keeps using D1 and `dev-server.ts` its own in-memory store.
-
-**How operations are spared** (a Blob call is a billed operation, writes are the expensive kind)
-
-- Over the direct WebRTC channel the phone sends commands peer to peer and contacts the server only every 5 seconds, and the main screen polls once a second: a direct session costs almost nothing after pairing.
-- The fixed part of a room is remembered by each instance for 5 seconds, so a poll of an answered room is one read.
-- An unchanged command is not rewritten for 0.8 seconds, so holding a pedal does not write ten times a second.
-- Creating a room occasionally sweeps up rooms nobody closed.
-
-**Known limits**
-
-- **A relay session is expensive.** Safari (which always uses the HTTPS relay) or any phone where WebRTC cannot connect polls the room about 9 times a second and writes every change in steering or pedals. That is on the order of 30,000 reads and several thousand writes an hour, against a free plan of roughly 10,000 simple and 2,000 advanced operations a *month*. A few minutes of relay play can use the whole allowance, after which the leaderboard cannot save either. On a paid plan it costs cents per hour.
-- **Latency.** Each relayed command is a Blob write plus a read on the other side; steering by tilt over the relay will feel laggy.
-- **Invocation cost.** Every poll and heartbeat is a function invocation.
-- **No TURN server** (roadmap NET-01), so WebRTC across some mobile networks falls back to the relay above.
-
-**Exit plan.** `RoomStore` (`src/server/signaling.ts`) is all the pairing code knows about storage. A store with cheap small writes (Redis) or a WebSocket/pub-sub service (Cloudflare Durable Objects, Ably, Pusher) removes both the cost and the polling.
-
-## Setup
-
-1. Create a private Blob store in the Vercel dashboard and connect it to the project with the `BLOB_STORAGE` prefix. Vercel then provides `BLOB_STORAGE_READ_WRITE_TOKEN` and `BLOB_STORAGE_STORE_ID` to the deployment; that is all the server needs.
-2. For local runs put the same two values in `.env.local` (or run `vercel env pull .env.local`).
-3. Run `npm run online:check`. It reads the ranking, writes a throwaway row, removes it again, and round-trips a pairing room in the same store.
-
-Without a Blob token the online features are simply switched off (`/health` reports `cloudBackup: false`) and local runs keep players in memory.
+- Scores are client-reported. Strong anti-cheat and verified run scoring are not implemented.
+- Player GUID is the backup credential. Strong account authentication is still needed before progress has financial value.
+- Backup and score publication are separate operations; callers may need to reload a backup after a partial failure.
+- Controller fallback uses HTTPS polling; TURN and a shared WebSocket/pub-sub relay remain future work.
+- Local WebSocket handles belong to one Node process; they expire after one hour and cannot cross instances.
+- Historical SQL schema/migrations remain for reference, with no active D1 binding.
+- Old remotely stored records are not automatically imported or deleted. Retain/import needed data before switching traffic.
+- Vercel backend auto-detection treats root/src/browser bundles named app, index, server or main as server entrypoints. Preserve client.ts, game.js and dev-server.ts naming and the tests guarding them.

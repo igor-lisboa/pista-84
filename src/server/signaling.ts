@@ -1,5 +1,4 @@
-// Shared by the Node preview and the Cloudflare Worker. No gameplay data is stored.
-import type {D1Like} from './d1.ts';
+// Shared room HTTP protocol; production state lives in Redis. No gameplay data is stored.
 
 export interface RemoteInput {
   steer: number;
@@ -191,62 +190,6 @@ export async function signaling(request: Request, store: RoomStore): Promise<Res
     console.error('signaling failure', error instanceof Error ? error.name : 'unknown');
     return fail('Service temporarily unavailable.', 503);
   }
-}
-
-interface RoomRow {
-  id: string;
-  host_token: string;
-  join_token: string;
-  offer: string;
-  answer: string | null;
-  expires: number;
-  input: string | null;
-  input_time: number;
-}
-
-function roomFromRow(row: RoomRow): Room {
-  return {
-    id: row.id,
-    hostToken: row.host_token,
-    joinToken: row.join_token,
-    offer: row.offer,
-    answer: row.answer,
-    expires: row.expires,
-    input: row.input,
-    inputTime: row.input_time,
-  };
-}
-
-export function d1Store(db: D1Like): RoomStore {
-  return {
-    async create(room) {
-      await db.prepare('DELETE FROM control_rooms WHERE expires < ?').bind(Date.now()).run();
-      await db
-        .prepare('INSERT INTO control_rooms (id, host_token, join_token, offer, expires) VALUES (?, ?, ?, ?, ?)')
-        .bind(room.id, room.hostToken, room.joinToken, room.offer, room.expires)
-        .run();
-    },
-    async get(id) {
-      const row = await db.prepare('SELECT * FROM control_rooms WHERE id = ?').bind(id).first<RoomRow>();
-      return row ? roomFromRow(row) : null;
-    },
-    async answer(id, answer) {
-      const result = await db
-        .prepare('UPDATE control_rooms SET answer = ? WHERE id = ? AND answer IS NULL')
-        .bind(answer, id)
-        .run();
-      return result.meta.changes === 1;
-    },
-    async remove(id) {
-      await db.prepare('DELETE FROM control_rooms WHERE id = ?').bind(id).run();
-    },
-    async input(id, input, time) {
-      await db
-        .prepare('UPDATE control_rooms SET input = ?, input_time = ? WHERE id = ?')
-        .bind(JSON.stringify(input), time, id)
-        .run();
-    },
-  };
 }
 
 export function memoryStore(): RoomStore {

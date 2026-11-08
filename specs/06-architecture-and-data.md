@@ -15,12 +15,12 @@ car-game/
     i18n/                translator and locales
     ui/                  screens, HUD, input, dialogs
     net/                 phone-controller client
-    server/              room signaling, cloud backup, D1 types
+    server/              room signaling, cloud backup, MongoDB/Redis adapters
     shared/              public runtime config
     client.ts, qr.ts     browser entry point, QR generation
   web/                   HTML, CSS, PWA files, sw.ts and artwork
   worker/                hosted Worker entrypoint
-  db/                    Drizzle schema
+  db/                    historical SQL schema (inactive)
   drizzle/               immutable SQL migrations and metadata
   tests/                 Node tests, test support, Playwright specs
   scripts/               build, env, assets, screenshots and verification (TypeScript)
@@ -62,12 +62,12 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts` | Car previews, DOM/format helpers, toasts and feedback |
 | `src/net/remote.ts` | Pairing client, WebRTC and HTTP compatibility transport |
-| `src/server/signaling.ts` | Shared room API with D1 and in-memory stores |
-| `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural D1 types |
+| `src/server/signaling.ts` | Shared room protocol; Redis in production, memory only for isolated tests/local fallback |
+| `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
 | `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`) |
 | `src/client.ts` | Entry point: fetch `/runtime-config.json`, then mount the game or the controller page |
-| `dev-server.ts` | Local Node static server, in-memory pairing, `/runtime-config.json`, `/network`, `/qr`, `/health`, legacy WebSocket relay |
-| `worker/index.ts` | Hosted static assets, `/runtime-config.json`, health, pairing and backup endpoints |
+| `dev-server.ts` | Node static server, MongoDB/Redis APIs, public config, network/QR, health and local WebSocket relay |
+| `worker/index.ts` | Static edge assets, public config and proxy to Node APIs |
 | `web/sw.ts` | Service worker (offline cache) |
 
 `src/game`, `src/server` and `src/shared` have no DOM dependency and are exercised directly by the Node tests.
@@ -101,30 +101,46 @@ The local server and build load `.env` through Node's `loadEnvFile` (`scripts/en
 
 The override is applied when loading local, imported or restored progress, and when reading a cloud backup. Reads do not change database rows or revisions. Purchases and rewards still change the session balance; reloading reapplies the configured value. This setting applies to all players of the configured environment. Clearing it restores normal saved-balance behavior. `.env` is ignored by Git; `.env.example` documents the options (`PISTA84_COINS`, `PORT`, optional `PUBLIC_ORIGIN`).
 
-## Cloud backup
+## Online data and cloud backup
 
-Hosted only, manually invoked from the garage. Identity is supplied by the Sites gateway in `oai-authenticated-user-id`; user identity is not accepted from request JSON. Read returns the account snapshot/revision, or an empty snapshot at revision 0. Writes require the current revision and fail with 409 on conflict.
+The backend separates responsibilities into small modules: `mongo-store.ts` owns
+connections/index setup; `mongo-player-store.ts` owns database operations;
+`players.ts` owns score/backup rules; `leaderboard.ts` owns shared pagination and
+public response mapping. `redis.ts` owns its connection and `redis-rooms.ts` owns
+room operations. Memory player storage is a test double in `tests/support/`,
+not a production fallback.
 
-Restore replaces local progress and resets the active run. Backup does not turn client-reported coins into a trusted financial balance. The local Node server does not emulate an authenticated cloud account (it has no `/api/progress`), and `/health` there lacks `cloudBackup`, so the backup buttons stay hidden.
+MongoDB owns durable online scores and manual progress backups. The Node/Vercel
+runtime uses MONGODB_URI and optional MONGODB_DATABASE (default pista84).
+Each collection has one record per player GUID. Score records mirror indexed
+score/achievement fields; backups contain sanitized saves and public revisions.
+Updates compare internal versions and retry conflicts; stale backup revisions
+return HTTP 409. GUID identity uses x-player-id, not a gateway account header.
+Local device progress and export/import remain available offline.
 
-## Database
+Redis owns ephemeral pairing rooms (ten minutes) and latest controller input
+(two seconds, capped by the room lifetime). Single-controller claims and expiry
+checks are atomic scripts. Deployed pairing has no instance-memory fallback.
+Node may use memory pairing only when Redis is absent for local development;
+it never acknowledges a volatile cloud backup. Missing/unreachable services
+return 503 without erasing local progress.
 
-Binding: **`DB`**, provisioned for the hosted Worker. Schema: [db/schema.ts](../db/schema.ts).
-
-| Table | Fields | Purpose |
-| --- | --- | --- |
-| `control_rooms` | `id` PK; `host_token`, `join_token`, `offer`, nullable `answer`, `expires`, nullable `input`, `input_time` default 0 | Pairing and latest compatibility command |
-| `player_progress` | `user_id` PK; `data`, `revision`, `updated` | Per-account manual casual backup |
-
-Room data does not contain a command history. Tokens/room IDs are random 24-byte values encoded as 48 hex characters. Database access uses parameterized statements. The local pairing store is ephemeral memory with a 500-room cap.
-
-Migrations are append-only: `0000_furry_marvex.sql` creates rooms, `0001_true_shriek.sql` adds progress, and `0002_steep_roulette.sql` adds compatibility-input fields. Change schema, generate a new migration (`npm run db:generate`), inspect it, and preserve previously applied SQL/metadata.
+See [storage documentation](../docs/STORAGE.md) for exact record/key layouts,
+connection handling, deployment, data transition and verification. Historical
+SQL schema/migrations are retained as reference and are not used at runtime.
 
 ## Build and hosting
 
-`npm run build` (`scripts/build.ts`) empties `www/`, copies `web/` into it (skipping `.ts` sources), bundles `src/app.ts` and `web/sw.ts` with esbuild, writes `www/runtime-config.json`, embeds every file of `www/` as a generated module (`worker/generated-assets.ts`, ignored by Git) and bundles the Worker ESM at `dist/server/index.js`. PNG bytes are preserved as binary responses. Generated output is not the editing source. `npm start` / `npm run dev` run `node server.ts`, which serves `www/`, so build first.
+npm run build generates www/, the Worker asset module and
+dist/server/index.js. Browser entry is src/client.ts; local Node
+entry is dev-server.ts. Generated output is not source. npm start
+builds before starting the local server.
 
-The tracked `.openai/hosting.json` retains the Site project identity and D1 binding. Hosted updates must publish the exact pushed source/artifact and preserve the existing private audience. Documentation-only changes do not require a game deployment.
+Vercel serves static files and Node API functions. The optional browser-targeted
+Worker serves assets/config and proxies online APIs to an HTTPS API_ORIGIN
+pointing at the Node deployment. Database credentials stay on Node; the Worker
+has no D1 binding and never bundles TCP drivers. Preserve the Site project ID
+and audience; publishing is separate from local changes.
 
 ## Offline and native
 

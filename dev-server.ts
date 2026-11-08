@@ -8,9 +8,9 @@ import {WebSocketServer, WebSocket} from 'ws';
 import QRCode from 'qrcode';
 import {runtimeConfig} from './scripts/env.ts';
 import {signaling, memoryStore, sanitizeInput} from './src/server/signaling.ts';
-import {cloudProgress, leaderboardApi, onlineHealth} from './src/server/cloud.ts';
-import {blobStore} from './src/server/blob-store.ts';
-import {memoryPlayerStore} from './src/server/players.ts';
+import {cloudProgress, leaderboardApi, onlineHealth, storageUnavailable} from './src/server/cloud.ts';
+import {mongoStore} from './src/server/mongo-store.ts';
+import {redisRoomStore} from './src/server/redis-rooms.ts';
 
 const DEFAULT_PORT = 4173;
 const MAX_API_BODY = 24_000;
@@ -34,9 +34,8 @@ const MIME_TYPES: Record<string, string> = {
 
 const root = resolve('www');
 const port = Number(process.env.PORT) || DEFAULT_PORT;
-const roomStore = memoryStore();
-// Local runs without a Blob token keep players in memory; they reset on restart.
-const playerStore = blobStore(process.env) ?? memoryPlayerStore();
+const roomStore = redisRoomStore(process.env) ?? memoryStore();
+const playerStore = mongoStore(process.env);
 
 function findHostIp(): string | undefined {
   return Object.values(networkInterfaces())
@@ -98,7 +97,7 @@ async function handlePlayersApi(req: IncomingMessage, res: ServerResponse, url: 
     headers: req.headers as Record<string, string>,
     ...(['GET', 'HEAD'].includes(method) ? {} : {body}),
   });
-  const response =
+  const response = !playerStore ? storageUnavailable() :
     url.pathname === '/api/progress'
       ? await cloudProgress(request, playerStore, runtimeConfig)
       : await leaderboardApi(request, playerStore);
@@ -149,7 +148,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
   } else if (pathname === '/network') {
     sendJson(res, {host: hostIp});
   } else if (pathname === '/health') {
-    sendJson(res, onlineHealth(playerStore));
+    sendJson(res, {...onlineHealth(playerStore), storage: playerStore ? 'mongodb' : 'unconfigured', pairing: process.env.REDIS_URL ? 'redis' : 'memory'});
   } else if (pathname === '/qr') {
     await handleQr(res, url);
   } else {
@@ -189,6 +188,18 @@ type ServerMessage =
   | {type: 'input'; input: {steer: number; accelerate: boolean; brake: boolean}};
 
 const relayRooms = new Map<string, RelayRoom>();
+
+// Live sockets cannot be serialized in Redis. This local-only relay owns them;
+// shared HTTP signaling always uses Redis when configured.
+setInterval(() => {
+  for (const [id, room] of relayRooms) {
+    if (Date.now() - room.created >= RELAY_ROOM_TTL_MS) {
+      relayRooms.delete(id);
+      room.controller?.close();
+      room.host.close();
+    }
+  }
+}, 60_000).unref();
 
 function sendMessage(socket: WebSocket | null | undefined, message: ServerMessage): void {
   if (socket?.readyState === WebSocket.OPEN) {

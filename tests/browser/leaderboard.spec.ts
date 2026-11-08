@@ -1,12 +1,20 @@
 import { expect, test } from '@playwright/test';
+import {submitScore} from '../../src/server/players.ts';
+import {memoryPlayerStore} from '../support/memory-player-store.ts';
+import {leaderboardApi} from '../../src/server/cloud.ts';
 
-test('the main menu shows the ranking five drivers at a time', async ({ page, request }) => {
+// Service-worker-originated requests bypass Playwright page routes in WebKit.
+test.use({serviceWorkers: 'block'});
+
+test('the main menu shows the ranking five drivers at a time', async ({ page }) => {
+  const store = memoryPlayerStore();
+  await page.route('**/api/leaderboard**', async (route) => {
+    const response = await leaderboardApi(new Request(route.request().url()), store);
+    await route.fulfill({status: response.status, contentType: 'application/json', body: await response.text()});
+  });
   // Scores above anything a test run can reach, so these seven always lead.
   for (let i = 0; i < 7; i += 1) {
-    const response = await request.post('/api/score', {
-      data: { playerId: `5b1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5${i}`, username: `Rank_${i}`, score: 9_000_000 - i * 1000, distance: 1000 },
-    });
-    expect(response.ok()).toBe(true);
+    expect(await submitScore(store, { playerId: `5b1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5${i}`, username: `Rank_${i}`, score: 9_000_000 - i * 1000, distance: 1000 })).not.toBeNull();
   }
 
   await page.goto('/');

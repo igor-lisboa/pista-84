@@ -317,7 +317,7 @@ export class RemoteConnection {
     if (this.channelOpen) {
       this.sendOverChannel(clean);
     }
-    // Over WebRTC only a rare HTTPS sign of life is sent (every server call is a billed Blob operation).
+    // Over WebRTC only a rare HTTPS heartbeat is needed; commands travel directly.
     const interval = this.channelOpen ? SEND_INTERVAL_DIRECT_MS : SEND_INTERVAL_RELAY_MS;
     if (this.sending || performance.now() - this.lastSendAt < interval) {
       return;

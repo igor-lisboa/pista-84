@@ -1,12 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {DatabaseSync} from 'node:sqlite';
-import {readFile} from 'node:fs/promises';
-import {signaling, memoryStore, d1Store} from '../src/server/signaling.ts';
+import {signaling, memoryStore} from '../src/server/signaling.ts';
 import type {RoomStore} from '../src/server/signaling.ts';
-import {d1Adapter} from './support/sqlite-d1.ts';
 
-const ROOM_MIGRATIONS = ['../drizzle/0000_furry_marvex.sql', '../drizzle/0002_steep_roulette.sql'];
 const ROOM_ID_LENGTH = 48;
 
 interface RoomCredentials {
@@ -26,18 +22,11 @@ function roomRequest(path: string, method = 'GET', token?: string | null, body?:
   });
 }
 
-async function createStore(mode: 'memory' | 'd1'): Promise<{store: RoomStore; close(): void}> {
-  if (mode === 'memory') {
-    return {store: memoryStore(), close() {}};
-  }
-  const db = new DatabaseSync(':memory:');
-  for (const migration of ROOM_MIGRATIONS) {
-    db.exec(await readFile(new URL(migration, import.meta.url), 'utf8'));
-  }
-  return {store: d1Store(d1Adapter(db)), close: () => db.close()};
+async function createStore(_mode: string): Promise<{store: RoomStore; close(): void}> {
+  return {store: memoryStore(), close() {}};
 }
 
-for (const mode of ['memory', 'd1'] as const) {
+for (const mode of ['memory'] as const) {
   test(`${mode}: room auth, atomic answer, expiry and deletion`, async () => {
     const {store, close} = await createStore(mode);
     const call = async (path: string, method?: string, token?: string | null, body?: unknown) =>

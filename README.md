@@ -16,7 +16,7 @@ Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines an
 
 ## Quick start
 
-Requires Node.js **24** (the validated environment, including the SQL tests with `node:sqlite`).
+Requires Node.js **24** or newer.
 
 ```powershell
 npm install
@@ -36,11 +36,16 @@ The `.env` file at the root is read by the server and by the build. Use `.env.ex
 ```dotenv
 PISTA84_COINS=10000
 PORT=4173
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DATABASE=pista84
+REDIS_URL=redis://localhost:6379
 ```
 
 `PISTA84_COINS` sets your balance when you open/reload the game and when you import or restore progress, taking priority over the local balance and the database backup. It accepts non-negative integers, including `0`. Leave it empty to use the saved balance. Purchases and earnings still change the balance during the session; reloading reapplies the configured value. Reading the backup does not change the record in the database; saving to the cloud remains a manual action.
 
 After editing `.env`, restart `npm start`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only this balance is exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
+
+MongoDB stores durable online scores and manual backups; Redis stores pairing rooms (10-minute TTL) and controller input (2-second TTL). Run `npm run online:check` to verify both configured services. See [storage and AI maintenance](docs/STORAGE.md). Codex reads `AGENTS.md`, Claude reads `CLAUDE.md`, and Copilot reads `.github/copilot-instructions.md`; repository skills and maintenance agents are included.
 
 ## How to play
 
@@ -68,7 +73,7 @@ After editing `.env`, restart `npm start`. To generate the web, native or hosted
 
 **Garage:** 14 vehicles with distinct performance and audio. Regular cars are unlocked with coins; the two PREMIUM ones (Veloce GT, 3,000,000 coins, and Raio 1000, 2,000,000 coins) are simply priced in the millions. Motorcycles have a smaller collision area but lose more grip in the rain. The six new vehicles (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT) use procedural pixel-art sprites, still without atlas art. There are five paint jobs that can be bought with coins.
 
-**Progress:** export and import your progress in the game. On the hosted site there is a manual per-account backup, with protection against write conflicts. Restoring a backup replaces the data on the device. The save (v2) stores coins, distance and score records, vehicles, paints, sound and language.
+**Progress:** export and import your progress in the game. With MongoDB configured there is a manual per-player backup, with protection against write conflicts. Restoring a backup replaces the data on the device. The save (v2) stores coins, distance and score records, vehicles, paints, sound and language.
 
 **Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. Open Settings ? Install game to install through the browser prompt, or see instructions for adding it to the Home Screen on iPhone. The button indicates when running as an installed app.
 
@@ -85,10 +90,10 @@ The pieces are local and work offline. Paid serving, metrics and integration wit
 3. Wait for the connection, close the modal on the computer and start the race (or tap **Iniciar corrida** (Start race) on the controller).
 4. Use the arrows and pedals, or enable tilt.
 
-- **Connection:** pairing uses HTTP/D1. Commands use WebRTC when possible, with an HTTPS fallback (Safari starts in compatibility mode), so TURN is not needed. The original WebSocket relay remains at `/relay` as a technical alternative.
+- **Connection:** pairing uses HTTP/Redis. Commands use WebRTC when possible, with an HTTPS fallback (Safari starts in compatibility mode), so TURN is not needed. The original WebSocket relay remains at `/relay` as a technical alternative.
 - **Security:** the QR code expires in 10 minutes and allows one connection. It uses neither camera nor microphone. Signal loss pauses the race; generate another QR code to reconnect.
 - **iPhone:** open the HTTPS address directly in Safari and scan a freshly generated QR code. Tilt only asks for access when you tap the button. Automated validation uses WebKit; testing on a physical device is still needed.
-- **Local execution:** Node keeps signaling in memory and replaces `localhost` with the detected network address. With multiple interfaces, check the address. The firewall must allow the port on the private network. To use sensors, serve Node behind HTTPS and set `PUBLIC_ORIGIN` to the external URL.
+- **Local execution:** Node uses Redis for signaling when configured (memory only for local development without Redis), and replaces `localhost` with the detected network address. With multiple interfaces, check the address. The firewall must allow the port on the private network. To use sensors, serve Node behind HTTPS and set `PUBLIC_ORIGIN` to the external URL.
 - The remote controller in the native wrapper uses the web version until there is specific validation.
 
 ## Android and iOS
@@ -115,12 +120,12 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` runs `tsc --noEmit` on the whole project. `npm test` runs `node --test tests/*.test.ts`: **61 tests** covering simulation, traffic, world/save/audio, i18n, signaling, backup and configuration. `npm run test:browser` runs 35 Playwright cases (`tests/browser/*.spec.ts`) in Chromium and WebKit; they bundle with esbuild a *harness* that exposes `window.Pista` (game modules, renderer and sprites) to `page.evaluate`. The local server starts by itself (`npm start`), and builds the assets automatically.
+- `npm run typecheck` checks the project after building. `npm test` runs isolated Node tests, including persistence concurrency and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
-- The Worker serves the game, `/runtime-config.json`, pairing (`/api/rooms`), backup (`/api/progress`) and `/health`. Sites provisions the D1 binding `DB` and applies the migrations in `drizzle/`. Preserve the project ID in `.openai/hosting.json`.
-- To change the schema: edit `db/schema.ts`, run `npm run db:generate` and inspect the new migration. Do not edit migrations that have already been applied.
-- Only the Sites gateway should provide identity to the Worker; local Node does not accept backup through identity headers. No secret is kept in the frontend. The offline cache (service worker `pista84-v10`) covers only local assets, with no APIs or tokens; Google Fonts are optional, with a fallback to system fonts, and are not cached.
+- The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.
+- See [storage setup and consistency](docs/STORAGE.md) for MongoDB collections, Redis TTLs, live checks and deployment settings. Historical SQL files are not the active schema.
+- Backups use the player GUID in `x-player-id`; this is casual game progress rather than strong account authentication. The service worker never caches APIs or tokens. Credentials stay on Node, and only public balance configuration reaches the browser.
 - Payments, ads and the premium wallet still depend on providers and commercial setup: coin packs will only be sellable once a billing integration exists. The current backup is meant for casual progress and does not make local coins a secure wallet for real money.
 - Helper scripts (Node 24, with the local server running when they open the game): `node scripts/screenshots.ts` (captures in `docs/screenshots/`), `node scripts/reference-shot.ts` (reference scene), `node scripts/native-assets.ts` (icons and splash screens) and `node scripts/verify-hosted.ts` (hosted site verification, configuration via stdin).
 
@@ -134,12 +139,12 @@ npm run test:browser
 | `src/i18n/` | Translator, types and `locales/*.ts` (pt-BR is the source; en, pt-PT, fr, it, ja, de) |
 | `src/ui/` | Orchestrator (`game-app`), HUD, input, overlays, options, garage, phone dialog, controller page, notifications, car art and DOM |
 | `src/net/remote.ts` | Pairing client (WebRTC and HTTPS fallback) |
-| `src/server/` | Room signaling, cloud backup and D1 types (shared by Node and the Worker) |
+| `src/server/` | Room protocol, MongoDB durable storage, Redis ephemeral storage and edge API proxy |
 | `src/shared/config.ts` | Public configuration (`PISTA84_COINS`) |
 | `src/client.ts`, `src/qr.ts` | Browser entry point and QR generation |
 | `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
-| `worker/index.ts`, `db/`, `drizzle/` | Worker (game, pairing, backup), D1 schema and migrations |
-| `dev-server.ts` | Local Node server (static files, in-memory signaling, `/runtime-config.json`, `/network`, `/qr`, WebSocket relay) |
+| `worker/index.ts`, `db/`, `drizzle/` | Static Worker/API proxy; historical inactive SQL schema and migrations |
+| `dev-server.ts` | Node server: static files, MongoDB/Redis APIs, public config, network/QR and local WebSocket relay |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
 | `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
 | `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configuration |

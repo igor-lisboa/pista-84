@@ -4,7 +4,7 @@
 
 ## Local execution
 
-Node.js **24** is the verified environment: it runs the TypeScript sources natively and the service tests use `node:sqlite`.
+Node.js **24** is the verified environment: it runs the TypeScript sources natively.
 
 ```powershell
 npm install
@@ -24,10 +24,10 @@ npm run test:browser
 ```
 
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over sources, tests, scripts, worker and config files. It is clean on 1.4.0.
-- `npm test` is `node --test tests/*.test.ts`. The 1.4 suite has **54 tests**: `race.test.ts` 27, `world.test.ts` 11, `traffic.test.ts` 6, `i18n.test.ts` 5, `signaling.test.ts` 2 (memory and D1/SQLite modes), `cloud.test.ts` 1 and `config.test.ts` 1. Shared helpers are in `tests/support/` (seeded random, `quietRace`, traffic/fuel factories, a `node:sqlite` D1 adapter).
-- `npm run test:browser` runs the Playwright specs in `tests/browser/` (`game.spec.ts` 13 cases, `mobile.spec.ts` 3) in the Chromium and WebKit projects (the app server is started by `npm start`, and reused if already running). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
+- `npm test` runs isolated Node tests, including MongoDB adapter concurrency, backup revisions, ranking, room protocol and edge API proxy coverage. No normal test loads live storage credentials.
+- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm start`, with live databases disabled and no existing server reused). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
-The suite was last run in full (Node tests) on 1.4.0 with all **54 passing**; the browser cases are listed here but a documentation-only update does not imply another execution.
+Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; test counts change as coverage grows. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records.
 
 | Coverage | Required evidence (test file) |
 | --- | --- |
@@ -40,7 +40,7 @@ The suite was last run in full (Node tests) on 1.4.0 with all **54 passing**; th
 | Environment | Road bounds/direction changes by seed; continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, per-user backup and revision conflict (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
 | Languages | Fifteen languages offered; full locales cover every key with the same placeholders; no unknown keys; browser language mapping (`i18n.test.ts`) |
-| Room services | Memory and D1 adapters, token/role checks, atomic answer, expiration/deletion, compatibility input, cross-origin/oversized/invalid JSON rejection (`signaling.test.ts`) |
+| Room services | Memory room protocol and live Redis diagnostics, token/role checks, atomic answer, expiration/deletion, compatibility input, cross-origin/oversized/invalid JSON rejection (`signaling.test.ts`) |
 | Browser flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; fuel exhaustion gives one continuation (`game.spec.ts`) |
 | Touch | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape pedals in view; no scroll (`mobile.spec.ts`) |
 | Graphics | All 14 vehicles draw complete, unclipped sprites; eight straight sprites and sixteen turn frames are complete and distinct; five lanes with four dividers; balance override (`game.spec.ts`) |
@@ -51,7 +51,21 @@ Chromium and WebKit projects run against the same local app. WebKit automation i
 
 ## Hosted verification
 
-The hosted verification helper (`node scripts/verify-hosted.ts`, configuration `{ url, token }` as one JSON line on stdin) checks health, D1 room creation/read/answer/delete, then pairs desktop Chromium with mobile WebKit, starts/brakes remotely and enters solo touch play. Its service credential is provided through hidden stdin and only attached to the intended Site origin. Never copy that credential into documentation, shell arguments or committed files.
+### MongoDB/Redis migration review (2026-11-07)
+
+After the maintenance refactor, validation passed on Node 24:
+
+- Production build and TypeScript checking.
+- All 105 Node tests, including concurrent writes, backup revision conflicts and storage failure behavior.
+- All 36 cases in `game.spec.ts` and `leaderboard.spec.ts`, across Chromium and WebKit.
+- `npm run online:check` against the real configured MongoDB/Redis connections: score and backup round trips, exclusive controller claims, TTLs, expired input and deletion. Probe records were cleaned up.
+- Repository diff whitespace checks. The six skill entrypoints were also validated during migration setup.
+
+This evidence covers the storage change and affected browser flows, not the entire
+Playwright suite, a deployed release or native-device testing. No commit or
+deployment was made; existing remote records were not imported.
+
+The hosted verification helper (`node scripts/verify-hosted.ts`, configuration `{ url, token }` as one JSON line on stdin) checks health, shared room creation/read/answer/delete, then pairs desktop Chromium with mobile WebKit, starts/brakes remotely and enters solo touch play. Its service credential is provided through hidden stdin and only attached to the intended Site origin. Never copy that credential into documentation, shell arguments or committed files.
 
 The 1.3 published visual baseline received this hosted smoke check; no hosted run is recorded for 1.4. It does not verify signed native builds, actual iPhone sensors, paid transactions or ad delivery.
 
@@ -70,7 +84,7 @@ The local server must be running for game screenshots. Do not confuse a staged r
 1. Update affected canonical specs and roadmap status.
 2. Run `npm run typecheck` and the checks relevant to changed behavior; confirm save compatibility and required assets.
 3. Build from current source; sync native assets if native source is part of the change.
-4. For hosted changes, preserve Site identity/audience and publish the artifact matching pushed source. Apply only new database migrations.
+4. For hosted changes, preserve Site identity/audience and publish the artifact matching pushed source. Configure MongoDB/Redis on Node and `API_ORIGIN` on the optional Worker. Historical SQL migrations are inactive.
 5. Verify returned deployment status; smoke-check changed hosted behavior where appropriate.
 6. Record unverified physical-device/store/payment conditions explicitly.
 

@@ -63,7 +63,7 @@ async function verifyApi(): Promise<void> {
   try {
     const offer = await call<{offer?: string}>(`/api/rooms/${room.id}`, 'GET', null, room.joinToken);
     if (!offer.offer) {
-      throw new Error('Hosted D1 did not retain offer.');
+      throw new Error('Hosted storage did not retain offer.');
     }
     await call(`/api/rooms/${room.id}`, 'POST', {answer: 'smoke-answer'}, room.joinToken);
     const answer = await call<{answer?: string}>(`/api/rooms/${room.id}`, 'GET', null, room.hostToken);
@@ -73,7 +73,7 @@ async function verifyApi(): Promise<void> {
   } finally {
     await call(`/api/rooms/${room.id}`, 'DELETE', null, room.hostToken);
   }
-  console.log('Hosted health, D1 room creation, authenticated answer, and deletion passed.');
+  console.log('Hosted health, shared room creation, authenticated answer, and deletion passed.');
 }
 
 async function addAuthRouting(context: BrowserContext): Promise<void> {

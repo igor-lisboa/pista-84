@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {cloudProgress, leaderboardApi} from '../src/server/cloud.ts';
 import {importSave, loadSave, startNewPlayer} from '../src/game/index.ts';
-import {memoryPlayerStore} from '../src/server/players.ts';
+import {memoryPlayerStore} from './support/memory-player-store.ts';
 import type {PlayerStore} from '../src/server/players.ts';
 
 const ALICE = '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b';
@@ -95,8 +95,9 @@ test('the leaderboard ranks by best score and a rename keeps the score', async (
 
 test('a failing store answers 503 instead of crashing, so clients keep playing offline', async () => {
   const broken: PlayerStore = {
-    read: () => Promise.reject(new Error('Blob unreachable')),
-    update: () => Promise.reject(new Error('Blob unreachable')),
+    read: () => Promise.reject(new Error('Database unreachable')),
+    update: () => Promise.reject(new Error('Database unreachable')),
+    rank: () => Promise.reject(new Error('Database unreachable')),
   };
   assert.equal((await leaderboardApi(new Request('https://pista.test/api/leaderboard'), broken)).status, 503);
   assert.equal((await leaderboardApi(scoreRequest({playerId: ALICE, username: 'Alice', score: 5, distance: 1}), broken)).status, 503);
@@ -150,7 +151,9 @@ test('starting a new player gets a fresh GUID and garage but keeps device prefer
   assert.equal(startNewPlayer(named, {coins: null}).history.length, 2);
 });
 
-test('the leaderboard is served in pages of five, sorted, with ties going to whoever got there first', async () => {
+test('the leaderboard is served in pages of five, sorted, with ties going to whoever got there first', async (t) => {
+  let now = 1_000_000;
+  t.mock.method(Date, 'now', () => now++);
   const store = memoryPlayerStore();
   const ids = Array.from({length: 7}, (_, i) => `6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5${i}`);
   const submit = (playerId: string, score: number) =>

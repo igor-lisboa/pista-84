@@ -1,9 +1,10 @@
 import {loadSave} from '../game/save.ts';
 import type {SaveData} from '../game/save.ts';
 import {isPlayerId, normalizeUsername} from '../game/username.ts';
+import {compareScores, pagination, leaderboardEntry} from './leaderboard.ts';
 
 /**
- * Online data is split in two documents so that the hot path stays tiny:
+ * Online data is split into scores and backups, keyed by permanent player GUID:
  *
  * - `scores`: one compact, always-sorted row per player. Every finished run
  *   touches only this, and the leaderboard reads only this.
@@ -15,13 +16,15 @@ import {isPlayerId, normalizeUsername} from '../game/username.ts';
 export type StoreKey = 'scores' | 'backups';
 
 /**
- * Where the documents live. `update` runs `change` against the freshest copy
- * and persists the result; a database-backed store can make that atomic, the
- * Blob one is conditional on the stored version and retries (see docs/TECH-DEBT.md).
+ * `playerId` scopes a read/update to one player. Score callbacks receive a
+ * zero/one-row array; backup callbacks receive a zero/one-entry object.
+ * Callbacks may be retried and must have no external side effects.
  */
 export interface PlayerStore {
-  read<T>(key: StoreKey, empty: T): Promise<T>;
-  update<T, R>(key: StoreKey, empty: T, change: (doc: T) => R): Promise<R>;
+  read<T>(key: StoreKey, empty: T, playerId?: string): Promise<T>;
+  update<T, R>(key: StoreKey, empty: T, change: (doc: T) => R, playerId: string): Promise<R>;
+  rank(playerId: string): Promise<number>;
+  leaderboard?(options: {page?: number; size?: number; playerId?: string | null}): Promise<LeaderboardPage>;
 }
 
 /** Raised when the backing store cannot take more data. */
@@ -79,32 +82,12 @@ export interface ScoreSubmission {
 
 const MAX_SCORE = 10_000_000;
 const MAX_DISTANCE_METRES = 10_000_000;
-export const DEFAULT_PAGE_SIZE = 5;
-export const MAX_PAGE_SIZE = 50;
-
-export function memoryPlayerStore(): PlayerStore {
-  const docs = new Map<StoreKey, unknown>();
-  return {
-    async read<T>(key: StoreKey, empty: T) {
-      return structuredClone((docs.get(key) as T | undefined) ?? empty);
-    },
-    async update<T, R>(key: StoreKey, empty: T, change: (doc: T) => R) {
-      const draft = structuredClone((docs.get(key) as T | undefined) ?? empty);
-      const result = change(draft);
-      docs.set(key, draft);
-      return result;
-    },
-  };
-}
-
 const isCount = (value: unknown, max: number): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max;
 
-const before = (a: ScoreRow, b: ScoreRow): number => b[2] - a[2] || a[4] - b[4];
-
 /** Puts `row` where it belongs in an already sorted list and returns its 1-based rank. */
 function insertSorted(rows: ScoresDoc, row: ScoreRow): number {
-  let index = rows.findIndex((other) => before(row, other) < 0);
+  let index = rows.findIndex((other) => compareScores(row, other) < 0);
   if (index < 0) index = rows.length;
   rows.splice(index, 0, row);
   return index + 1;
@@ -120,7 +103,7 @@ export async function submitScore(store: PlayerStore, input: ScoreSubmission): P
   const distance = input.distance;
   if (score === 0) return {rank: 0};
 
-  return store.update<ScoresDoc, {rank: number}>('scores', [], (rows) => {
+  await store.update<ScoresDoc, void>('scores', [], (rows) => {
     const at = rows.findIndex((row) => row[0] === playerId);
     const [existing] = at >= 0 ? rows.splice(at, 1) : [];
     const now = Date.now();
@@ -137,8 +120,9 @@ export async function submitScore(store: PlayerStore, input: ScoreSubmission): P
       // An identical resubmission leaves the row untouched, so nothing is written.
       changed ? now : (existing![6] ?? existing![4]),
     ];
-    return {rank: insertSorted(rows, row)};
-  });
+    insertSorted(rows, row);
+  }, playerId);
+  return {rank: await store.rank(playerId)};
 }
 
 /** One page of the ranking. GUIDs are never included; `playerId` only marks the caller's row. */
@@ -146,26 +130,20 @@ export async function leaderboardPage(
   store: PlayerStore,
   options: {page?: number; size?: number; playerId?: string | null} = {},
 ): Promise<LeaderboardPage> {
+  if (store.leaderboard) return store.leaderboard(options);
   const rows = await store.read<ScoresDoc>('scores', []);
-  const size = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(options.size ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE));
-  const pages = Math.max(1, Math.ceil(rows.length / size));
-  const page = Math.min(pages, Math.max(1, Math.floor(options.page ?? 1) || 1));
-  const start = (page - 1) * size;
-  const entries = rows.slice(start, start + size).map((row, index) => ({
-    rank: start + index + 1,
-    name: row[1],
-    score: row[2],
-    distance: row[3],
-    mine: row[0] === options.playerId,
-  }));
-  return {entries, page, pages, size, total: rows.length};
+  const paging = pagination(rows.length, options);
+  const entries = rows.slice(paging.start, paging.start + paging.size).map((row, index) =>
+    leaderboardEntry(row, paging.start + index + 1, options.playerId));
+  const {page, pages, size, total} = paging;
+  return {entries, page, pages, size, total};
 }
 
 export async function readBackup(
   store: PlayerStore,
   playerId: string,
 ): Promise<{save: SaveData | null; revision: number}> {
-  const backup = (await store.read<BackupsDoc>('backups', {}))[playerId];
+  const backup = (await store.read<BackupsDoc>('backups', {}, playerId))[playerId];
   return {save: backup?.save ?? null, revision: backup?.revision ?? 0};
 }
 
@@ -183,7 +161,7 @@ export async function writeBackup(
   const clean = loadSave({getItem: () => JSON.stringify(save)});
   // The key is the identity: a backup can never claim another player's GUID.
   clean.playerId = playerId;
-  const ranked = (await store.read<ScoresDoc>('scores', [])).find((row) => row[0] === playerId);
+  const ranked = (await store.read<ScoresDoc>('scores', [], playerId))[0];
   if (ranked) {
     clean.bestScore = Math.max(clean.bestScore, ranked[2]);
     clean.best = Math.max(clean.best, ranked[3]);
@@ -195,7 +173,7 @@ export async function writeBackup(
     const updated = Date.now();
     doc[playerId] = {revision: current + 1, created: doc[playerId]?.created ?? doc[playerId]?.updated ?? updated, updated, save: clean};
     return {revision: current + 1, updated};
-  });
+  }, playerId);
   if (result && clean.username && clean.bestScore > 0) {
     await submitScore(store, {playerId, username: clean.username, score: clean.bestScore, distance: clean.best});
   }
