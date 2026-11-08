@@ -56,7 +56,7 @@ export class AccountDialog {
         <label for="accountUsername">${t('auth.username')}</label>
         <input id="accountUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" autocapitalize="none" spellcheck="false">
         <label for="accountPassword">${t('auth.password')}</label>
-        <input id="accountPassword" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="15" maxlength="256" aria-describedby="accountRules">
+        <input id="accountPassword" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="5" maxlength="256" aria-describedby="accountRules">
         <p id="accountRules" class="username-rules">${t('auth.rules')}</p>
         <button class="menu-button" type="submit"><span>${t(signup ? 'auth.signup' : 'auth.login')}</span></button>
         ${known ? `<button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button><p>${t('auth.logoutHelp')}</p>` : `<button id="accountSwitch" class="menu-button" type="button"><span>${t(signup ? 'auth.login' : 'auth.signup')}</span></button>`}

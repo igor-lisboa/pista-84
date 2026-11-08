@@ -19,7 +19,7 @@ function derive(password: string, salt: string): Promise<Buffer> {
 }
 
 export function validPassword(value: unknown): value is string {
-  return typeof value === 'string' && [...value].length >= 15 && [...value].length <= 128;
+  return typeof value === 'string' && [...value].length >= 5 && [...value].length <= 128;
 }
 
 export async function hashPassword(password: string): Promise<string> {

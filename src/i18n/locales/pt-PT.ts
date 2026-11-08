@@ -12,7 +12,7 @@ export const ptPT: Messages = {
   'auth.sync': "Sincronizar progresso",
   'auth.help': "Jogue como visitante ou entre para juntar o seu progresso entre dispositivos.",
   'auth.logoutHelp': "Terminar a sessão apaga todos os registos do jogador neste dispositivo. A conta continua guardada online. O progresso não sincronizado pode perder-se.",
-  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Palavra-passe: 15–128 caracteres.",
+  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Palavra-passe: 5–128 caracteres.",
   'auth.taken': "Este nome de piloto/utilizador já está em uso. Escolhe outro nome de utilizador.",
   'auth.credentials': "Nome de utilizador ou palavra-passe incorretos.",
   'auth.invalid': "Verifique as regras do nome de utilizador e da palavra-passe.",

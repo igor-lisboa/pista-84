@@ -9,6 +9,28 @@ import {memoryPlayerStore} from '../support/memory-player-store.ts';
 test.use({serviceWorkers: 'block'});
 const password = 'a unique browser test passphrase';
 
+test('signup and login allow a five-character password and reject four characters', async ({page, context}) => {
+  await backend(context);
+  await page.goto('/');
+  await openAccount(page);
+  await page.locator('#accountSwitch').click();
+  await expect(page.locator('#accountRules')).toContainText('5–128');
+  await expect(page.locator('#accountPassword')).toHaveAttribute('minlength', '5');
+  await page.locator('#accountUsername').fill('Driver');
+  await page.locator('#accountPassword').fill('abcd');
+  await page.locator('#accountForm button[type=submit]').click();
+  expect(await page.locator('#accountPassword').evaluate((input: HTMLInputElement) => input.validity.tooShort)).toBe(true);
+  expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
+  await page.locator('#accountPassword').fill('abcde');
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await context.clearCookies();
+  await openAccount(page);
+  await page.locator('#accountPassword').fill('abcde');
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#modal')).toBeHidden();
+});
+
 test('account forms keep typed credentials when a delayed guest session check finishes', async ({page, context}) => {
   await backend(context);
   let finishCheck!: () => void;

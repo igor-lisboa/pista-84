@@ -11,7 +11,7 @@ export const fr: Messages = {
   'auth.sync': "Synchroniser la progression",
   'auth.help': "Jouez en invité ou connectez-vous pour fusionner votre progression entre appareils.",
   'auth.logoutHelp': "La déconnexion efface les données du joueur sur cet appareil. Votre compte reste enregistré en ligne. La progression non synchronisée peut être perdue.",
-  'auth.rules': "Nom : 3–16 lettres, chiffres, _, . ou -. Mot de passe : 15–128 caractères.",
+  'auth.rules': "Nom : 3–16 lettres, chiffres, _, . ou -. Mot de passe : 5–128 caractères.",
   'auth.taken': "Ce nom de pilote/utilisateur est déjà utilisé. Choisissez un autre nom d’utilisateur.",
   'auth.credentials': "Nom d’utilisateur ou mot de passe incorrect.",
   'auth.invalid': "Vérifiez les règles du nom et du mot de passe.",

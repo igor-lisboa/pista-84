@@ -46,7 +46,8 @@ sync and logout. Guest play does not require an account. The forms use labelled
 username/password fields; the first-launch name screen also links directly to
 login/signup so returning users do not need to choose a guest name first. Closing
 the account form returns unnamed guests to the name screen. Forms use
-password-manager autocomplete; all account text is
+password-manager autocomplete; passwords accept 5–128 Unicode characters with no
+composition requirements. All account text is
 localized. Login merges local and cloud progress before adopting the account
 identity. The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
 reauthentication to the same account. Signed-in name/new-player actions open the

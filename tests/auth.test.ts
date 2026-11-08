@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {authApi, authenticatedAccount, digest, usernameKey} from '../src/server/auth.ts';
-import {hashPassword, verifyPassword} from '../src/server/passwords.ts';
+import {hashPassword, validPassword, verifyPassword} from '../src/server/passwords.ts';
 import {playerApi} from '../src/server/player-api.ts';
 import {readBackup, writeBackup} from '../src/server/players.ts';
 import {defaultSave} from '../src/game/save.ts';
@@ -17,6 +17,25 @@ function request(path: string, body?: unknown, cookie?: string, origin = 'https:
   });
 }
 const cookieOf = (response: Response): string => response.headers.get('set-cookie')!.split(';')[0]!;
+
+test('passwords accept 5 to 128 Unicode characters without composition rules', () => {
+  for (const value of ['abcde', '12345', 'a'.repeat(128), '\u{1F600}'.repeat(5)]) {
+    assert.equal(validPassword(value), true);
+  }
+  for (const value of [null, 12345, '', 'abcd', '\u{1F600}'.repeat(4), 'a'.repeat(129)]) {
+    assert.equal(validPassword(value), false);
+  }
+});
+
+test('signup and login accept a simple five-character password', async () => {
+  const accounts = memoryAccountStore();
+  const credentials = {username: 'Driver', password: 'abcde'};
+  const signup = await authApi(request('/api/auth', {action: 'signup', ...credentials}), accounts);
+  assert.equal(signup.status, 200);
+  const login = await authApi(request('/api/auth', {action: 'login', ...credentials}), accounts);
+  assert.equal(login.status, 200);
+  assert.equal((await login.json()).user.username, 'Driver');
+});
 
 test('passwords have independent salts, bounded work parameters and constant-time comparison', async () => {
   const first = await hashPassword(password);
@@ -84,7 +103,7 @@ test('expired sessions are rejected even before MongoDB TTL cleanup', async () =
 test('auth rejects cross-site requests, malformed input and short passwords', async () => {
   const accounts = memoryAccountStore();
   assert.equal((await authApi(request('/api/auth', {action: 'signup', username: 'Driver', password}, undefined, 'https://evil.test'), accounts)).status, 403);
-  assert.equal((await authApi(request('/api/auth', {action: 'signup', username: 'Driver', password: 'short'}), accounts)).status, 400);
+  assert.equal((await authApi(request('/api/auth', {action: 'signup', username: 'Driver', password: 'tiny'}), accounts)).status, 400);
   assert.equal((await authApi(request('/api/auth', []), accounts)).status, 400);
   assert.equal((await authApi(request('/api/auth', {action: 'nope'}), accounts)).status, 400);
   assert.equal((await authApi(new Request('https://game.test/api/auth', {method: 'POST', body: '{}'}), accounts)).status, 415);

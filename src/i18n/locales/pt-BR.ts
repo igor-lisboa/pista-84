@@ -10,7 +10,7 @@ export const ptBR = {
   'auth.sync': "Sincronizar progresso",
   'auth.help': "Jogue como visitante ou entre para unir seu progresso entre dispositivos.",
   'auth.logoutHelp': "Sair apaga todos os registros do jogador neste dispositivo. Sua conta continua salva online. Progresso não sincronizado pode ser perdido.",
-  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Senha: 15–128 caracteres.",
+  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Senha: 5–128 caracteres.",
   'auth.taken': "Este nome de piloto/usuário já está em uso. Escolha outro nome de usuário.",
   'auth.credentials': "Nome de usuário ou senha incorretos.",
   'auth.invalid': "Confira as regras de nome de usuário e senha.",

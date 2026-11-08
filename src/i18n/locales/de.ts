@@ -11,7 +11,7 @@ export const de: Messages = {
   'auth.sync': "Fortschritt synchronisieren",
   'auth.help': "Spiele als Gast oder melde dich an, um deinen Fortschritt auf mehreren Geräten zusammenzuführen.",
   'auth.logoutHelp': "Beim Abmelden werden alle Spielerdaten auf diesem Gerät gelöscht. Dein Konto bleibt online gespeichert. Nicht synchronisierter Fortschritt kann verloren gehen.",
-  'auth.rules': "Name: 3–16 Buchstaben, Zahlen, _, . oder -. Passwort: 15–128 Zeichen.",
+  'auth.rules': "Name: 3–16 Buchstaben, Zahlen, _, . oder -. Passwort: 5–128 Zeichen.",
   'auth.taken': "Dieser Fahrer-/Benutzername wird bereits verwendet. Bitte wähle einen anderen Benutzernamen.",
   'auth.credentials': "Benutzername oder Passwort falsch.",
   'auth.invalid': "Prüfe die Anforderungen an Name und Passwort.",

@@ -11,7 +11,7 @@ export const en: Messages = {
   'auth.sync': "Sync progress",
   'auth.help': "Play as a guest or sign in to merge your progress across devices.",
   'auth.logoutHelp': "Logging out clears all player records on this device. Your account stays saved online. Unsynced progress may be lost.",
-  'auth.rules': "Username: 3–16 letters, numbers, _, . or -. Password: 15–128 characters.",
+  'auth.rules': "Username: 3–16 letters, numbers, _, . or -. Password: 5–128 characters.",
   'auth.taken': "This pilot name/username is already in use. Please choose a different username.",
   'auth.credentials': "Incorrect username or password.",
   'auth.invalid': "Check the username and password requirements.",

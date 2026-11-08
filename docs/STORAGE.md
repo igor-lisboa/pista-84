@@ -150,7 +150,7 @@ MongoDB's unique index even for concurrent registrations. Account names retain
 their display case and follow the existing 3–16-character name rules. Account
 renaming and password recovery are not implemented.
 
-Passwords are 15–128 Unicode characters, without composition rules or truncation.
+Passwords are 5–128 Unicode characters, without composition rules or truncation.
 Node's asynchronous scrypt uses N=131072, r=8, p=1, a random 16-byte salt and a
 64-byte key; comparisons use `timingSafeEqual`. Only the versioned salt/hash
 encoding is stored. Passwords are never logged, returned, cached or persisted in
