@@ -9,13 +9,15 @@
 | Automatic offline progress snapshots | MongoDB `device-backups`, `_id` = player GUID + device GUID | Durable, no TTL |
 | Pairing offer, host/join tokens and claimed answer | Redis `pista84:room:{id}` hash | 10 minutes from creation |
 | Latest controller input and timestamp | Redis `pista84:room:{id}:input` | 2 seconds, capped by remaining room TTL |
+| Socket presence and reconnect ownership | Redis `pista84:room:{id}:host` / `:controller` | 15 seconds, renewed every 5 seconds, capped by room TTL |
 | Offline save, preferences, pending score and progress synchronization | Browser localStorage / exported save | Device-owned, works without network |
-| Local WebSocket handles | Node process memory | Disconnect or 1 hour; swept every minute |
+| Live WebSocket handles | Accepting Node/Vercel instance | Disconnect, room expiry or function duration limit |
 
 MongoDB is the durable online source. Redis never stores backups or authoritative
 scores. There is no leaderboard read cache: indexed MongoDB queries provide fresh
 pages without cache invalidation races. Socket handles cannot be serialized into
-Redis; `/relay` remains a local-only transport, while shared HTTP pairing uses Redis.
+Redis. `/api/controller` uses Redis Pub/Sub to deliver commands across instances;
+HTTP only creates, claims and deletes rooms. The unused local `/relay` was removed.
 
 ## Configuration and deployment
 
@@ -38,9 +40,16 @@ database. The driver reuses a pool of up to five connections per instance and cr
 the ranking index `{score: -1, achieved: 1, _id: 1}`. Writes require majority
 acknowledgment. Equal score/achievement timestamps are ordered by GUID for stable
 pagination. Redis needs hashes, strings,
-expiry, deletion and `EVAL`. Scripts use shared hash tags for Cluster compatibility.
+expiry, deletion, `EVAL`, `PUBLISH`, `SUBSCRIBE` and `UNSUBSCRIBE`. Scripts use shared
+hash tags for Cluster compatibility. Socket instances share one command connection
+and a separate Pub/Sub connection; they never poll Redis for controller input.
 
 Vercel runs `api/*.ts` in Node; the development server uses the same adapters.
+`api/controller.ts` exports an HTTP server with the `ws` upgrade handler, following
+[Vercel's WebSocket API](https://vercel.com/docs/functions/websockets). No extra
+socket hosting service or browser Redis credentials are needed. Function duration
+limits still apply: clients reconnect with bounded backoff and the same session.
+Verify the WebSocket upgrade after deployment; local tests cannot certify Vercel routing.
 No MongoDB means cloud endpoints return 503 and cloud backup is disabled. No Redis
 means deployed pairing returns 503. Only the local development server may fall back
 to memory pairing for offline development; it never offers volatile cloud saves.
@@ -88,6 +97,9 @@ Backend responsibilities are separated for maintenance:
 - `mongo-player-store.ts`: database reads, writes and optimistic concurrency.
 - `players.ts`: score and backup business rules; `leaderboard.ts`: shared pagination and public response mapping.
 - `redis.ts`: connection lifetime; `redis-rooms.ts`: atomic room operations and TTLs.
+- `redis-sockets.ts`: atomic presence ownership, input publication and Pub/Sub subscriptions.
+- `room-sockets.ts` / `socket-session.ts`: upgrade validation and authenticated socket lifecycle.
+- `src/net/room-socket.ts`: browser socket lifecycle; `remote.ts`: pairing and controller commands.
 - `tests/support/memory-player-store.ts`: isolated test double, never application storage.
 
 Each MongoDB document contains `_id`, internal CAS `version` and `value`. Score
@@ -118,8 +130,9 @@ Uninstall/disconnect the old remote service separately after retaining any data
 you need. No old provider credentials or SDK are required by this project.
 
 Scores remain client-reported and GUIDs remain backup credentials. This is casual
-game progress, not a trusted paid wallet. Stronger authentication, anti-cheat,
-TURN support and a cross-instance WebSocket relay remain future work.
+game progress, not a trusted paid wallet. Stronger authentication and anti-cheat
+remain future work. WebSocket delivery works across instances;
+direct WebRTC/TURN transport is no longer part of the active client.
 
 ## AI maintenance entrypoints
 

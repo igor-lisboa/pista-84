@@ -70,8 +70,8 @@ export function mountControllerPage(params: URLSearchParams): void {
   };
 
   const connection = new RemoteConnection({
-    forceRelay: params.get('transport') === 'relay',
     onStatus: (state, message) => {
+      if (state === 'disconnected' || state === 'error') startUntil = pauseUntil = 0;
       byId('connection').textContent = state === 'connected' ? t('ctl.connected') : (message ?? t('ctl.lost'));
     },
   });

@@ -16,7 +16,7 @@ Read the relevant `specs/` page for game behavior and `docs/STORAGE.md` for back
 ## Data invariants
 
 - MongoDB owns scores, manual backups and automatic device snapshots. Preserve GUID identity, highest score/distance, created times and backup revision conflicts (HTTP 409). Automatic snapshots are isolated by player/device; preserve the local sync outbox until acknowledgement and never overwrite manual backups during automatic migration.
-- Redis owns shared ephemeral pairing and controller state. Rooms expire after ten minutes; inputs after two seconds. Preserve atomic single-controller claims, authorization and deletion. No deployed memory fallback.
+- Redis owns shared ephemeral pairing and controller state. Rooms expire after ten minutes; socket presence after fifteen seconds; inputs after two seconds. Use Pub/Sub for cross-instance socket delivery, never high-frequency HTTP polling. Preserve atomic single-controller claims, authorization, reconnect ownership and deletion. No deployed memory fallback.
 - Browser localStorage and manual exports preserve offline progress; network errors must not erase or block local play. A missing MongoDB connection must never produce a successful volatile cloud save.
 - Never print, commit, bundle or expose `.env` values, database URIs, credentials or pairing tokens. Only `publicConfig()` may determine browser runtime settings.
 - Normal tests use isolated fakes. `npm run online:check` deliberately uses configured services with unique, removable probe records; run it when connection verification is requested or needed.

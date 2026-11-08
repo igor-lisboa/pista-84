@@ -3,23 +3,19 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {extname, resolve, sep} from 'node:path';
 import {networkInterfaces} from 'node:os';
-import {randomBytes} from 'node:crypto';
-import {WebSocketServer, WebSocket} from 'ws';
 import QRCode from 'qrcode';
 import {runtimeConfig} from './scripts/env.ts';
-import {signaling, memoryStore, sanitizeInput} from './src/server/signaling.ts';
+import {signaling, memoryStore} from './src/server/signaling.ts';
 import {cloudProgress, leaderboardApi, onlineHealth, storageUnavailable} from './src/server/cloud.ts';
 import {mongoStore} from './src/server/mongo-store.ts';
 import {redisRoomStore} from './src/server/redis-rooms.ts';
+import {redisSocketStore} from './src/server/redis-sockets.ts';
+import {devSocketStore} from './src/server/dev-sockets.ts';
+import {attachRoomSockets} from './src/server/room-sockets.ts';
 
 const DEFAULT_PORT = 4173;
 const MAX_API_BODY = 24_000;
 const MAX_QR_TEXT = 2048;
-const MAX_RELAY_PAYLOAD = 1024;
-const RELAY_PATH = '/relay';
-const RELAY_ROOM_TTL_MS = 60 * 60 * 1000;
-const RELAY_MIN_INPUT_INTERVAL_MS = 25;
-const WS_POLICY_VIOLATION = 1008;
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -164,149 +160,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-// --- WebSocket relay (host screen <-> controller) -------------------------------------------
-
-type RelayRole = 'host' | 'controller';
-
-interface RelayRoom {
-  host: WebSocket;
-  token: string;
-  controller: WebSocket | null;
-  created: number;
-}
-
-type ClientMessage =
-  | {type: 'host'}
-  | {type: 'join'; room: string; token: string}
-  | {type: 'input'; input?: unknown};
-
-type ServerMessage =
-  | {type: 'room'; room: string; token: string; host: string | undefined}
-  | {type: 'connected'}
-  | {type: 'disconnected'}
-  | {type: 'error'; message: string}
-  | {type: 'input'; input: {steer: number; accelerate: boolean; brake: boolean}};
-
-const relayRooms = new Map<string, RelayRoom>();
-
-// Live sockets cannot be serialized in Redis. This local-only relay owns them;
-// shared HTTP signaling always uses Redis when configured.
-setInterval(() => {
-  for (const [id, room] of relayRooms) {
-    if (Date.now() - room.created >= RELAY_ROOM_TTL_MS) {
-      relayRooms.delete(id);
-      room.controller?.close();
-      room.host.close();
-    }
-  }
-}, 60_000).unref();
-
-function sendMessage(socket: WebSocket | null | undefined, message: ServerMessage): void {
-  if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(message));
-  }
-}
-
-function isAllowedOrigin(req: IncomingMessage): boolean {
-  const origin = req.headers.origin;
-  if (!origin) {
-    return true;
-  }
-  try {
-    return new URL(origin).host === req.headers.host;
-  } catch {
-    return false;
-  }
-}
-
-function attachRelay(wss: WebSocketServer): void {
-  wss.on('connection', (socket, req) => {
-    if (!isAllowedOrigin(req)) {
-      socket.close(WS_POLICY_VIOLATION, 'Origin rejected');
-      return;
-    }
-    handleRelayClient(socket);
-  });
-}
-
-function handleRelayClient(socket: WebSocket): void {
-  let roomId = '';
-  let role: RelayRole | undefined;
-  let lastInputAt = 0;
-
-  const registerHost = (): void => {
-    roomId = randomBytes(4).toString('hex').toUpperCase();
-    const token = randomBytes(18).toString('hex');
-    relayRooms.set(roomId, {host: socket, token, controller: null, created: Date.now()});
-    role = 'host';
-    sendMessage(socket, {type: 'room', room: roomId, token, host: hostIp});
-  };
-
-  const registerController = (message: {room: string; token: string}): void => {
-    const room = relayRooms.get(message.room);
-    const unusable =
-      !room ||
-      room.token !== message.token ||
-      room.controller ||
-      Date.now() - room.created > RELAY_ROOM_TTL_MS;
-    if (unusable) {
-      sendMessage(socket, {type: 'error', message: 'Room expired, occupied or invalid code.'});
-      socket.close();
-      return;
-    }
-    role = 'controller';
-    roomId = message.room;
-    room.controller = socket;
-    sendMessage(socket, {type: 'connected'});
-    sendMessage(room.host, {type: 'connected'});
-  };
-
-  const forwardInput = (rawInput: unknown): void => {
-    const now = Date.now();
-    if (now - lastInputAt < RELAY_MIN_INPUT_INTERVAL_MS) {
-      return;
-    }
-    lastInputAt = now;
-    const room = relayRooms.get(roomId);
-    if (!room) {
-      return;
-    }
-    const {steer, accelerate, brake} = sanitizeInput(rawInput);
-    sendMessage(room.host, {type: 'input', input: {steer, accelerate, brake}});
-  };
-
-  socket.on('message', (raw) => {
-    try {
-      const message = JSON.parse(raw.toString()) as ClientMessage;
-      if (message.type === 'host' && !role) {
-        registerHost();
-      } else if (message.type === 'join' && !role) {
-        registerController(message);
-      } else if (message.type === 'input' && role === 'controller') {
-        forwardInput(message.input);
-      }
-    } catch {
-      socket.close(WS_POLICY_VIOLATION, 'Invalid message');
-    }
-  });
-
-  socket.on('close', () => {
-    const room = relayRooms.get(roomId);
-    if (!room) {
-      return;
-    }
-    if (role === 'host') {
-      sendMessage(room.controller, {type: 'disconnected'});
-      room.controller?.close();
-      relayRooms.delete(roomId);
-    } else {
-      room.controller = null;
-      sendMessage(room.host, {type: 'disconnected'});
-    }
-  });
-
-  socket.on('error', () => {});
-}
 
 let startupFailed = false;
 function reportServerError(error: NodeJS.ErrnoException): void {
@@ -323,9 +176,8 @@ function reportServerError(error: NodeJS.ErrnoException): void {
 }
 
 server.on('error', reportServerError);
-const relay = new WebSocketServer({server, path: RELAY_PATH, maxPayload: MAX_RELAY_PAYLOAD});
+const relay = attachRoomSockets(server, roomStore, redisSocketStore(process.env) ?? devSocketStore(roomStore));
 relay.on('error', reportServerError);
-attachRelay(relay);
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`PISTA 84 · Local: http://localhost:${port}`);

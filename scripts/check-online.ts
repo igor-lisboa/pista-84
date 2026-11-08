@@ -6,6 +6,7 @@ import {mongoStore} from '../src/server/mongo-store.ts';
 import {readBackup, submitScore, writeBackup} from '../src/server/players.ts';
 import {redisConnection} from '../src/server/redis.ts';
 import {redisRoomStore} from '../src/server/redis-rooms.ts';
+import {checkSocketStorage} from './check-socket-storage.ts';
 
 let stage = 'configuration';
 
@@ -59,6 +60,8 @@ async function check(): Promise<void> {
     await rooms.input(id, {steer: 0, accelerate: true, brake: false, start: false, pause: false}, Date.now());
     assert.equal(await redis.sendCommand(['EXISTS', `pista84:room:{${id}}:input`]), 0);
     console.log('OK    Redis: exclusive answer, controller input, TTLs and deletion.');
+    stage = 'Redis socket transport';
+    await checkSocketStorage(rooms, redis);
   } finally {
     const db = cleanup.db(process.env.MONGODB_DATABASE || 'pista84');
     const results = await Promise.allSettled([

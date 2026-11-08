@@ -17,6 +17,11 @@ export async function proxyApi(request: Request, configuredOrigin?: string): Pro
       if (value) headers.set(name, value);
     }
     if (origin) headers.set('origin', backend.origin);
+    if (request.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+      headers.set('upgrade', 'websocket');
+      // Return the platform's upgrade response intact, including its socket handle.
+      return await fetch(target, {method: 'GET', headers, redirect: 'manual'});
+    }
     const body = ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text();
     const response = await fetch(target, {method: request.method, headers, body, redirect: 'manual', signal: AbortSignal.timeout(10000)});
     return new Response(response.body, {status: response.status, headers: {

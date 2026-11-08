@@ -36,11 +36,11 @@ Provide an `isAvailable / showRewarded / removeAds` adapter. Support `continue` 
 
 ## NET-01 — TURN and direct-connection optimization
 
-**P2; optional for basic operation because HTTPS fallback exists.** Requires a configured TURN provider and temporary credentials.
+**Deferred exploration; WebSocket/Redis Pub/Sub is the active transport.** Reintroducing a direct WebRTC path would require a measured latency benefit and a configured TURN provider with temporary credentials.
 
 Add an authenticated ICE-configuration endpoint with expiring TURN credentials, limits/metrics and ICE restart. Never put durable secrets in the bundle.
 
-**Accept:** a forced `iceTransportPolicy: 'relay'` connection across restrictive Wi-Fi/mobile networks; expiration/renewal; safe pause on loss; no stuck inputs; latency/request-cost comparison with the HTTPS fallback.
+**Accept:** a forced `iceTransportPolicy: 'relay'` connection across restrictive Wi-Fi/mobile networks; expiration/renewal; safe pause on loss; no stuck inputs; latency/cost comparison with the current WebSocket transport, without reintroducing HTTP polling.
 
 ## NET-02 — Active remote sessions beyond ten minutes
 

@@ -96,7 +96,7 @@ The pieces are local and work offline. Paid serving, metrics and integration wit
 3. Wait for the connection, close the modal on the computer and start the race (or tap **Iniciar corrida** (Start race) on the controller).
 4. Use the arrows and pedals, or enable tilt.
 
-- **Connection:** pairing uses HTTP/Redis. Commands use WebRTC when possible, with an HTTPS fallback (Safari starts in compatibility mode), so TURN is not needed. The original WebSocket relay remains at `/relay` as a technical alternative.
+- **Connection:** pairing uses three HTTP calls; ongoing control uses `/api/controller` WebSockets on every browser, including Safari. Redis stores expiring room/presence/input state and relays commands between server instances through Pub/Sub. No room polling or HTTP input loop runs during play. Lost sockets reconnect automatically; a disconnect pauses the race until the player resumes.
 - **Security:** the QR code expires in 10 minutes and allows one connection. It uses neither camera nor microphone. Signal loss pauses the race; generate another QR code to reconnect.
 - **iPhone:** open the HTTPS address directly in Safari and scan a freshly generated QR code. Tilt only asks for access when you tap the button. Automated validation uses WebKit; testing on a physical device is still needed.
 - **Local execution:** Node uses Redis for signaling when configured (memory only for local development without Redis), and replaces `localhost` with the detected network address. With multiple interfaces, check the address. The firewall must allow the port on the private network. To use sensors, serve Node behind HTTPS and set `PUBLIC_ORIGIN` to the external URL.
@@ -144,13 +144,13 @@ npm run test:browser
 | `src/audio/` | Audio engine, procedural music player and track data |
 | `src/i18n/` | Translator, types and `locales/*.ts` (pt-BR is the source; en, pt-PT, fr, it, ja, de) |
 | `src/ui/` | Orchestrator (`game-app`), HUD, input, overlays, options, garage, phone dialog, controller page, notifications, car art and DOM |
-| `src/net/remote.ts` | Pairing client (WebRTC and HTTPS fallback) |
+| `src/net/remote.ts` | Pairing and controller commands; `room-socket.ts` owns reconnects |
 | `src/server/` | Room protocol, MongoDB durable storage, Redis ephemeral storage and edge API proxy |
 | `src/shared/config.ts` | Public configuration (`PISTA84_COINS`) |
 | `src/client.ts`, `src/qr.ts` | Browser entry point and QR generation |
 | `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
 | `worker/index.ts`, `db/`, `drizzle/` | Static Worker/API proxy; historical inactive SQL schema and migrations |
-| `dev-server.ts` | Node server: static files, MongoDB/Redis APIs, public config, network/QR and local WebSocket relay |
+| `dev-server.ts` | Node server: static files, MongoDB/Redis APIs, public config, network/QR and shared WebSocket transport |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
 | `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
 | `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configuration |

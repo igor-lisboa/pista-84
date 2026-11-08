@@ -61,12 +61,12 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts` | Car previews, DOM/format helpers, toasts and feedback |
-| `src/net/remote.ts` | Pairing client, WebRTC and HTTP compatibility transport |
+| `src/net/remote.ts` | Pairing and controller commands; `room-api.ts` and `room-socket.ts` own HTTP and socket lifecycles |
 | `src/server/signaling.ts` | Shared room protocol; Redis in production, memory only for isolated tests/local fallback |
 | `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
 | `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`) |
 | `src/client.ts` | Entry point: fetch `/runtime-config.json`, then mount the game or the controller page |
-| `dev-server.ts` | Node static server, MongoDB/Redis APIs, public config, network/QR, health and local WebSocket relay |
+| `dev-server.ts` | Node static server, MongoDB/Redis APIs, public config, network/QR, health and shared socket relay |
 | `worker/index.ts` | Static edge assets, public config and proxy to Node APIs |
 | `web/sw.ts` | Service worker (offline cache) |
 
@@ -129,7 +129,9 @@ return HTTP 409. GUID identity uses x-player-id, not a gateway account header.
 Local device progress and export/import remain available offline.
 
 Redis owns ephemeral pairing rooms (ten minutes) and latest controller input
-(two seconds, capped by the room lifetime). Single-controller claims and expiry
+(two seconds, capped by the room lifetime), plus socket presence leases (fifteen
+seconds, renewed every five seconds). Redis Pub/Sub delivers commands between
+Node/Vercel instances without HTTP polling. Single-controller claims and expiry
 checks are atomic scripts. Deployed pairing has no instance-memory fallback.
 Node may use memory pairing only when Redis is absent for local development;
 it never acknowledges a volatile cloud backup. Missing/unreachable services

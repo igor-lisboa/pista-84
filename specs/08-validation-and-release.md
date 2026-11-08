@@ -46,11 +46,26 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; te
 | Touch | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape pedals in view; no scroll (`mobile.spec.ts`) |
 | Graphics | All 14 vehicles draw complete, unclipped sprites; eight straight sprites and sixteen turn frames are complete and distinct; five lanes with four dividers; balance override (`game.spec.ts`) |
 | Offline | Reload into a playable game with cached modules/artwork; sound toggle degrades gracefully (`game.spec.ts`) |
-| Remote | Start/brake over the HTTPS relay without RTCPeerConnection; loss pauses; new QR reconnects (`game.spec.ts`) |
+| Remote | Socket start/brake without RTCPeerConnection; exactly three pairing HTTP calls and no polling; automatic socket reconnect, safe pause and new QR (`game.spec.ts`, `room-sockets.test.ts`) |
 
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Hosted verification
+
+### WebSocket controller transport (2026-11-08)
+
+- Production build, TypeScript checking and all 115 Node tests passed.
+- Four affected Chromium/WebKit controller cases passed. The request-count cases
+  were rerun with a forced socket close: both reconnected, resumed on user input,
+  and still made only the original three room HTTP calls.
+- Real `.env` MongoDB/Redis checks passed, including two independent Redis socket
+  adapters exchanging Pub/Sub events, exclusive presence, bounded TTLs, replaced
+  connection rejection, reconnect ownership and probe cleanup.
+- Documentation and maintenance guidance describe the socket API and Redis leases.
+
+No deployment or commit was made. After deploying, reload both game/controller
+pages and verify a WebSocket upgrade on `/api/controller`. The four browser cases
+are targeted coverage, not the full browser suite or physical iPhone certification.
 
 ### Automatic local-save synchronization (2026-11-08)
 

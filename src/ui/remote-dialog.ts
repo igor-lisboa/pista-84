@@ -136,7 +136,6 @@ export class RemoteDialog {
     const url = new URL(location.origin + location.pathname);
     url.searchParams.set('controller', roomId);
     url.searchParams.set('token', joinToken);
-    if (new URLSearchParams(location.search).get('transport') === 'relay') url.searchParams.set('transport', 'relay');
     if (['localhost', '127.0.0.1'].includes(url.hostname)) {
       try {
         const data = (await (await fetch('/network')).json()) as { host?: string };
