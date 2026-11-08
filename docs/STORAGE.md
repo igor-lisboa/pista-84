@@ -44,7 +44,7 @@ expiry, deletion, `EVAL`, `PUBLISH`, `SUBSCRIBE` and `UNSUBSCRIBE`. Scripts use 
 hash tags for Cluster compatibility. Socket instances share one command connection
 and a separate Pub/Sub connection; they never poll Redis for controller input.
 
-Vercel runs `api/*.ts` in Node; the development server uses the same adapters.
+Vercel runs `api/*.ts` in Node; the shared Node HTTP/WebSocket server uses the same adapters.
 `api/controller.ts` exports an HTTP server with the `ws` upgrade handler, following
 [Vercel's WebSocket API](https://vercel.com/docs/functions/websockets). No extra
 socket hosting service or browser Redis credentials are needed. Function duration
@@ -56,6 +56,51 @@ to memory pairing for offline development; it never offers volatile cloud saves.
 Configured service failures return 503 without erasing browser progress.
 `/health` reports configuration availability, not a live database ping. Use
 `online:check` for read/write verification.
+
+### Heroku
+
+Use the Node.js buildpack with the repository's Node 24 engine. Heroku runs
+`heroku-postbuild` to generate assets while build dependencies are available, then
+the `Procfile` runs `npm start` (`node production-server.ts`). Startup never
+rebuilds assets or loads local `.env` files. `npm run dev` remains the local
+build-and-serve command. Both launchers use `scripts/node-server.ts`.
+
+Set these in **Settings > Config Vars**:
+
+| Variable | Value |
+| --- | --- |
+| `NODE_ENV` | `production` |
+| `PUBLIC_ORIGIN` | `https://pista-84-e7d109005460.herokuapp.com` (no path) |
+| `MONGODB_URI` | Your provider's MongoDB connection URI, including credentials |
+| `MONGODB_DATABASE` | `pista84`, or the database your account can access |
+| `REDIS_URL` | Your provider's Redis connection URI; use `rediss://` for TLS |
+| `PISTA84_COINS` | Omit for normal saved balances; setting it overrides every player's balance |
+
+Do not set `PORT`: Heroku assigns it. Leave `API_ORIGIN` unset on this dyno;
+only an optional separate edge Worker needs it, pointing to this HTTPS origin.
+MongoDB/Redis add-on variables with other names must be mapped to
+`MONGODB_URI`/`REDIS_URL`; the app does not read provider-specific aliases.
+Do not place actual credentials in commands, repository files or screenshots.
+
+Production refuses to listen if MongoDB or Redis is unconfigured; there is no
+deployed memory fallback. Configure both before deploying. The listener binds
+to `0.0.0.0:$PORT`, and `/api/controller` handles WebSocket upgrades on the same
+dyno. Heroku terminates TLS at its router: `PUBLIC_ORIGIN` pins the external
+origin, or the server uses Heroku's `X-Forwarded-Proto` header when it is unset.
+Same-origin API protection stays enabled. Production does not publish `/network`.
+
+The reported room POST 403 with `{"error":"Invalid origin."}` results when HTTPS
+browser requests are reconstructed as HTTP internally, or `PUBLIC_ORIGIN` points
+to a different hostname. Progress GET 503 with
+`{"error":"Online storage is not configured."}` means `MONGODB_URI` is absent.
+Configured but unreachable/unauthorized MongoDB also returns 503, with a different
+generic message: check the database user's permissions and provider network
+access rules. `/health` cannot certify connectivity.
+
+After deployment, check `/health`, reload the game and verify progress uploads,
+room creation and a WebSocket 101 upgrade on `/api/controller`. Run
+`npm run online:check` only in an explicitly configured maintenance environment
+when live read/write verification is needed; it uses removable probe records.
 
 The optional edge Worker is browser-targeted and cannot run these TCP drivers.
 It serves assets and forwards `/api/*` and `/health` to an HTTPS `API_ORIGIN`

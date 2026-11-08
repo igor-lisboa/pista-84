@@ -20,12 +20,12 @@ Requires Node.js **24** or newer.
 
 ```powershell
 npm install
-npm start
+npm run dev
 ```
 
 Open **http://localhost:4173**. The terminal also shows the network address for accessing the game from your phone. Use `PORT` to change the port.
 
-`npm start` and `npm run dev` build the game before launching the local server. After editing `src/` or `web/`, stop the server with Ctrl+C and start it again, or run `npm run build` to refresh the assets while it is running. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/client.ts` and `web/sw.ts` into `www/game.js` and `www/sw.js`) and the Worker.
+`npm run dev` builds the game before launching the local server. After editing `src/` or `web/`, stop the server with Ctrl+C and start it again, or run `npm run build` to refresh the assets while it is running. Production uses `npm start` after a build; it does not rebuild at startup and requires MongoDB and Redis. `www/` and `dist/` are generated; do not edit them. All code is TypeScript: Node 24 runs the `.ts` files directly (erasable syntax only, imports with the `.ts` extension), `tsc --noEmit` does the type checking, and esbuild bundles the browser app (`src/client.ts` and `web/sw.ts` into `www/game.js` and `www/sw.js`) and the Worker.
 
 If startup reports **port 4173 is already in use**, an existing server is still running. Open http://localhost:4173, stop that server with Ctrl+C before starting another, or set a different `PORT` in `.env`.
 
@@ -49,7 +49,7 @@ REDIS_URL=redis://localhost:6379
 
 `PISTA84_COINS` sets your balance when you open/reload the game and when you import or restore progress, taking priority over the local balance and the database backup. It accepts non-negative integers, including `0`. Leave it empty to use the saved balance. Purchases and earnings still change the balance during the session; reloading reapplies the configured value. Reading the backup does not change the record in the database; saving to the cloud remains a manual action.
 
-After editing `.env`, restart `npm start`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only this balance is exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
+After editing `.env`, restart `npm run dev`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only this balance is exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
 
 MongoDB stores durable online scores and manual backups; Redis stores pairing rooms (10-minute TTL) and controller input (2-second TTL). Run `npm run online:check` to verify both configured services. See [storage and AI maintenance](docs/STORAGE.md). Codex reads `AGENTS.md`, Claude reads `CLAUDE.md`, and Copilot reads `.github/copilot-instructions.md`; repository skills and maintenance agents are included.
 
@@ -150,7 +150,7 @@ npm run test:browser
 | `src/client.ts`, `src/qr.ts` | Browser entry point and QR generation |
 | `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
 | `worker/index.ts`, `db/`, `drizzle/` | Static Worker/API proxy; historical inactive SQL schema and migrations |
-| `dev-server.ts` | Node server: static files, MongoDB/Redis APIs, public config, network/QR and shared WebSocket transport |
+| `dev-server.ts`, `production-server.ts` | Local and production launchers for the shared `scripts/node-server.ts` HTTP/WebSocket server |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
 | `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
 | `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configuration |

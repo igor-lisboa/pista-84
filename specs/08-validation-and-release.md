@@ -9,10 +9,15 @@ Node.js **24** is the verified environment: it runs the TypeScript sources nativ
 ```powershell
 npm install
 npm run build
-npm start
+npm run dev
 ```
 
-`npm start` (and `npm run dev`) run `node dev-server.ts` and serve the generated `www/`, so build first. Open `http://localhost:4173`. `PORT` changes the port. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
+`npm run dev` builds and runs `node dev-server.ts` to serve the generated `www/`. Open `http://localhost:4173`. `PORT` changes the port. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
+
+Production uses `npm run build` followed by `npm start` (`node production-server.ts`).
+Heroku builds through `heroku-postbuild` and starts through the `Procfile`, with no
+runtime rebuild. Configure MongoDB, Redis and the external HTTPS `PUBLIC_ORIGIN`;
+Heroku supplies `PORT`. See [Heroku configuration](../docs/STORAGE.md#heroku).
 
 ## Automated checks
 
@@ -25,7 +30,7 @@ npm run test:browser
 
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over sources, tests, scripts, worker and config files. It is clean on 1.4.0.
 - `npm test` runs isolated Node tests, including MongoDB adapter concurrency, backup revisions, ranking, room protocol and edge API proxy coverage. No normal test loads live storage credentials.
-- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm start`, with live databases disabled and no existing server reused). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
+- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled and no existing server reused). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; test counts change as coverage grows. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records.
 

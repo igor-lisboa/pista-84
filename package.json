@@ -6,8 +6,7 @@
   "scripts": {
     "predev": "npm run build",
     "dev": "node dev-server.ts",
-    "prestart": "npm run build",
-    "start": "node dev-server.ts",
+    "start": "node production-server.ts",
     "build": "node scripts/build.ts",
     "vercel-build": "npm run build",
     "heroku-postbuild": "npm run build",

@@ -20,11 +20,15 @@ export default defineConfig({
     storageState: 'tests/browser/support/signed-in.json',
   },
   webServer: {
-    command: 'npm start',
+    command: 'npm run dev',
     // Tests must never write fake players into live services: empty values win over .env.
     env: {
       MONGODB_URI: '',
       REDIS_URL: '',
+      NODE_ENV: 'development',
+      DYNO: '',
+      PUBLIC_ORIGIN: '',
+      PORT: '4173',
     },
     url: `${BASE_URL}/health`,
     reuseExistingServer: false,

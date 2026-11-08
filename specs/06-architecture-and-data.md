@@ -24,7 +24,8 @@ car-game/
   drizzle/               immutable SQL migrations and metadata
   tests/                 Node tests, test support, Playwright specs
   scripts/               build, env, assets, screenshots and verification (TypeScript)
-  dev-server.ts          local Node server
+  dev-server.ts          local Node launcher
+  production-server.ts   production Node launcher
   tsconfig.json, drizzle.config.ts, playwright.config.ts
   android/ and ios/      generated Capacitor projects
   www/                   generated browser/native assets (ignored)
@@ -66,7 +67,8 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
 | `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`) |
 | `src/client.ts` | Entry point: fetch `/runtime-config.json`, then mount the game or the controller page |
-| `dev-server.ts` | Node static server, MongoDB/Redis APIs, public config, network/QR, health and shared socket relay |
+| `scripts/node-server.ts` | Shared Node static server, MongoDB/Redis APIs, public config, local network/QR, health and socket relay |
+| `dev-server.ts`, `production-server.ts` | Local and production launchers; production requires MongoDB/Redis and ignores local env files |
 | `worker/index.ts` | Static edge assets, public config and proxy to Node APIs |
 | `web/sw.ts` | Service worker (offline cache) |
 
@@ -145,8 +147,12 @@ SQL schema/migrations are retained as reference and are not used at runtime.
 
 npm run build generates www/, the Worker asset module and
 dist/server/index.js. Browser entry is src/client.ts; local Node
-entry is dev-server.ts. Generated output is not source. npm start
-builds before starting the local server.
+entry is dev-server.ts. Generated output is not source. npm run dev
+builds before starting the local server. npm start runs production-server.ts
+against already-built assets. Heroku builds through heroku-postbuild and runs
+the production launcher through the Procfile. HTTPS proxy requests use
+PUBLIC_ORIGIN or Heroku's forwarded scheme; production never falls back to
+in-memory pairing.
 
 Vercel serves static files and Node API functions. The optional browser-targeted
 Worker serves assets/config and proxies online APIs to an HTTPS API_ORIGIN
