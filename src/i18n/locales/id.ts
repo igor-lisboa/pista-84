@@ -66,6 +66,7 @@ export const id = {
   'user.rules': '3 sampai 16 karakter: huruf, angka, _ . -',
   'user.confirm': 'KONFIRMASI',
   'user.welcome': 'Selamat datang, {name}!',
+  'user.offline': "Main offline",
   'set.username': 'Nama pembalap: {name}',
   'newp.menu': 'PEMAIN BARU',
   'newp.label': 'MULAI ULANG',

@@ -66,6 +66,7 @@ export const bn = {
   'user.rules': '৩ থেকে ১৬ অক্ষর: অক্ষর, সংখ্যা, _ . -',
   'user.confirm': 'নিশ্চিত করুন',
   'user.welcome': 'স্বাগতম, {name}!',
+  'user.offline': "অফলাইনে খেলুন",
   'set.username': 'ড্রাইভারের নাম: {name}',
   'newp.menu': 'নতুন খেলোয়াড়',
   'newp.label': 'নতুন করে শুরু',

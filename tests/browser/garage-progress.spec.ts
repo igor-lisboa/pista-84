@@ -11,8 +11,9 @@ for (const viewport of [{width: 1280, height: 720}, {width: 390, height: 844}, {
       await page.goto('/');
       await page.locator('#garageNav').click();
       await expect(page.locator('#garageGrid .car-card')).toHaveCount(18);
-      await expect.poll(() => page.locator('#cloudUpload').isVisible()).toBe(progressTools);
-      for (const id of ['cloudUpload', 'cloudRestore', 'exportSave', 'importSave']) {
+      // Cloud buttons no longer exist: uploads are automatic for signed-in devices.
+      await expect(page.locator('#cloudUpload, #cloudRestore, #cloudTools, .cloud-note')).toHaveCount(0);
+      for (const id of ['exportSave', 'importSave']) {
         await expect(page.locator(`#${id}`)).toHaveCount(progressTools ? 1 : 0);
       }
       expect(await page.locator('#modal').evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);

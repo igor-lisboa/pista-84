@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
 
-test('a new player starts clean after a confirmation and the old one goes to history', async ({ page }) => {
+import { accountBackend } from './support/account-backend.ts';
+test('a new player starts clean after a confirmation and the old one goes to history', async ({ page, context }) => {
+  await accountBackend(context);
   await page.addInitScript(() => {
     if (!localStorage.getItem('pista84.seeded')) {
       localStorage.setItem('pista84.seeded', '1');
@@ -16,14 +18,16 @@ test('a new player starts clean after a confirmation and the old one goes to his
   const modal = page.locator('#modal');
 
   // Cancelling changes nothing.
-  await page.locator('#newPlayerNav').click();
+  await page.locator('#settingsNav').click();
+  await page.locator('#newPlayer').click();
   await expect(modal).toBeVisible();
   await page.locator('#newPlayerCancel').click();
   await expect(modal).toBeHidden();
   expect((await save(page)).coins).toBe(400);
 
   // Confirming starts over and demands a new name.
-  await page.locator('#newPlayerNav').click();
+  await page.locator('#settingsNav').click();
+  await page.locator('#newPlayer').click();
   await page.locator('#newPlayerConfirm').click();
   await expect(page.locator('#usernameInput')).toBeVisible();
   await expect(page.locator('#closeModal')).toBeHidden();
@@ -36,6 +40,7 @@ test('a new player starts clean after a confirmation and the old one goes to his
   expect(fresh.history).toEqual([expect.objectContaining({ username: 'Tester', bestScore: 777 })]);
 
   await page.locator('#usernameInput').fill('SecondRun');
+  await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#tutNext')).toBeVisible();
   await page.locator('#tutSkip').click();

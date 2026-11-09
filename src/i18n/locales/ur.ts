@@ -66,6 +66,7 @@ export const ur = {
   'user.rules': '3 سے 16 حروف: حروف، ہندسے، _ . -',
   'user.confirm': 'تصدیق کریں',
   'user.welcome': 'خوش آمدید، {name}!',
+  'user.offline': "آف لائن کھیلیں",
   'set.username': 'ڈرائیور کا نام: {name}',
   'newp.menu': 'نیا کھلاڑی',
   'newp.label': 'نئے سرے سے شروع کریں',

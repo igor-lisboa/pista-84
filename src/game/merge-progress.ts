@@ -22,3 +22,26 @@ export function mergeProgress(remote: SaveData | null, incoming: SaveData, playe
     updatedAt: Math.max(previous?.updatedAt ?? 0, local.updatedAt),
   };
 }
+
+/**
+ * Folds a save written by another tab (or a restore) into this tab's in-memory save before it writes,
+ * so a late write such as the one on page exit never discards it. The later snapshot wins coins and
+ * selections; records take the maximum and unlocks form a union. Identity, name and history stay ours.
+ */
+export function reconcileStoredSave(stored: SaveData, current: SaveData): SaveData {
+  const latest = stored.updatedAt > current.updatedAt ? stored : current;
+  return {
+    ...latest,
+    playerId: current.playerId,
+    username: current.username,
+    history: current.history,
+    coins: latest.coins,
+    best: Math.max(stored.best, current.best),
+    bestScore: Math.max(stored.bestScore, current.bestScore),
+    owned: [...new Set([...stored.owned, ...current.owned])],
+    paints: [...new Set([...stored.paints, ...current.paints])],
+    tutorialDone: stored.tutorialDone || current.tutorialDone,
+    createdAt: Math.min(stored.createdAt, current.createdAt),
+    updatedAt: Math.max(stored.updatedAt, current.updatedAt),
+  };
+}

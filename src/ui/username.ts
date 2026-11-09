@@ -1,66 +1,123 @@
 import { USERNAME_MAX, USERNAME_MIN, normalizeUsername, type SaveData } from '../game/index.ts';
 import { t } from '../i18n/index.ts';
 import { byId } from './dom.ts';
+import { AccountError } from '../net/account.ts';
+import { authErrorKey } from './account.ts';
 
 export interface UsernameDeps {
   readonly save: SaveData;
-  persist(): void;
-  /** Called after a valid name is stored. */
+  /** Creates the account (signup) or signs into it (login), merging this device's progress. */
+  signIn(action: 'login' | 'signup', username: string, password: string): Promise<void>;
+  /** Called after the account is ready on this device. */
   onSaved(name: string): void;
-  openAccount(): void;
+  /** Keeps the name on this device only, when the account service cannot be reached. */
+  offline(name: string): void;
 }
 
-/** Asks for the leaderboard name; on first launch the dialog cannot be dismissed. */
+const PASSWORD_MIN = 5;
+const PASSWORD_MAX = 128;
+
+/**
+ * First-launch screen: the driver name and a password create the online account, so the same
+ * progress can be used on other devices. Players who already have an account switch to login.
+ */
 export class UsernameDialog {
   private readonly deps: UsernameDeps;
+  private mode: 'signup' | 'login' = 'signup';
 
   constructor(deps: UsernameDeps) {
     this.deps = deps;
   }
 
-  /** Whether the player still has to pick a name before playing. */
+  /** Whether the player still has to create or log into an account before playing. */
   get required(): boolean {
     return this.deps.save.username === null;
   }
 
   render(): void {
-    const { save } = this.deps;
+    const login = this.mode === 'login';
     byId('modalBody').innerHTML = `
       <span class="label">${t('user.label')}</span>
-      <h1>${t('user.title')}<span>.</span></h1>
+      <h1>${t(login ? 'auth.login' : 'user.title')}<span>.</span></h1>
       <p>${t('user.hint')}</p>
-      <p>${t('user.keep')}</p>
       <form id="usernameForm" class="username-form" novalidate>
-        <input id="usernameInput" type="text" name="username" autocomplete="nickname" autocapitalize="off" spellcheck="false"
-          minlength="${USERNAME_MIN}" maxlength="${USERNAME_MAX}" placeholder="${t('user.placeholder')}"
-          aria-label="${t('user.title')}" aria-describedby="usernameRules" value="${save.username ?? ''}">
-        <p id="usernameRules" class="username-rules">${t('user.rules')}</p>
-        <button class="primary" type="submit"><span>${t('user.confirm')}</span></button>
+        <label for="usernameInput">${t('auth.username')}</label>
+        <input id="usernameInput" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false"
+          minlength="${USERNAME_MIN}" maxlength="${USERNAME_MAX}" placeholder="${t('user.placeholder')}" aria-describedby="usernameRules">
+        <label for="usernamePassword">${t('auth.password')}</label>
+        <input id="usernamePassword" type="password" name="password" autocomplete="${login ? 'current-password' : 'new-password'}"
+          minlength="${PASSWORD_MIN}" maxlength="${PASSWORD_MAX}" aria-describedby="usernameRules">
+        <p id="usernameRules" class="username-rules">${t('auth.rules')}</p>
+        <p id="usernameStatus" role="status" aria-live="polite"></p>
+        <button class="primary" type="submit"><span>${t(login ? 'auth.login' : 'auth.signup')}</span></button>
       </form>
-      <button id="usernameAccount" class="menu-button" type="button"><span>${t('auth.login')} / ${t('auth.signup')}</span></button>`;
+      <button id="usernameSwitch" class="menu-button" type="button"><span>${t(login ? 'auth.signup' : 'auth.login')}</span></button>
+      <button id="usernameOffline" class="menu-button" type="button" hidden><span>${t('user.offline')}</span></button>`;
     byId('closeModal').hidden = this.required;
-    byId('usernameAccount').onclick = () => this.deps.openAccount();
 
     const input = byId<HTMLInputElement>('usernameInput');
     byId<HTMLFormElement>('usernameForm').onsubmit = (event) => {
       event.preventDefault();
-      const name = normalizeUsername(input.value);
-      if (name === null) {
-        byId('usernameRules').classList.add('invalid');
-        input.setAttribute('aria-invalid', 'true');
-        input.focus();
-        return;
-      }
-      save.username = name;
-      this.deps.persist();
-      byId('closeModal').hidden = false;
-      byId<HTMLDialogElement>('modal').close();
-      this.deps.onSaved(name);
+      void this.submit();
     };
+    byId('usernameSwitch').onclick = () => {
+      this.mode = login ? 'signup' : 'login';
+      this.render();
+    };
+    byId('usernameOffline').onclick = () => this.playOffline();
     input.oninput = () => {
-      byId('usernameRules').classList.remove('invalid');
       input.removeAttribute('aria-invalid');
+      byId('usernameStatus').textContent = '';
     };
     requestAnimationFrame(() => input.focus());
+  }
+
+  /** Offline fallback: network trouble must never block local play. The account can be created later. */
+  private playOffline(): void {
+    const input = byId<HTMLInputElement>('usernameInput');
+    const name = normalizeUsername(input.value);
+    if (name === null) {
+      byId('usernameStatus').textContent = t('auth.invalid');
+      input.setAttribute('aria-invalid', 'true');
+      input.focus();
+      return;
+    }
+    this.deps.offline(name);
+    byId('closeModal').hidden = false;
+    byId<HTMLDialogElement>('modal').close();
+    this.deps.onSaved(name);
+  }
+
+  private async submit(): Promise<void> {
+    const input = byId<HTMLInputElement>('usernameInput');
+    const passwordField = byId<HTMLInputElement>('usernamePassword');
+    const status = byId('usernameStatus');
+    const name = normalizeUsername(input.value);
+    const password = passwordField.value;
+    passwordField.value = '';
+    if (name === null || password.length < PASSWORD_MIN) {
+      status.textContent = t('auth.invalid');
+      if (name === null) {
+        input.setAttribute('aria-invalid', 'true');
+        input.focus();
+      } else passwordField.focus();
+      return;
+    }
+
+    const buttons = [...byId('modalBody').querySelectorAll<HTMLButtonElement>('button')];
+    buttons.forEach((button) => (button.disabled = true));
+    try {
+      await this.deps.signIn(this.mode, name, password);
+      this.deps.onSaved(name);
+    } catch (error) {
+      status.textContent = t(authErrorKey(error));
+      // Only a connection problem opens the offline way in; a wrong password or a taken name does not.
+      byId('usernameOffline').hidden = !(error instanceof AccountError && error.code === 'unavailable');
+      if (error instanceof Error && 'code' in error && error.code === 'taken') {
+        input.setAttribute('aria-invalid', 'true');
+        input.focus();
+      }
+      buttons.forEach((button) => (button.disabled = false));
+    }
   }
 }

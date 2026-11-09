@@ -66,6 +66,7 @@ export const de: Messages = {
   'user.rules': '3 bis 16 Zeichen: Buchstaben, Ziffern, _ . -',
   'user.confirm': 'BESTÄTIGEN',
   'user.welcome': 'Willkommen, {name}!',
+  'user.offline': "Offline spielen",
   'set.username': 'Fahrername: {name}',
   'newp.menu': 'NEUER SPIELER',
   'newp.label': 'NEU STARTEN',

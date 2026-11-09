@@ -66,6 +66,7 @@ export const ja: Messages = {
   'user.rules': '3〜16文字：文字、数字、_ . -',
   'user.confirm': '決定',
   'user.welcome': 'ようこそ、{name}！',
+  'user.offline': "オフラインで遊ぶ",
   'set.username': 'ドライバー名: {name}',
   'newp.menu': '新しいプレイヤー',
   'newp.label': '最初からやり直す',

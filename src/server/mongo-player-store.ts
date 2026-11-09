@@ -58,6 +58,9 @@ export function mongoPlayerStore(collection: (key: StoreKey) => Promise<Collecti
         {score: row.score, achieved: row.achieved, _id: {$lt: playerId}},
       ]});
     },
+    async removeScore(playerId: string): Promise<void> {
+      await (await collection('scores')).deleteOne({_id: playerId});
+    },
     async leaderboard(options): Promise<LeaderboardPage> {
       const records = await collection('scores');
       const total = await records.countDocuments();

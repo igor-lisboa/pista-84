@@ -98,6 +98,7 @@ test('a failing store answers 503 instead of crashing, so clients keep playing o
     read: () => Promise.reject(new Error('Database unreachable')),
     update: () => Promise.reject(new Error('Database unreachable')),
     rank: () => Promise.reject(new Error('Database unreachable')),
+    removeScore: () => Promise.reject(new Error('Database unreachable')),
   };
   assert.equal((await leaderboardApi(new Request('https://pista.test/api/leaderboard'), broken)).status, 503);
   assert.equal((await leaderboardApi(scoreRequest({playerId: ALICE, username: 'Alice', score: 5, distance: 1}), broken)).status, 503);

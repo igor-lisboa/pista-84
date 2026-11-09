@@ -18,9 +18,15 @@ const errors: Record<string, MessageKey> = {
   secure: 'auth.secure',
 };
 
+/** Translation key for a failed account request. */
+export const authErrorKey = (error: unknown): MessageKey =>
+  error instanceof AccountError ? errors[error.code] ?? 'auth.unavailable' : 'auth.unavailable';
+
 /** Optional account access. Password inputs are cleared immediately after submission. */
 export class AccountDialog {
   private busy = false;
+  /** The name typed in the last submission, restored when a merge has to be retried. */
+  private retryUsername = '';
   private pendingUser: AccountIdentity | null = null;
   constructor(deps: AccountDeps) { this.deps = deps; }
   private readonly deps: AccountDeps;
@@ -51,7 +57,7 @@ export class AccountDialog {
       <span class="label">${t('auth.account')}</span>
       <h1>${t(user ? 'auth.account' : signup ? 'auth.signup' : 'auth.login')}</h1>
       <p>${t(user ? 'auth.logoutHelp' : 'auth.help')}</p>
-      ${user ? '<p id="accountName"></p><button id="accountSync" class="menu-button"><span>' + t('auth.sync') + '</span></button><button id="accountLogout" class="menu-button danger"><span>' + t('auth.logout') + '</span></button>' : `
+      ${user ? '<p id="accountName"></p><button id="accountLogout" class="menu-button danger"><span>' + t('auth.logout') + '</span></button>' : `
       <form id="accountForm" class="username-form">
         <label for="accountUsername">${t('auth.username')}</label>
         <input id="accountUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" autocapitalize="none" spellcheck="false">
@@ -64,7 +70,6 @@ export class AccountDialog {
       <p id="accountStatus" role="status" aria-live="polite"></p>`;
     if (user) {
       byId('accountName').textContent = user.username;
-      byId('accountSync').onclick = () => void this.run(async () => this.reconcile(user));
     } else {
       if (known) {
         const username = byId<HTMLInputElement>('accountUsername');
@@ -78,6 +83,7 @@ export class AccountDialog {
       byId('accountForm').onsubmit = event => {
         event.preventDefault();
         const username = byId<HTMLInputElement>('accountUsername').value;
+        this.retryUsername = username;
         const field = byId<HTMLInputElement>('accountPassword');
         const password = field.value;
         field.value = '';
@@ -100,6 +106,21 @@ export class AccountDialog {
     });
   }
 
+  /**
+   * Signs in or creates an account from any screen (the first-launch name screen uses this).
+   * Throws an AccountError on failure; the guest save is left untouched in that case.
+   */
+  async signInWith(action: 'login' | 'signup', username: string, password: string): Promise<void> {
+    this.deps.switching();
+    try {
+      const {user} = await accountRequest('/api/auth', {action, username, password});
+      await this.reconcile(user as AccountIdentity);
+    } catch (error) {
+      this.deps.finished();
+      throw error;
+    }
+  }
+
   private async reconcile(user: AccountIdentity): Promise<void> {
     this.deps.switching();
     // Commit the owner marker only after the server has acknowledged the guest merge.
@@ -110,11 +131,15 @@ export class AccountDialog {
     byId<HTMLDialogElement>('modal').close();
   }
 
+  /** Enables or disables the buttons currently on screen (a re-render replaces them). */
+  private setBusy(busy: boolean): void {
+    byId('modalBody').querySelectorAll<HTMLButtonElement>('button').forEach(button => button.disabled = busy);
+  }
+
   private async run(action: () => Promise<void>): Promise<void> {
     if (this.busy) return;
     this.busy = true;
-    const buttons = [...byId('modalBody').querySelectorAll<HTMLButtonElement>('button')];
-    buttons.forEach(button => button.disabled = true);
+    this.setBusy(true);
     byId('closeModal').hidden = true;
     const modal = byId<HTMLDialogElement>('modal');
     const preventClose = (event: Event): void => event.preventDefault();
@@ -122,9 +147,12 @@ export class AccountDialog {
     try { await action(); }
     catch (error) {
       if (this.pendingUser) {
+        // The merge failed after the server signed us in: show the form again so submitting retries it.
         this.busy = false;
-        this.render(this.pendingUser);
-        this.busy = true;
+        this.render(null);
+        // Keep the typed name, so only the password has to be entered again.
+        const field = document.getElementById('accountUsername') as HTMLInputElement | null;
+        if (field) field.value = this.retryUsername;
       }
       byId('accountStatus').textContent = t(error instanceof AccountError ? errors[error.code] ?? 'auth.unavailable' : 'auth.unavailable');
       if (error instanceof AccountError && error.code === 'taken') {
@@ -137,7 +165,7 @@ export class AccountDialog {
     } finally {
       this.deps.finished();
       this.busy = false;
-      buttons.forEach(button => button.disabled = false);
+      this.setBusy(false);
       byId('closeModal').hidden = false;
       modal.removeEventListener('cancel', preventClose);
     }

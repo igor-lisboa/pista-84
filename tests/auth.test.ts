@@ -183,5 +183,11 @@ test('neither GUID headers nor forged score bodies authorize another account', a
   }
   assert.equal((await playerApi(request('/api/account', {save: {...defaultSave(), playerId: account.id}}, `__Host-pista84-session=${token}`), store)).status, 403);
   const guest = defaultSave();
-  assert.equal((await playerApi(request('/api/score', {playerId: guest.playerId, username: ' OWNER ', score: 100, distance: 10}), store)).status, 409);
+  // Guests never publish: a fresh GUID and an account name are both refused before any write.
+  assert.equal((await playerApi(request('/api/score', {playerId: guest.playerId, username: ' OWNER ', score: 100, distance: 10}), store)).status, 401);
+  assert.equal((await playerApi(request('/api/score', {playerId: guest.playerId, username: 'Guest', score: 100, distance: 10}), store)).status, 401);
+  const guestProgress = new Request('https://game.test/api/progress', {method: 'PUT', headers: {'x-player-id': guest.playerId, 'content-type': 'application/json'},
+    body: JSON.stringify({save: guest, revision: 0})});
+  assert.equal((await playerApi(guestProgress, store)).status, 401);
+  assert.equal((await store.read('scores', [])).length, 0);
 });

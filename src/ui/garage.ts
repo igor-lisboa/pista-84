@@ -28,7 +28,6 @@ export interface GarageDeps {
   /** Repaints the car shown on the main menu. */
   refreshFeatured(): void;
   toast(message: string): void;
-  cloudEnabled(): boolean;
   readonly progressToolsEnabled: boolean;
   /** Called after a save was imported or restored, so the new identity and scores can be shared online. */
   imported(): void;
@@ -65,7 +64,6 @@ export class Garage {
 
   render(): void {
     const { save } = this.deps;
-    const cloud = this.deps.cloudEnabled();
     byId('modalBody').innerHTML = `
       <span class="label">${t('garage.label')}</span>
       <h1>${t('garage.title')}<span>.</span></h1>
@@ -76,12 +74,7 @@ export class Garage {
         <p>${t('garage.paintNote')}</p>
         <div id="paints"></div>
       </section>
-      ${this.deps.progressToolsEnabled ? `<div id="cloudTools" class="backup-tools" ${cloud ? '' : 'hidden'}>
-        <button id="cloudUpload">${t('garage.cloudUp')}</button>
-        <button id="cloudRestore">${t('garage.cloudDown')}</button>
-      </div>
-      <p class="cloud-note" ${cloud ? '' : 'hidden'}>${t('garage.cloudNote')}</p>
-      <div class="backup-tools">
+      ${this.deps.progressToolsEnabled ? `<div class="backup-tools">
         <button id="exportSave">${t('garage.export')}</button>
         <label>${t('garage.import')}<input type="file" id="importSave" accept="application/json"></label>
       </div>
@@ -94,8 +87,6 @@ export class Garage {
     for (const paint of PAINTS) paints.append(this.paintButton(paint));
 
     if (this.deps.progressToolsEnabled) {
-      byId('cloudUpload').onclick = () => void this.syncCloud(false);
-      byId('cloudRestore').onclick = () => void this.syncCloud(true);
       byId('exportSave').onclick = () => this.exportSave();
       byId<HTMLInputElement>('importSave').onchange = (event) => void this.importSave(event);
     }
@@ -213,33 +204,4 @@ export class Garage {
     this.render();
   }
 
-  private async syncCloud(restore: boolean): Promise<void> {
-    const buttons = [byId<HTMLButtonElement>('cloudUpload'), byId<HTMLButtonElement>('cloudRestore')];
-    buttons.forEach((button) => (button.disabled = true));
-    try {
-      const identity = { 'x-player-id': this.deps.save.playerId };
-      const response = await fetch('/api/progress', { headers: identity });
-      const data = (await response.json()) as { error?: string; save?: unknown; revision?: number };
-      if (!response.ok) throw new Error(data.error ?? t('garage.cloudUnavailable'));
-
-      if (restore) {
-        if (!data.save) throw new Error(t('garage.cloudNone'));
-        this.applySave(JSON.stringify(data.save));
-        this.deps.toast(t('garage.cloudRestored'));
-      } else {
-        const result = await fetch('/api/progress', {
-          method: 'PUT',
-          headers: { ...identity, 'content-type': 'application/json' },
-          body: JSON.stringify({ save: this.deps.save, revision: data.revision }),
-        });
-        const updated = (await result.json()) as { error?: string };
-        if (!result.ok) throw new Error(updated.error ?? t('garage.cloudFail'));
-        this.deps.toast(t('garage.cloudSaved'));
-      }
-    } catch (error) {
-      this.deps.toast(error instanceof Error ? error.message : t('garage.cloudFail'));
-    } finally {
-      buttons.forEach((button) => (button.disabled = false));
-    }
-  }
 }

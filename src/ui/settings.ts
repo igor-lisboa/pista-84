@@ -2,6 +2,7 @@ import type { AudioEngine } from '../audio/audio.ts';
 import { AudioUnavailableError } from '../audio/audio.ts';
 import type { SaveData } from '../game/index.ts';
 import { LANGS, getLang, isLang, t, type Lang } from '../i18n/index.ts';
+import { localAccount } from '../net/account.ts';
 import { byId } from './dom.ts';
 import { flagSvg } from './flags.ts';
 import { icon } from './icons.ts';
@@ -82,6 +83,7 @@ export class SettingsDialog {
   }
 
   render(): void {
+    const account = localAccount();
     const { input, save } = this.deps;
     const flags = (Object.entries(LANGS) as [Lang, string][])
       .map(([code, name]) => {
@@ -96,8 +98,9 @@ export class SettingsDialog {
         <section class="settings-group">
           <h3 class="group-title">${t('set.groupPlayer')}</h3>
           <div class="setting-card">
-            ${row('account', 'user', t('auth.account'), { end: 'arrow' })}
-            ${row('username', 'user', t('set.username', { name: save.username ?? '—' }), { end: 'arrow' })}
+            ${account
+              ? row('account', 'user', `${t('auth.account')}: ${account.username}`, { end: 'arrow' })
+              : row('account', 'user', `${t('auth.login')} / ${t('auth.signup')}`, { end: 'arrow' })}
             ${row('newPlayer', 'restart', t('newp.menu'), { end: 'arrow', danger: true })}
           </div>
         </section>
@@ -136,7 +139,6 @@ export class SettingsDialog {
         if (isLang(lang) && lang !== getLang()) this.deps.changeLanguage(lang);
       };
     }
-    byId('username').onclick = () => this.deps.editUsername();
     byId('account').onclick = () => this.deps.openAccount();
     byId('units').onclick = () => {
       const units = save.units === 'km' ? 'mi' : 'km';

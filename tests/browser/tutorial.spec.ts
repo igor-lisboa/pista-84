@@ -1,3 +1,4 @@
+import { accountBackend } from './support/account-backend.ts';
 import { expect, test } from '@playwright/test';
 
 const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
@@ -5,9 +6,11 @@ const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON
 test.describe('first play', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test('a brand-new player gets the five-step tutorial once, right after choosing a name', async ({ page }) => {
+  test('a brand-new player gets the five-step tutorial once, right after choosing a name', async ({ page, context }) => {
+    await accountBackend(context);
     await page.goto('/');
     await page.locator('#usernameInput').fill('Newbie_1');
+    await page.locator('#usernamePassword').fill('abcde');
     await page.locator('#usernameForm button[type=submit]').click();
 
     const count = page.locator('.tutorial-count');

@@ -22,12 +22,18 @@ interface Page {
 const escapeHtml = (text: string): string =>
   text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
+export interface LeaderboardDeps {
+  /** Whether this device is signed in; only signed-in players publish scores. */
+  signedIn(): boolean;
+  openAccount(): void;
+}
+
 /** Online ranking, five drivers per page. Needs a connection; the game itself never does. */
 export class LeaderboardDialog {
-  private readonly playerId: () => string;
+  private readonly deps: LeaderboardDeps;
 
-  constructor(playerId: () => string) {
-    this.playerId = playerId;
+  constructor(deps: LeaderboardDeps) {
+    this.deps = deps;
   }
 
   open(): void {
@@ -36,17 +42,22 @@ export class LeaderboardDialog {
   }
 
   private shell(body: string): void {
+    const signInButton = this.deps.signedIn()
+      ? ''
+      : `<button id="lbSignIn" class="primary" type="button"><span>${t('auth.login')}</span></button>`;
     byId('modalBody').innerHTML = `
       <span class="label">${t('lb.label')}</span>
       <h1>${t('lb.title')}<span>.</span></h1>
-      ${body}`;
+      ${body}
+      ${signInButton}`;
+    const button = document.getElementById('lbSignIn');
+    if (button) button.onclick = () => this.deps.openAccount();
   }
 
   private async load(page: number): Promise<void> {
     try {
-      const response = await fetch(`/api/leaderboard?page=${page}&size=${PAGE_SIZE}`, {
-        headers: { 'x-player-id': this.playerId() },
-      });
+      // Reading the ranking is public; the server marks the caller's own row from the session cookie.
+      const response = await fetch(`/api/leaderboard?page=${page}&size=${PAGE_SIZE}`);
       if (!response.ok) throw new Error(String(response.status));
       this.render((await response.json()) as Page);
     } catch {

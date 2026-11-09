@@ -66,6 +66,7 @@ export const es = {
   'user.rules': 'De 3 a 16 caracteres: letras, números, _ . -',
   'user.confirm': 'CONFIRMAR',
   'user.welcome': '¡Bienvenido, {name}!',
+  'user.offline': "Jugar sin conexión",
   'set.username': 'Nombre de piloto: {name}',
   'newp.menu': 'NUEVO JUGADOR',
   'newp.label': 'EMPEZAR DE CERO',

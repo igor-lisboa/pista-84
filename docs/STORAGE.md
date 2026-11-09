@@ -131,8 +131,15 @@ The entry script loads the game or phone controller on demand; controllers avoid
 downloading the game renderer. Build-generated chunk lists keep the PWA's lazy
 modules available offline.
 
-Settings > Account offers sign up, log in, progress synchronization and log out.
-The first-launch guest name screen also links directly to login/signup.
+Settings > Account shows the signed-in pilot (or offers log in / sign up) and log out.
+The first-launch screen asks for a driver name and password: that creates the account,
+so the same progress can be used on other devices. Players with an account switch to login
+on the same screen. Progress is merged with the device's offline save at that moment.
+Guests (no signed-in session) never contact the online API: no score, progress, backup or
+health requests, and no leaderboard publication. The leaderboard shows a log-in button instead.
+The server rejects `/api/score` and `/api/progress` writes without a session (HTTP 401).
+If the account service cannot be reached on first launch, a "Play offline" button keeps the typed
+name on the device only (no upload); the account can be created later from the leaderboard or Settings.
 Guest play still works without an account or network. Guest GUID backups remain
 compatible; they do not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.
@@ -214,13 +221,19 @@ same production API functions with those fakes and never touch live services.
 
 ### Automatic local-save migration and synchronization
 
+Before every local write (and before banking race earnings) the game re-reads the stored save. If another
+tab or a restore wrote a newer copy of the same player, it is folded in with `reconcileStoredSave`
+(later snapshot wins coins and selections, records take the maximum, unlocks are unioned) so a late write
+such as the one on page exit never discards it. A stored save of a different player is never overwritten.
+
 On launch, the game normalizes the existing `pista84` local save and persists any
 new identity assigned to a legacy save. It queues that snapshot before applying
 the environment balance override. No score or username is required to migrate.
 Every subsequent local persist also updates a durable local outbox. Five-second
-racing autosaves are local-only. Automatic progress and score uploads run on
-pause, game end (crash or fuel exhaustion), return to the menu and best-effort
-page exit/backgrounding. There are no periodic, launch or reconnect uploads.
+racing autosaves are local-only. For signed-in devices, automatic progress and score
+uploads run on first entry (launch), pause, game end (crash or fuel exhaustion), return to
+the menu and best-effort page exit/backgrounding. There are no periodic or reconnect uploads
+and no sync buttons. Guests upload nothing.
 A one-time launch `/health` check enables manual backup controls; runtime config,
 explicit leaderboard/backup actions and the controller WebSocket remain available.
 Resuming play prevents a pending revision lookup from starting its PUT or a
@@ -238,8 +251,12 @@ older save timestamps cannot replace newer snapshots on the same device.
 
 Automatic uploads never restore or merge server data into active local play.
 Explicit account login/sync reconciles account data as described above.
-The existing garage buttons continue to manage the explicit manual backup in
-`backups`. Automatic snapshots are readable through the device-scoped progress
+Garage export/import remains for offline files. The manual cloud backup buttons were removed;
+the `backups` collection is still read by the server but no longer written by the game.
+Leaderboard reads retire guest rows that duplicate a registered pilot's name and are not
+better than the account row (at most once a minute per instance). Merging a guest into an
+account moves that guest's best score onto the account and deletes the guest row, but only when the
+guest row carries the account's own name: a GUID alone cannot delete another pilot's row. Automatic snapshots are readable through the device-scoped progress
 API for recovery; a cross-device snapshot picker is not implemented. Storage
 failure prevents persistence of the outbox but still permits in-session upload.
 Players must revisit the updated game and pause/end/leave while connected for

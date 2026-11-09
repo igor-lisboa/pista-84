@@ -32,6 +32,9 @@ export function memoryPlayerStore(): PlayerStore {
     async rank(playerId) {
       return ((docs.get('scores') ?? []) as ScoresDoc).findIndex((row) => row[0] === playerId) + 1;
     },
+    async removeScore(playerId) {
+      docs.set('scores', ((docs.get('scores') ?? []) as ScoresDoc).filter((row) => row[0] !== playerId));
+    },
   };
 }
 

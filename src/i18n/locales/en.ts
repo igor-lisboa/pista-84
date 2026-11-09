@@ -66,6 +66,7 @@ export const en: Messages = {
   'user.rules': '3 to 16 characters: letters, numbers, _ . -',
   'user.confirm': 'CONFIRM',
   'user.welcome': 'Welcome, {name}!',
+  'user.offline': "Play offline",
   'set.username': 'Driver name: {name}',
   'newp.menu': 'NEW PLAYER',
   'newp.label': 'START OVER',

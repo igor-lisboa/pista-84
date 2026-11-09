@@ -3,8 +3,8 @@ import type {BrowserContext, Page} from '@playwright/test';
 import {playerApi} from '../../src/server/player-api.ts';
 import {syncAccountProgress} from '../../src/server/account-progress.ts';
 import {defaultSave} from '../../src/game/save.ts';
-import {memoryAccountStore} from '../support/memory-account-store.ts';
 import {memoryPlayerStore} from '../support/memory-player-store.ts';
+import {accountBackend} from './support/account-backend.ts';
 
 test.use({serviceWorkers: 'block'});
 const password = 'a unique browser test passphrase';
@@ -61,32 +61,23 @@ test('a fresh device can sign up directly from the guest name screen', async ({p
   });
   await backend(context);
   await page.goto('/');
-  await page.locator('#usernameAccount').click();
-  await expect(page.locator('#accountForm')).toBeVisible();
-  await page.locator('#closeModal').click();
   await expect(page.locator('#usernameForm')).toBeVisible();
   await expect(page.locator('#closeModal')).toBeHidden();
-  await page.locator('#usernameAccount').click();
-  await logIn(page, true);
+  await page.locator('#usernameSwitch').click();
+  await expect(page.locator('#usernamePassword')).toHaveAttribute('autocomplete', 'current-password');
+  await page.locator('#usernameSwitch').click();
+  await expect(page.locator('#usernamePassword')).toHaveAttribute('autocomplete', 'new-password');
+  await page.locator('#usernameInput').fill('Driver');
+  await page.locator('#usernamePassword').fill(password);
+  await page.locator('#usernameForm button[type=submit]').click();
+  await expect(page.locator('#tutNext')).toBeVisible();
+  await page.locator('#tutSkip').click();
+  await expect(page.locator('#modal')).toBeHidden();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).username)).toBe('Driver');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84.account')!).username)).toBe('Driver');
 });
 
-async function backend(context: BrowserContext) {
-  const store = {...memoryPlayerStore(), accounts: memoryAccountStore()};
-  await context.route('**/api/**', async route => {
-    const req = route.request();
-    const headers = await req.allHeaders();
-    // WebKit omits Cookie from intercepted request headers. Use its URL-scoped jar.
-    const cookies = await context.cookies(req.url());
-    if (cookies.length) headers.cookie = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
-    const response = await playerApi(new Request(req.url(), {
-      method: req.method(), headers,
-      ...(['GET', 'HEAD'].includes(req.method()) ? {} : {body: req.postData()}),
-    }), store);
-    await route.fulfill({status: response.status, headers: Object.fromEntries(response.headers), body: await response.text()});
-  });
-  return store;
-}
+const backend = accountBackend;
 
 async function openAccount(page: Page) {
   await page.locator('#settingsNav').click();
@@ -138,8 +129,8 @@ test('signed-in pilot names match the account on launch and after importing prog
   });
   await page.reload();
   await page.locator('#settingsNav').click();
-  await expect(page.locator('#username')).toContainText('Driver');
-  await page.locator('#username').click();
+  await expect(page.locator('#account')).toContainText('Driver');
+  await page.locator('#account').click();
   await expect(page.locator('#accountName')).toHaveText('Driver');
   await expect(page.locator('#usernameInput')).toHaveCount(0);
   await page.locator('#closeModal').click();
@@ -175,9 +166,10 @@ test('signup merges guest progress, persists a session and logout clears this de
   await page.locator('#account').click();
   await expect(page.locator('#accountName')).toHaveText('Driver');
   await page.locator('#accountLogout').click();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
+  // Logout reloads the page: wait for the reloaded first-launch form before reading storage.
   await expect(page.locator('#usernameForm')).toBeVisible();
   await expect(otherTab.locator('#usernameForm')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
   const fresh = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
   expect(fresh.playerId).not.toBe(account.id);
   expect(fresh).toMatchObject({coins: 0, best: 0, bestScore: 0, username: null, history: [], owned: ['fusca']});
@@ -219,12 +211,13 @@ test('a failed account merge keeps guest data and offers a retry with the establ
   await page.locator('#accountUsername').fill('Driver');
   await page.locator('#accountPassword').fill(password);
   await page.locator('#accountForm button[type=submit]').click();
-  await expect(page.locator('#accountSync')).toBeVisible();
   await expect(page.locator('#accountStatus')).not.toBeEmpty();
   expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).playerId)).toBe(before.playerId);
   available = true;
-  await page.locator('#accountSync').click();
+  // The sync button is gone: retrying is simply submitting the form again.
+  await page.locator('#accountPassword').fill(password);
+  await page.locator('#accountForm button[type=submit]').click();
   await expect(page.locator('#modal')).toBeHidden();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).username)).toBe('Driver');
 });

@@ -149,11 +149,13 @@ test.describe('garage', () => {
   test('garage purchases persist; all cars use coins and expensive cars require sufficient funds', async ({ page }) => {
     // A local .env may configure a balance; this test needs the stored one.
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
+    // Seed before the first load: rewriting storage on a live page would be overwritten on pagehide.
+    await page.addInitScript(() => {
+      if (localStorage.getItem('garage-fixture')) return;
+      localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' }));
+      localStorage.setItem('garage-fixture', 'yes');
+    });
     await page.goto('/');
-    await page.evaluate(() =>
-      localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' })),
-    );
-    await page.reload();
     await page.locator('#garageNav').click();
 
     await expect(page.locator('.car-card h3')).toHaveText([
@@ -182,11 +184,12 @@ test.describe('garage', () => {
 
 test('new models and high-price vehicles can be purchased and stay owned after reload', async ({ page }) => {
   await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
+  await page.addInitScript(() => {
+    if (localStorage.getItem('garage-fixture')) return;
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 60_000, owned: ['fusca'], selected: 'fusca' }));
+    localStorage.setItem('garage-fixture', 'yes');
+  });
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('pista84', JSON.stringify({
-    username: 'Tester', coins: 60_000, owned: ['fusca'], selected: 'fusca',
-  })));
-  await page.reload();
   await page.locator('#garageNav').click();
   for (const name of ['Fiat 147', 'Marea Turbo', 'Passat 85', 'Puma GT', 'Raio 1000', 'Veloce GT']) {
     const card = page.locator('.car-card').filter({ has: page.getByRole('heading', { name, exact: true }) });
@@ -399,18 +402,23 @@ test('an environment balance overrides stored and cloud balances while purchases
   const page = await context.newPage();
   await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: 10000 } }));
   await page.route('**/health', (route) => route.fulfill({ json: { ok: true, cloudBackup: true } }));
-  await page.route('**/api/progress', (route) =>
-    route.fulfill({ json: { save: { coins: 7, owned: ['fusca'], selected: 'fusca' }, revision: 1 } }),
-  );
+  // A guest never contacts the server, so a cloud balance can no longer be pulled into this device.
+  let cloudReads = 0;
+  await page.route('**/api/progress**', (route) => {
+    cloudReads++;
+    return route.fulfill({ json: { save: { coins: 7, owned: ['fusca'], selected: 'fusca' }, revision: 1 } });
+  });
+  await page.addInitScript(() => {
+    if (localStorage.getItem('env-balance-fixture')) return;
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 3, owned: ['fusca'], selected: 'fusca' }));
+    localStorage.setItem('env-balance-fixture', 'yes');
+  });
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 3, owned: ['fusca'], selected: 'fusca' })));
-  await page.reload();
   await expect(page.locator('#wallet')).toContainText('10.000');
   await page.locator('#garageNav').click();
   await page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Uno com Escada' }) }).getByRole('button').click();
   await expect(page.locator('#wallet')).toContainText('9.880');
-  await page.locator('#cloudRestore').click();
-  await expect(page.locator('#wallet')).toContainText('10.000');
+  expect(cloudReads).toBe(0);
   await page.reload();
   await expect(page.locator('#wallet')).toContainText('10.000');
   await context.close();
@@ -466,6 +474,8 @@ test.describe('fuel result synchronization', () => {
   test.use({serviceWorkers: 'block'});
 
   test('fuel exhaustion offers one paid continuation and deducts 1000 coins', async ({ page }) => {
+    // Only a signed-in device uploads; this test signs the device in.
+    await page.addInitScript(() => localStorage.setItem('pista84.account', JSON.stringify({id: '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b', username: 'Tester'})));
     const uploads: {coins: number}[] = [];
     const progressRequests: string[] = [];
     page.on('request', request => {
@@ -483,18 +493,18 @@ test.describe('fuel result synchronization', () => {
       await route.fulfill({ response, body: source });
     });
     await page.goto('/');
-    expect(uploads).toHaveLength(0);
+    // First entry uploads the signed-in device's save once.
+    await expect.poll(() => progressRequests).toEqual(['GET', 'PUT']);
+    expect(uploads.at(-1)!.coins).toBe(2000);
     await page.locator('#start').click();
     await expect(page.locator('#restart')).toBeVisible();
-    await expect.poll(() => ({uploads: uploads.length, requests: progressRequests}))
-      .toEqual({uploads: 1, requests: ['GET', 'PUT']});
-    expect(uploads[0]!.coins).toBe(2000);
     await expect(page.locator('#continue')).toContainText('1.000');
+    // Game end uploads the settled balance before the player chooses to continue.
+    await expect.poll(() => uploads.at(-1)?.coins).toBe(2000);
     await page.locator('#continue').click();
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).coins)).toBe(1000);
     await expect(page.locator('#restart')).toBeVisible();
     await expect(page.locator('#continue')).toHaveCount(0);
-    await expect.poll(() => uploads.length).toBe(2);
-    expect(uploads[1]!.coins).toBe(1000);
+    await expect.poll(() => uploads.at(-1)?.coins).toBe(1000);
   });
 });

@@ -3,6 +3,7 @@ import {ProgressSync} from '../net/progress-sync.ts';
 import type {RuntimeConfig} from '../shared/config.ts';
 import {ACCOUNT_KEY, clearAccountDevice, localAccount} from '../net/account.ts';
 import {AccountDialog} from './account.ts';
+import {reconcileStoredSave} from '../game/merge-progress.ts';
 import {
   CARS,
   CHECKPOINT,
@@ -76,7 +77,7 @@ export class GameApp implements RemoteHost {
   private accountOwner = localAccount();
   private accountTransition = false;
   private readonly progressSync = new ProgressSync(this.storage,
-    (input, init) => fetch(input, init), () => !this.isRunning() && !this.accountTransition && this.sameAccount());
+    (input, init) => fetch(input, init), () => this.signedIn() && !this.isRunning() && !this.accountTransition && this.sameAccount());
   private readonly save: SaveData;
   private readonly race: Race;
   private readonly audio = new AudioEngine();
@@ -89,7 +90,10 @@ export class GameApp implements RemoteHost {
   private readonly remoteDialog: RemoteDialog;
   private readonly usernameDialog: UsernameDialog;
   private readonly newPlayerDialog: NewPlayerDialog;
-  private readonly leaderboardDialog = new LeaderboardDialog(() => this.save.playerId);
+  private readonly leaderboardDialog = new LeaderboardDialog({
+    signedIn: () => this.signedIn(),
+    openAccount: () => this.openAccount(),
+  });
   private readonly tutorialDialog = new TutorialDialog();
   /** The tutorial owns the modal; closing it by any route finishes it. */
   private tutorialActive = false;
@@ -106,6 +110,8 @@ export class GameApp implements RemoteHost {
   private recordShown = false;
   private cloudBackup = false;
   private syncing = false;
+  /** `updatedAt` of the last save this tab wrote or adopted; a larger stored value came from elsewhere. */
+  private writtenAt = 0;
   private installPrompt: (InstallPrompt & Event) | null = null;
 
   constructor(config: RuntimeConfig) {
@@ -116,6 +122,7 @@ export class GameApp implements RemoteHost {
     try { this.storage.setItem(SAVE_KEY, JSON.stringify(localSave)); } catch { /* Offline play still works. */ }
     this.progressSync.queue(localSave);
     this.save = loadSave({getItem: () => JSON.stringify(localSave)}, config);
+    this.writtenAt = this.save.updatedAt;
     setLang(isLang(this.save.lang) ? this.save.lang : detectLang(navigator.languages));
     setUnits(this.save.units);
     this.race = new Race(this.selectedCar());
@@ -154,7 +161,6 @@ export class GameApp implements RemoteHost {
       persist: () => this.persist(),
       refreshFeatured: () => this.paintFeaturedCar(),
       toast: (message) => this.notifications.toast(message),
-      cloudEnabled: () => this.cloudBackup,
       progressToolsEnabled: config.progressTools ?? true,
       imported: () => {
         setUnits(this.save.units);
@@ -183,8 +189,11 @@ export class GameApp implements RemoteHost {
     });
     this.usernameDialog = new UsernameDialog({
       save: this.save,
-      openAccount: () => this.openAccount(),
-      persist: () => this.persist(),
+      signIn: (action, username, password) => this.accountDialog.signInWith(action, username, password),
+      offline: (name) => {
+        this.save.username = name;
+        this.persist();
+      },
       onSaved: (name) => {
         this.notifications.toast(t('user.welcome', { name }));
         void this.syncScore();
@@ -201,6 +210,8 @@ export class GameApp implements RemoteHost {
     applyStatic();
     this.refresh();
     this.input.bindButtons();
+    // First entry: a signed-in device uploads whatever it kept offline, without any button.
+    void this.syncAtRest();
     if (this.usernameDialog.required) this.openUsername();
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
@@ -220,7 +231,6 @@ export class GameApp implements RemoteHost {
     byId('aboutNav').onclick = () => this.openAbout();
     byId('rotateOff').onclick = () => void this.input.toggleTilt().catch(() => undefined);
     byId('leaderboardNav').onclick = () => this.openLeaderboard();
-    byId('newPlayerNav').onclick = () => this.openNewPlayer();
     byId('remoteNav').onclick = () => void this.remoteDialog.open();
     byId('pause').onclick = () => this.pause();
     byId('closeModal').onclick = () => byId<HTMLDialogElement>('modal').close();
@@ -424,6 +434,8 @@ export class GameApp implements RemoteHost {
 
   /** Banks coins and records earned since the last call. */
   private settle(): void {
+    // Take in anything another tab saved first, so earnings are added to the current wallet.
+    this.reconcileWithStorage();
     this.save.coins += Math.max(0, this.race.coins - this.settledCoins);
     this.settledCoins = this.race.coins;
     this.save.best = Math.max(this.save.best, this.race.distance);
@@ -431,8 +443,13 @@ export class GameApp implements RemoteHost {
     this.persist();
   }
 
+  /** Guests play fully offline: no uploads, health checks or score submissions. */
+  private signedIn(): boolean {
+    return this.accountOwner !== null;
+  }
+
   private async syncAtRest(): Promise<void> {
-    if (this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount()) return;
+    if (!this.signedIn() || this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount()) return;
     void this.progressSync.flush();
     if (!this.cloudBackup) await this.checkOnline();
     await this.syncScore();
@@ -442,7 +459,7 @@ export class GameApp implements RemoteHost {
    * Checks availability for the manual backup controls, without uploading saves.
    */
   private async checkOnline(): Promise<void> {
-    if (this.isRunning() || navigator.onLine === false) return;
+    if (!this.signedIn() || this.isRunning() || navigator.onLine === false) return;
     try {
       const response = await fetch('/health', {signal: AbortSignal.timeout(10000)});
       if (!response.ok) return;
@@ -460,7 +477,7 @@ export class GameApp implements RemoteHost {
    */
   private async syncScore(): Promise<void> {
     const { save } = this;
-    if (this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount() ||
+    if (!this.signedIn() || this.isRunning() || navigator.onLine === false || this.accountTransition || !this.sameAccount() ||
       !this.cloudBackup || this.syncing || !save.username || save.bestScore <= 0) return;
     const marker = `${save.playerId}|${save.username}|${save.bestScore}`;
     if (this.readSyncMarker() === marker) return;
@@ -497,10 +514,32 @@ export class GameApp implements RemoteHost {
     }
   }
 
+  /**
+   * Adopts a newer save that another tab or a restore wrote, so this tab never overwrites it.
+   * Returns false when that save belongs to another player: this tab is stale and must not write.
+   */
+  private reconcileWithStorage(): boolean {
+    let stored: SaveData;
+    try {
+      const raw = this.storage.getItem(SAVE_KEY);
+      if (!raw) return true;
+      stored = loadSave({ getItem: () => raw });
+    } catch {
+      return true;
+    }
+    if (stored.updatedAt <= this.writtenAt) return true;
+    if (stored.playerId !== this.save.playerId) return false;
+    Object.assign(this.save, reconcileStoredSave(stored, this.save));
+    this.writtenAt = this.save.updatedAt;
+    return true;
+  }
+
   private persist(): void {
     if (this.accountTransition || !this.sameAccount()) return;
     this.applyAccountIdentity(this.save);
+    if (!this.reconcileWithStorage()) return;
     this.save.updatedAt = Date.now();
+    this.writtenAt = this.save.updatedAt;
     try {
       this.storage.setItem(SAVE_KEY, JSON.stringify(this.save));
     } catch {

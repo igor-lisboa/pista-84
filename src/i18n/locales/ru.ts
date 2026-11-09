@@ -66,6 +66,7 @@ export const ru = {
   'user.rules': 'От 3 до 16 символов: буквы, цифры, _ . -',
   'user.confirm': 'ПОДТВЕРДИТЬ',
   'user.welcome': 'Добро пожаловать, {name}!',
+  'user.offline': "Играть офлайн",
   'set.username': 'Имя гонщика: {name}',
   'newp.menu': 'НОВЫЙ ИГРОК',
   'newp.label': 'НАЧАТЬ ЗАНОВО',

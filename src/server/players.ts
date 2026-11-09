@@ -24,6 +24,8 @@ export interface PlayerStore {
   read<T>(key: StoreKey, empty: T, playerId?: string): Promise<T>;
   update<T, R>(key: StoreKey, empty: T, change: (doc: T) => R, playerId: string): Promise<R>;
   rank(playerId: string): Promise<number>;
+  /** Deletes one player's ranking row (a guest row absorbed into an account). Missing rows are ignored. */
+  removeScore(playerId: string): Promise<void>;
   leaderboard?(options: {page?: number; size?: number; playerId?: string | null}): Promise<LeaderboardPage>;
 }
 

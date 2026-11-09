@@ -21,3 +21,19 @@ test('later account spending survives retries and older snapshots from another d
   assert.equal(merged.coins, 50);
   assert.equal(mergeProgress(merged, remote, remote.playerId, 'Driver').coins, 50);
 });
+
+test('a newer save written elsewhere survives this tab\'s late write', async () => {
+  const {reconcileStoredSave} = await import('../src/game/merge-progress.ts');
+  const current = {...defaultSave(1000), coins: 0, owned: ['fusca'], bestScore: 50, updatedAt: 2000, username: 'Mine'};
+  const stored = {...defaultSave(1000), coins: 900, owned: ['fusca', 'gol'], bestScore: 700, best: 40, updatedAt: 3000, username: 'Other'};
+  const merged = reconcileStoredSave(stored, current);
+  assert.equal(merged.coins, 900, 'the later snapshot wins the wallet');
+  assert.deepEqual(merged.owned, ['fusca', 'gol']);
+  assert.equal(merged.bestScore, 700);
+  assert.equal(merged.best, 40);
+  assert.equal(merged.username, 'Mine', 'identity stays with this tab');
+  assert.equal(merged.updatedAt, 3000);
+  const older = reconcileStoredSave({...stored, updatedAt: 1500}, current);
+  assert.equal(older.coins, 0, 'an older stored copy never overrides this tab');
+  assert.deepEqual(older.owned, ['fusca', 'gol'], 'but its unlocks are still kept');
+});

@@ -65,6 +65,7 @@ export const ptBR = {
   'user.rules': 'De 3 a 16 caracteres: letras, números, _ . -',
   'user.confirm': 'CONFIRMAR',
   'user.welcome': 'Bem-vindo, {name}!',
+  'user.offline': "Jogar offline",
   'set.username': 'Nome de piloto: {name}',
   'newp.menu': 'NOVO JOGADOR',
   'newp.label': 'RECOMEÇAR',

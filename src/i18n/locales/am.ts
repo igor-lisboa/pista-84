@@ -66,6 +66,7 @@ export const am = {
   'user.rules': 'ከ3 እስከ 16 ቁምፊዎች፦ ፊደላት፣ ቁጥሮች፣ _ . -',
   'user.confirm': 'አረጋግጥ',
   'user.welcome': 'እንኳን ደህና መጡ፣ {name}!',
+  'user.offline': "ከመስመር ውጭ ይጫወቱ",
   'set.username': 'የአሽከርካሪ ስም፦ {name}',
   'newp.menu': 'አዲስ ተጫዋች',
   'newp.label': 'እንደገና ጀምር',

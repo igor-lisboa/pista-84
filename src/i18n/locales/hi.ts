@@ -66,6 +66,7 @@ export const hi = {
   'user.rules': '3 से 16 अक्षर: अक्षर, अंक, _ . -',
   'user.confirm': 'पक्का करें',
   'user.welcome': 'स्वागत है, {name}!',
+  'user.offline': "ऑफ़लाइन खेलें",
   'set.username': 'ड्राइवर का नाम: {name}',
   'newp.menu': 'नया खिलाड़ी',
   'newp.label': 'फिर से शुरू करें',

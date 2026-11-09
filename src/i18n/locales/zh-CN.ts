@@ -66,6 +66,7 @@ export const zhCN = {
   'user.rules': '3 到 16 个字符：字母、数字、_ . -',
   'user.confirm': '确认',
   'user.welcome': '欢迎，{name}！',
+  'user.offline': "离线游戏",
   'set.username': '车手名称：{name}',
   'newp.menu': '新玩家',
   'newp.label': '重新开始',
