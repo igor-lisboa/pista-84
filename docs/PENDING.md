@@ -6,16 +6,19 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 ## Done in 1.4
 
-- Full TypeScript migration (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`); no JavaScript source is left. Typecheck with `npm run typecheck`.
-- Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h, heavier and smarter traffic (240 s ramp, lane changes, speed matching, no overlap).
-- Pace-based score and coins earned from score (1 coin per 25 points); 14 vehicles; two premium cars behind the `CashStore` interface.
-- Seven interface languages, procedural music (menu loop plus three race tracks), per-car engine voices, redesigned sunset-arcade interface and top-bar HUD.
-- Runtime configuration through `GET /runtime-config.json` instead of a generated module.
+- Full TypeScript codebase (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`, `api`, `worker`); no JavaScript source is left. Typecheck with `npm run typecheck`.
+- Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h with a fuel and score-multiplier penalty, heavier and smarter traffic (120 s ramp plus 240 s of late-game pressure, lane changes, speed matching, no overlap).
+- Pace-based score and coins earned from score (1 coin per 25 points); eighteen vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.
+- Fifteen interface languages, seven procedural race tracks plus a menu loop, per-car engine voices, sunset-arcade interface, top-bar HUD, tutorial, distance units (km/mi) and About dialog.
+- MongoDB persistence for scores, accounts, sessions and progress; Redis pairing rooms; WebSocket phone controller with Pub/Sub across instances; offline-first progress outbox with automatic uploads at pause, game end and exit.
+- Username/password accounts with salted scrypt hashes, hashed sessions, password change, offline-to-account progress reconciliation and an account-only leaderboard.
+- Runtime configuration through `GET /runtime-config.json` (`coins`, `progressTools`).
+- Heroku deployment path (`Procfile`, `heroku-postbuild`) next to the Vercel and optional edge Worker adapters.
 
 ## Still pending
 
-- **Storage:** MongoDB now owns durable online data and Redis owns expiring controller state. See [STORAGE.md](STORAGE.md) for deployment and [TECH-DEBT.md](TECH-DEBT.md) for remaining limitations.
-- **Real payment provider for the premium cars.** `CashStore` (`src/ui/store.ts`) has only the default "unavailable" implementation; a billing integration (web checkout, Google Play, App Store) must implement it, together with server-side entitlements and receipt validation (ECO-01, COM-01).
-- **Authored atlas art for the six newer vehicles** (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS, Maverick GT). They use procedural pixel sprites with no authored straight, mild-turn or strong-turn frames (ART-01).
-- **Native-speaker review of the translations** (en, pt-PT, fr, it, ja, de), including pt-PT, which only overrides part of the pt-BR strings (I18N-01).
-- Rewarded ads and ad removal (ADS-01), TURN support (NET-01), remote sessions beyond ten minutes (NET-02), Android/iOS signed builds (NAT-01, NAT-02) and physical-device and balance validation (QA-01, QA-02).
+- **Real-money coin packs, payments, ads and entitlements.** The main-menu coin shop is a disabled "coming soon" placeholder. A billing integration (web checkout, Google Play, App Store), server-authoritative economy, receipt validation and rewarded ads remain to be built (ECO-01, COM-01, ADS-01).
+- **Native-speaker review of every non-source translation**, and a complete pt-PT table (I18N-01).
+- **Account recovery and lifecycle:** password recovery, MFA, account deletion and sign out everywhere (ACC-01).
+- TURN support (NET-01), remote sessions beyond ten minutes (NET-02), Android/iOS signed builds (NAT-01, NAT-02) and physical-device and balance validation (QA-01, QA-02).
+- Current technical limitations are listed in [TECH-DEBT.md](TECH-DEBT.md); storage and deployment are documented in [STORAGE.md](STORAGE.md).

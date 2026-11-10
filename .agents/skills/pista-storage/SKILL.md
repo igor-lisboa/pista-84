@@ -23,6 +23,9 @@ behavior. Run `npm run build`, `npm run typecheck`, `npm test`. For requested or
 necessary live validation, `npm run online:check` exercises configured services
 with unique probes and cleanup; do not print driver errors containing secrets.
 
-Update `docs/STORAGE.md`, `.env.example` and affected architecture specs when the
-data contract changes. Deployment must configure MongoDB/Redis on Node and
+Treat `docs/STORAGE.md` and `specs/06`/`specs/07` as the source of truth: read them
+before changing a contract and follow `.agents/skills/pista-docs/SKILL.md`. Update
+`docs/STORAGE.md`, `.env.example`, `specs/06`, `specs/07`, `specs/08` and
+`docs/TECH-DEBT.md` in the same change when the data contract, endpoints, error
+codes, keys, TTLs or limitations change. Deployment must configure MongoDB/Redis on Node and
 `API_ORIGIN` on an edge Worker. Report validation and any migration/deployment steps.

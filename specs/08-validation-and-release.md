@@ -7,12 +7,12 @@
 Node.js **24** is the verified environment: it runs the TypeScript sources natively.
 
 ```powershell
-npm install
+npm ci
 npm run build
 npm run dev
 ```
 
-`npm run dev` builds and runs `node dev-server.ts` to serve the generated `www/`. Open `http://localhost:4173`. `PORT` changes the port. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
+`npm run dev` builds (the `predev` script) and runs `node dev-server.ts`, which starts `scripts/node-server.ts` to serve the generated `www/` and the APIs. Open `http://localhost:4173`. `PORT` changes the port. Without `MONGODB_URI`/`REDIS_URL` the local server serves the game with cloud features disabled and memory-only pairing. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
 
 Production uses `npm run build` followed by `npm start` (`node production-server.ts`).
 Heroku builds through `heroku-postbuild` and starts through the `Procfile`, with no
@@ -22,40 +22,50 @@ Heroku supplies `PORT`. See [Heroku configuration](../docs/STORAGE.md#heroku).
 ## Automated checks
 
 ```powershell
+npm run build
 npm run typecheck
 npm test
 npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over sources, tests, scripts, worker and config files. It is clean on 1.4.0.
-- `npm test` runs isolated Node tests, including MongoDB adapter concurrency, backup revisions, ranking, room protocol and edge API proxy coverage. No normal test loads live storage credentials.
-- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled and no existing server reused). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
+- `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
+- `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
+- `npm test` runs `node --test tests/*.test.ts`: 154 isolated Node tests in 21 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning, signed-in player); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
-Run `npm run build`, `npm run typecheck` and `npm test` for current evidence; test counts change as coverage grows. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records.
+Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records.
 
 | Coverage | Required evidence (test file) |
 | --- | --- |
-| Simulation | Acceleration, brake/throttle/coast, fuel, distance, braking stop, pickup cap/consumption, 350 km/h Veloce GT, 120 km/h = 2 km per minute (`race.test.ts`) |
-| Crashes and off-road | Any traffic contact is fatal, barrier crash except after the second chance, grass drag to about 40 km/h, 10% traction, single `offroad` event, braking on the shoulder (`race.test.ts`) |
-| Score and economy | Pace multiplier bounds, per-km reset, coins from score (`race.test.ts`, `world.test.ts`) |
-| State | Pause freezes progress; continuation is unique; restart/reset restores state (`race.test.ts`, `world.test.ts`) |
-| Traffic | All five lanes, distinct-lane waves, ramp and caps, gradual speed changes, lane changes without overlap, 16-car cap (`traffic.test.ts`) |
-| Vehicles and audio | 18 distinct cars, all purchased with coins, one engine voice per car, motorcycle rain grip, menu and race music tracks (`world.test.ts`, `race.test.ts`) |
-| Environment | Road bounds/direction changes by seed; continuous light/weather intensities (`world.test.ts`) |
-| Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, per-user backup and revision conflict (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
-| Automatic backups | No score/progress uploads through 35 seconds of active racing or reconnect; local autosaves continue; pause/end/exit upload; failed outbox survives reload and retries at the next boundary; resumed play defers pending PUT; device/manual isolation and stale writes (`progress-sync.test.ts`, `progress-sync.spec.ts`) |
-| Languages | Fifteen languages offered; full locales cover every key with the same placeholders; no unknown keys; browser language mapping (`i18n.test.ts`) |
-| Room services | Memory room protocol and live Redis diagnostics, token/role checks, atomic answer, expiration/deletion, compatibility input, cross-origin/oversized/invalid JSON rejection (`signaling.test.ts`) |
-| Browser flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; fuel exhaustion gives one continuation (`game.spec.ts`) |
-| Touch | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape pedals in view; no scroll (`mobile.spec.ts`) |
-| Graphics | All 14 vehicles draw complete, unclipped sprites; eight straight sprites and sixteen turn frames are complete and distinct; five lanes with four dividers; balance override (`game.spec.ts`) |
-| Offline | Reload into a playable game with cached modules/artwork; sound toggle degrades gracefully (`game.spec.ts`) |
+| Simulation | Acceleration, brake/throttle/coast, per-vehicle taper, fuel (rest, cans, checkpoints), distance, braking stop, 350 km/h Veloce GT, 120 km/h = 2 km per minute, lanes and contact plane (`race.test.ts`, `vehicle-refinement.test.ts`) |
+| Crashes and off-road | Any traffic contact is fatal, barrier crash except after the second chance, grass drag to about 40 km/h, 10% traction, single `offroad` event, braking on the shoulder, grass fuel and multiplier penalty with cooldown and floor (`race.test.ts`) |
+| Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race.test.ts`, `world.test.ts`) |
+| State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
+| Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
+| Vehicles and audio | 18 distinct coin cars, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
+| Environment | Road bounds/direction changes by seed; local-clock start, per-run weather, continuous light/weather intensities (`world.test.ts`) |
+| Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, GUID/username/units/timestamps, import rules, past players (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
+| Accounts | Password rules, scrypt parameters, atomic unique usernames, session rotation/expiry/revocation, HTTPS requirement, shared attempt budgets, forged-GUID rejection, password change, MongoDB account adapters and indexes (`auth.test.ts`, `mongo-accounts.test.ts`, `mongo-store.test.ts`) |
+| Reconciliation and ranking | Idempotent guest/account merge, later spending preserved, newer other-tab save kept, guest-row absorption and shadow-row retirement, paged leaderboard without GUIDs (`merge-progress.test.ts`, `score-cleanup.test.ts`, `cloud.test.ts`, `mongo-store.test.ts`) |
+| Automatic snapshots | Uploads only at permitted boundaries; local queueing never requests during play; failed outbox survives reload and retries; resumed play defers a pending PUT; device/manual isolation and stale writes; logout cancels uploads (`progress-sync.test.ts`, `browser/progress-sync.spec.ts`) |
+| Languages | Fifteen languages offered; every full locale (all except pt-PT) covers every key with the same placeholders; no unknown keys; no emoji; browser language mapping (`i18n.test.ts`, `browser/languages.spec.ts`) |
+| Room services | Room protocol, token/role checks, atomic answer, expiration/deletion, cross-origin/oversized/invalid JSON rejection, no implicit memory fallback, socket auth/relay/reconnect/expiry (`signaling.test.ts`, `rooms-api.test.ts`, `redis-config.test.ts`, `room-sockets.test.ts`) |
+| Deployment | Production configuration validation, Heroku origin handling and launch, Vercel layout and entrypoint naming, edge proxy fail-closed/cookies/WebSocket upgrade (`node-config.test.ts`, `node-deployment.test.ts`, `vercel-config.test.ts`, `proxy.test.ts`) |
+| Browser game flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; balance override; reload offline; cross-tab save safety (`game.spec.ts`, `results.spec.ts`, `save-conflict.spec.ts`, `timestamps.spec.ts`) |
+| Browser account flows | First-launch sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
+| Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
+| Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
+| Graphics | All 18 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
+| Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
+| Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
 | Remote | Socket start/brake without RTCPeerConnection; exactly three pairing HTTP calls and no polling; automatic socket reconnect, safe pause and new QR (`game.spec.ts`, `room-sockets.test.ts`) |
 
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Hosted verification
+
+The dated sections below are **historical snapshots**; their test counts were true on those dates (the current count is in *Automated checks*). They are kept as evidence of what each change was verified against.
 
 ### WebSocket controller transport (2026-11-08)
 
@@ -75,8 +85,7 @@ are targeted coverage, not the full browser suite or physical iPhone certificati
 ### Automatic local-save synchronization (2026-11-08)
 
 The launch/reconnect/periodic upload behavior verified below is historical.
-The current contract uploads only at pause/end/exit boundaries, with local-only
-racing autosaves; see the automatic-backup regression coverage above.
+The current contract uploads only for signed-in players at launch, pause, game end, menu return and page exit, with local-only racing autosaves; see the *Automatic snapshots* row above.
 
 - Production build, TypeScript checking and all 111 Node tests passed on Node 24.
 - The 36 affected Chromium/WebKit cases in `game.spec.ts`, `new-player.spec.ts`
@@ -108,16 +117,17 @@ This evidence covers the storage change and affected browser flows, not the enti
 Playwright suite, a deployed release or native-device testing. No commit or
 deployment was made; existing remote records were not imported.
 
-The hosted verification helper (`node scripts/verify-hosted.ts`, configuration `{ url, token }` as one JSON line on stdin) checks health, shared room creation/read/answer/delete, then pairs desktop Chromium with mobile WebKit, starts/brakes remotely and enters solo touch play. Its service credential is provided through hidden stdin and only attached to the intended Site origin. Never copy that credential into documentation, shell arguments or committed files.
+The hosted verification helper (`node scripts/verify-hosted.ts`, configuration `{ url, token }` as one JSON line on stdin) checks health, shared room creation/read/answer/delete, then pairs desktop Chromium with mobile WebKit, starts/brakes remotely and enters solo touch play. Its service credential is provided through hidden stdin and only attached to the intended deployment origin. Never copy that credential into documentation, shell arguments or committed files.
 
-The 1.3 published visual baseline received this hosted smoke check; no hosted run is recorded for 1.4. It does not verify signed native builds, actual iPhone sensors, paid transactions or ad delivery.
+No hosted run is recorded for 1.4. The helper does not verify signed native builds, actual iPhone sensors, paid transactions or ad delivery.
 
 ## Visual review artifacts
 
 | Command | Output/purpose |
 | --- | --- |
 | `node scripts/screenshots.ts` | Menu, race, garage, portrait and landscape captures in `docs/screenshots/` |
-| `node scripts/reference-shot.ts` | Deterministic in-engine reference composition (its injected scene imports `./src/render/index.ts`, which does not exist in 1.4; import `renderer.ts` and `sprites.ts` before relying on this script) |
+| `node scripts/reference-shot.ts` | Deterministic in-engine reference composition (`docs/screenshots/reference-scene.png`), bundled from `renderer.ts`, `sprites.ts` and `game/index.ts` |
+| `node scripts/review-driving.ts`, `node scripts/review-brazilian-cars.ts` | Driving-pose and Brazilian-car review captures under `docs/screenshots/` |
 | `node scripts/native-assets.ts` | Web/native icons and splash screens from project vector art |
 
 The local server must be running for game screenshots. Do not confuse a staged reference composition with a recorded gameplay session or earned unlocks.
@@ -134,10 +144,10 @@ production HTTPS deployment verification.
 `tests/browser/client-loading.spec.ts` checks that controllers avoid downloading
 the game renderer and that an installed game reloads with its chunks offline.
 
-1. Update affected canonical specs and roadmap status.
+1. Update affected canonical specs, docs and roadmap status in the same change.
 2. Run `npm run typecheck` and the checks relevant to changed behavior; confirm save compatibility and required assets.
 3. Build from current source; sync native assets if native source is part of the change.
-4. For hosted changes, preserve Site identity/audience and publish the artifact matching pushed source. Configure MongoDB/Redis on Node and `API_ORIGIN` on the optional Worker.
+4. For hosted changes, deploy the build that matches the pushed source and keep `PUBLIC_ORIGIN` correct (see [Heroku configuration](../docs/STORAGE.md#heroku)). Configure MongoDB/Redis on Node and `API_ORIGIN` on the optional Worker.
 5. Verify returned deployment status; smoke-check changed hosted behavior where appropriate.
 6. Record unverified physical-device/store/payment conditions explicitly.
 

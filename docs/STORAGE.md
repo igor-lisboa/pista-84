@@ -5,7 +5,7 @@
 | Data | Storage | Lifetime |
 | --- | --- | --- |
 | Scores, display names, best distance and timestamps | MongoDB `scores`, `_id` = player GUID | Durable, no TTL |
-| Manual progress backups and revisions | MongoDB `backups`, `_id` = player GUID | Durable, no TTL |
+| Legacy manual progress backups and revisions (read by the server; the game no longer writes them) | MongoDB `backups`, `_id` = player GUID | Durable, no TTL |
 | Automatic offline progress snapshots | MongoDB `device-backups`, `_id` = player GUID + device GUID | Durable, no TTL |
 | Account credentials and unique normalized usernames | MongoDB `accounts`, `_id` = server-issued account GUID | Durable, no TTL |
 | Merged account progress | MongoDB `account-progress`, `_id` = account GUID | Durable, separate from manual/device backups |
@@ -14,6 +14,7 @@
 | Pairing offer, host/join tokens and claimed answer | Redis `pista84:room:{id}` hash | 10 minutes from creation |
 | Latest controller input and timestamp | Redis `pista84:room:{id}:input` | 2 seconds, capped by remaining room TTL |
 | Socket presence and reconnect ownership | Redis `pista84:room:{id}:host` / `:controller` | 15 seconds, renewed every 5 seconds, capped by room TTL |
+| Live controller events between instances | Redis Pub/Sub channel `pista84:room:{id}:events` | Not stored; delivered to current subscribers only |
 | Offline save, preferences, pending score and progress synchronization | Browser localStorage / exported save | Device-owned, works without network |
 | Live WebSocket handles | Accepting Node/Vercel instance | Disconnect, room expiry or function duration limit |
 
@@ -62,7 +63,8 @@ No MongoDB means cloud endpoints return 503 and cloud backup is disabled. No Red
 means deployed pairing returns 503. Only the local development server may fall back
 to memory pairing for offline development; it never offers volatile cloud saves.
 Configured service failures return 503 without erasing browser progress.
-`/health` reports configuration availability, not a live database ping. Use
+`/health` reports configuration availability, not a live database ping: `{ok, cloudBackup, storage, pairing}`, where
+`cloudBackup` means MongoDB is configured and `pairing` is `redis` (or `unconfigured`/`memory` locally). Use
 `online:check` for read/write verification.
 
 ### Heroku
@@ -82,7 +84,7 @@ Set these in **Settings > Config Vars**:
 | `MONGODB_URI` | Your provider's MongoDB connection URI, including credentials |
 | `MONGODB_DATABASE` | `pista84`, or the database your account can access |
 | `REDIS_URL` | Your provider's Redis connection URI; use `rediss://` for TLS |
-| `PISTA84_PROGRESS_TOOLS` | Boolean `true` (default) or `false`; false hides garage export/import and manual cloud save/restore. Automatic saves/sync remain enabled. |
+| `PISTA84_PROGRESS_TOOLS` | Boolean `true` (default) or `false`; false hides the garage file export/import controls. Automatic saves/sync remain enabled. |
 | `PISTA84_COINS` | Omit for normal saved balances; setting it overrides every player's balance |
 
 Do not set `PORT`: Heroku assigns it. Leave `API_ORIGIN` unset on this dyno;
@@ -116,7 +118,6 @@ It serves assets and forwards `/api/*` and `/health` to an HTTPS `API_ORIGIN`
 pointing at the Node/Vercel deployment. Set this separately in Worker runtime
 configuration; it is not embedded from `.env`. Missing backend configuration returns
 503. Same-origin checks run before forwarding, and user tokens are not cached.
-The historical D1 schema/migrations are retained for reference, not used by the runtime.
 
 ## Consistency
 
@@ -143,12 +144,13 @@ health requests, and no leaderboard publication. The leaderboard is only for sig
 The server rejects `/api/score` and `/api/progress` writes without a session (HTTP 401).
 If the account service cannot be reached on first launch, a "Play offline" button keeps the typed
 name on the device only (no upload); the account can be created later from Settings.
-Guest play still works without an account or network. Guest GUID backups remain
-compatible; they do not establish ownership of an account. New account GUIDs are
+Guest play still works without an account or network. Legacy guest GUID records stay in
+MongoDB, but a GUID header never authorizes a score or progress write without a session and
+does not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.
 There is no automatic account claim based on a leaderboard name. Existing guest
-display names are not reserved account names; new guest submissions cannot use a
-registered username. A signed-in pilot always uses the account username, including
+display names are not reserved account names, but a submission for a GUID that is not
+the session's own account cannot use a registered username (HTTP 409 `Username is reserved.`). A signed-in pilot always uses the account username, including
 on launch and after import/restore. Signup rejects an existing normalized username
 with HTTP 409 (`taken`); the form explains that the pilot name/username is in use
 and focuses the name field to choose another. Historical leaderboard rows are retained.
@@ -202,11 +204,11 @@ The browser adopts the account identity and acknowledges the old guest outbox
 only after reconciliation succeeds. Failed responses leave guest data intact
 and offer a retry using the established session. Expired sessions offer login
 to the same account; its offline play remains available. Later successful
-device/manual progress writes also reconcile account progress. Automatic uploads
-remain confined to pause/end/menu/exit events; explicit account login/sync is a
+progress writes by the account GUID also reconcile account progress. Automatic uploads
+remain confined to launch/pause/end/menu/exit events; explicit account login/sync is a
 user-triggered exception. These background uploads do not replace the active
 in-memory save. Login or explicit account sync restores the combined cloud save.
-Manual backups and device snapshots keep their separate records and revisions.
+Device snapshots and legacy manual backups keep their separate records and revisions.
 
 Logout attempts the last account snapshot, revokes the server session and then
 clears all `pista84`/`pista84.*` records on this device, including outboxes,
@@ -240,8 +242,8 @@ racing autosaves are local-only. For signed-in devices, automatic progress and s
 uploads run on first entry (launch), pause, game end (crash or fuel exhaustion), return to
 the menu and best-effort page exit/backgrounding. There are no periodic or reconnect uploads
 and no sync buttons. Guests upload nothing.
-A one-time launch `/health` check enables manual backup controls; runtime config,
-explicit leaderboard/backup actions and the controller WebSocket remain available.
+A one-time launch `/health` check (signed-in players only) confirms that cloud storage is configured
+before scores are published; runtime config, the leaderboard and the controller WebSocket remain available.
 Resuming play prevents a pending revision lookup from starting its PUT or a
 queued retry; unsent snapshots stay local until the next permitted event. Offline
 failures leave the outbox and score acknowledgement marker unchanged for that
@@ -307,8 +309,8 @@ before switching traffic; browser saves and manual exports remain available.
 Uninstall/disconnect the old remote service separately after retaining any data
 you need. No old provider credentials or SDK are required by this project.
 
-Scores remain client-reported and guest GUIDs remain guest backup credentials.
-Account records require sessions, but this is casual game progress, not a trusted
+Scores remain client-reported. Legacy guest GUID rows are not credentials any more:
+account records and all score/progress writes require sessions, but this is casual game progress, not a trusted
 paid wallet. Timestamp-based reconciliation is not a currency ledger or anti-cheat
 system; edited saves and device clock skew remain limitations. Password recovery,
 email verification, MFA, account deletion and remote logout of all devices are
@@ -324,6 +326,12 @@ direct WebRTC/TURN transport is no longer part of the active client.
 live in `.agents/skills/`; `.claude/skills/` and `.github/skills/` provide discoverable
 entrypoints without duplicating the workflows. Claude/Copilot maintenance roles
 live in `.claude/agents/` and `.github/agents/`. Update canonical guidance first.
+
+The skills are `pista-game`, `pista-storage` and `pista-docs`; the agents are
+`pista-maintainer` and `pista-docs`. `specs/` and `docs/` are the source of truth:
+`pista-docs` requires every behavior, data, API, text, catalog or test change to
+update the affected pages, the requirements matrix and the baseline in
+`specs/README.md` in the same change, and describes the audit procedure.
 
 Formats follow [Codex instructions](https://developers.openai.com/codex/guides/agents-md),
 [Codex skills](https://developers.openai.com/codex/skills),

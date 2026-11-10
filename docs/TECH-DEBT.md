@@ -1,14 +1,26 @@
 # PISTA 84 tech debt
 
-Online storage now uses per-player MongoDB records and expiring Redis keys.
-See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency.
+Online data lives in MongoDB (scores, accounts, sessions, account progress and device snapshots) and expiring Redis keys
+(pairing rooms, socket presence, controller input, Pub/Sub).
+See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency, and
+[specs/09-roadmap.md](../specs/09-roadmap.md) for planned work.
 
 ## Remaining limitations
 
-- Scores are client-reported. Strong anti-cheat and verified run scoring are not implemented.
-- Player GUID is the backup credential. Strong account authentication is still needed before progress has financial value.
-- Backup and score publication are separate operations; callers may need to reload a backup after a partial failure.
-- Controller fallback uses HTTPS polling; TURN and a shared WebSocket/pub-sub relay remain future work.
-- Local WebSocket handles belong to one Node process; they expire after one hour and cannot cross instances.
-- Old remotely stored records are not automatically imported or deleted. Retain/import needed data before switching traffic.
-- Vercel backend auto-detection treats root/src/browser bundles named app, index, server or main as server entrypoints. Preserve client.ts, game.js and dev-server.ts naming and the tests guarding them.
+- **Client-reported scores.** Scores, distances and coins come from the browser. Accounts require sessions, but there is no
+  verified run scoring, anti-cheat or server-side wallet; edited saves and device clock skew are possible. Timestamp-based
+  reconciliation is not a currency ledger (ECO-01 before any real-money balance).
+- **Score and snapshot writes are separate operations.** A snapshot can commit while score publication fails (or the reverse), so
+  callers may need to read the snapshot before retrying and use its current revision.
+- **Accounts are minimal.** Password recovery, email verification, MFA, account renaming, account deletion and remote logout of
+  all devices (other than the one triggered by a password change) are not implemented.
+- **Legacy data.** Guest GUID rows and the `backups` collection remain for compatibility but are no longer written by the
+  game; a cross-device snapshot picker is not implemented. Retired guest rows are only cleaned when a ranking read finds them.
+- **Native builds** need a separately verified same-origin HTTPS API and cookie setup; packaged static assets alone give no
+  account backend. Native-wrapper remote control is directed to the web version.
+- **Sockets on Vercel** are bound by function duration limits. Clients reconnect with bounded backoff and Redis coordinates
+  instances, but the WebSocket upgrade can only be verified after a real deployment. Rooms still expire ten minutes after
+  creation, even when active (NET-02).
+- **Old provider data** is not imported or deleted. Retain or import needed records before switching traffic.
+- **Vercel backend auto-detection** treats root, `src/` or browser bundles named `app`, `index`, `server` or `main` as server
+  entrypoints. Preserve `client.ts`, `game.js` and `dev-server.ts` naming and the tests guarding them (`tests/vercel-config.test.ts`).

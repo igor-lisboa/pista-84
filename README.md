@@ -2,7 +2,7 @@
 
 Brazilian pixel-art endless racing arcade game. It runs in the browser, installs as a PWA, uses your phone as a remote controller, and has native Android/iOS projects (Capacitor).
 
-Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 14 vehicles, heavier traffic, pace-based scoring, 15 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
+Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 18 vehicles, heavier traffic, pace-based scoring, optional accounts with an online leaderboard, 15 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
 
 ## Table of contents
 
@@ -31,13 +31,12 @@ If startup reports **port 4173 is already in use**, an existing server is still 
 
 ## Local configuration (.env)
 
-Existing local progress is queued locally when players visit the updated game.
-Automatic uploads run only when the player pauses, ends a run, returns to the
-menu or leaves the page. Five-second racing autosaves update localStorage and
-the persistent offline outbox without calling APIs; reconnecting does not upload.
-Failed uploads stay queued for the next pause/end/exit. Automatic snapshots are isolated per player
-and device; the garage's manual backup/restore remains a separate saved snapshot.
-See [storage and recovery details](docs/STORAGE.md).
+Progress is always saved locally first. Signed-in players upload automatically
+when the game launches, pauses, ends a run, returns to the menu or leaves the page.
+Five-second racing autosaves update localStorage and the persistent offline outbox
+without calling APIs; reconnecting does not upload. Failed uploads stay queued for
+the next event. Guests never contact the online API. Automatic snapshots are isolated
+per player and device. See [storage and recovery details](docs/STORAGE.md).
 
 The `.env` file at the root is read by the server and by the build. Use `.env.example` as a template:
 
@@ -49,11 +48,11 @@ MONGODB_DATABASE=pista84
 REDIS_URL=redis://localhost:6379
 ```
 
-`PISTA84_COINS` sets your balance when you open/reload the game and when you import or restore progress, taking priority over the local balance and the database backup. It accepts non-negative integers, including `0`. Leave it empty to use the saved balance. Purchases and earnings still change the balance during the session; reloading reapplies the configured value. Reading the backup does not change the record in the database; saving to the cloud remains a manual action.
+`PISTA84_COINS` sets your balance when you open/reload the game and when you import progress or sign in, taking priority over the local balance and the cloud save. It accepts non-negative integers, including `0`. Leave it empty to use the saved balance. Purchases and earnings still change the balance during the session; reloading reapplies the configured value. Reading cloud progress does not change the record in the database. `PISTA84_PROGRESS_TOOLS=false` hides the garage export/import controls.
 
-After editing `.env`, restart `npm run dev`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only this balance is exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
+After editing `.env`, restart `npm run dev`. To generate the web, native or hosted files, run `npm run build` again. On the Worker, the `PISTA84_COINS` environment variable can override the build value. This setting applies to all players in that environment. Only `coins` and `progressTools` are exposed to the browser, through `GET /runtime-config.json` (served by Node and by the Worker and written to `www/` at build time, for the native apps); the app fetches this file on startup. Do not put secrets in it. `.env` is kept out of Git.
 
-MongoDB stores durable online scores and manual backups; Redis stores pairing rooms (10-minute TTL) and controller input (2-second TTL). Run `npm run online:check` to verify both configured services. See [storage and AI maintenance](docs/STORAGE.md). Codex reads `AGENTS.md`, Claude reads `CLAUDE.md`, and Copilot reads `.github/copilot-instructions.md`; repository skills and maintenance agents are included.
+MongoDB stores scores, accounts, sessions and progress snapshots; Redis stores pairing rooms (10-minute TTL) and controller input (2-second TTL). Run `npm run online:check` to verify both configured services. See [storage and AI maintenance](docs/STORAGE.md). Codex reads `AGENTS.md`, Claude reads `CLAUDE.md`, and Copilot reads `.github/copilot-instructions.md`; repository skills and maintenance agents are included.
 
 ## How to play
 
@@ -68,22 +67,23 @@ MongoDB stores durable online scores and manual backups; Redis stores pairing ro
 - Hold ↑ / W or ACELERAR (Accelerate) to gain speed. Releasing the accelerator slows the car down; the brake reduces speed more sharply. Stopping lets you resume the race without a game over.
 - **Curves push the car outward:** the sharper the curve and the higher the speed, the more you need to steer or brake. Curves show up on the horizon and move toward the car, and the curve warning blinks when you need to brake.
 - **Every crash is fatal:** touching a traffic car or the outer barrier ends the race immediately, with no speed threshold, no lives and no bounce. The "VOCÊ BATEU!" (You crashed!) screen shows the impact speed. The other way to lose is running out of fuel.
-- **Off the asphalt** (the grass), speed is pulled down to 40 km/h in about half a second, the engine has almost no traction (10%), dust is kicked up, the screen shakes and the HUD warns "FORA DA PISTA" (Off track). Get back on the asphalt before accelerating again.
+- **Off the asphalt** (the grass), speed is pulled down to 40 km/h in about half a second, the engine has almost no traction (10%), dust is kicked up, the screen shakes and the HUD warns "FORA DA PISTA" (Off track). Each excursion also costs 15% fuel, extra fuel while on the grass and 0.25 of the pace multiplier until the next checkpoint. Get back on the asphalt before accelerating again.
 - **A checkpoint every 1 km** restores 4% of fuel and resets the kilometer clock (see scoring). The progress bar in the HUD shows the next checkpoint and the cyan mark indicates your record. Fuel cans on the track restore 12%, one every 12-17 s.
 - **Pace-based scoring:** each meter is worth points multiplied by the average speed of the current kilometer: `multiplier = clamp(average km/h ÷ 120, 0.2, 3)`, reset at each checkpoint. The HUD shows the points and the multiplier (×1.0 = 100 km/h average). The end of the race shows points and the best score.
 - **Coins come from score:** 1 coin for every 25 points. They are saved every 5 s of racing, on pause, at the end of the race and when returning to the menu.
-- **Progressive difficulty:** over the first two minutes (120 s) of a race, traffic becomes more frequent, gets more pairs and trios in different lanes (at least two lanes are always left free, with a maximum of 16 cars) and gradually speeds up. Opponent speed is capped at 82% of the player's maximum and 85% of the vehicle's own maximum. Cars change lanes when there is room, follow the car ahead and never overlap. Pausing also pauses this progression.
+- **Progressive difficulty:** over the first two minutes (120 s) of a race, traffic becomes more frequent, gets more pairs and trios in different lanes (at least two lanes are always left free, with a maximum of 16 cars) and gradually speeds up. Opponent speed is capped at 82% of the player's maximum and 85% of the vehicle's own maximum. Cars change lanes when there is room, follow the car ahead and never overlap. Pausing also pauses this progression. After the ramp, late-game pressure keeps building for four more minutes (up to 4 extra cars and quicker lane changes), then stops.
 - **Speed and distance use the same measure:** at a constant 120 km/h, you cover 2 km per simulated minute. The camera closer to the ground reinforces the sense of speed without multiplying the mileage.
-- A second chance costs 1,000 coins, once per race (3 s of invincibility). Buy coins in the main menu shows planned packs; coin packs are unavailable until a provider is integrated.
+- A second chance costs 1,000 coins, once per race (3 s of invincibility). Buy coins in the main menu is a disabled placeholder listing planned packs; real-money coin packs are pending work until a provider is integrated.
 - During the race only the track, speed, distance, points, fuel and pause appear (top bar). Garage, options and language are in the start menu.
-- **Sound:** it starts on, but the browser only unlocks audio on the first tap or key press. A single button in Options turns music, engine and effects on/off, and the preference is remembered. The music is procedural (Web Audio, no files): a calm loop for menu/pause (74 bpm) and three race tracks (Neon Highway 132 bpm, Turbo Rush 150 bpm, Sunset Drive 118 bpm), one picked at random when the race starts, never the same as the previously picked one (when resuming after a pause, the race music restarts with a different track).
-- **Languages:** Portuguese (Brazil), English, Portuguese (Portugal), French, Italian, Japanese and German, in Options. The default comes from `navigator.languages`; an unknown language falls back to English. The translations have not yet been reviewed by native speakers.
+- **Account and ranking:** the first launch asks for a driver name and password; that creates an account so the same progress works on other devices. Only signed-in players publish to the online ranking (five drivers per page) and sync progress; "Play offline" keeps a local-only guest. Settings also offer km/mi units, the how-to-play tutorial, change password and log out.
+- **Sound:** it starts on, but the browser only unlocks audio on the first tap or key press. A single button in Options turns music, engine and effects on/off, and the preference is remembered. The music is procedural (Web Audio, no files): a calm loop for menu/pause (74 bpm) and seven race tracks (Neon Highway 132 bpm, Turbo Rush 150, Sunset Drive 118, Nitro Circuit 142, Midnight Run 124, Checkered Flag 138 and Redline 160), one picked at random when the race starts, never the same as the previously picked one (when resuming after a pause, the race music restarts with a different track).
+- **Languages:** fifteen, picked in Options: Portuguese (Brazil, the source), English, Portuguese (Portugal), French, Italian, Japanese, German, Spanish, Hindi, Simplified Chinese, Indonesian, Urdu (right-to-left), Bengali, Russian and Amharic. The default comes from `navigator.languages`; an unknown language falls back to English. The translations have not yet been reviewed by native speakers.
 
-**Garage:** 14 vehicles with distinct performance and audio. Regular cars are unlocked with coins; the two PREMIUM ones (Veloce GT, 3,000,000 coins, and Raio 1000, 2,000,000 coins) are simply priced in the millions. Motorcycles have a smaller collision area but lose more grip in the rain. The six new vehicles (Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT) use procedural pixel-art sprites, still without atlas art. There are five paint jobs that can be bought with coins.
+**Garage:** 18 vehicles with distinct performance, size, braking and audio, listed by price. All are bought with coins, from the free Fusca 76 up to the Raio 1000 (20,000) and the Veloce GT (30,000, 350 km/h). Motorcycles have a smaller collision area but lose more grip in the rain. All vehicles use authored sprites with straight and turning frames. There are 17 paint options (factory plus 16 bought with coins).
 
-**Progress:** export and import your progress in the game. With MongoDB configured there is a manual per-player backup, with protection against write conflicts. Restoring a backup replaces the data on the device. The save (v2) stores coins, distance and score records, vehicles, paints, sound and language.
+**Progress:** the save lives in the browser and works offline; export and import it from the garage. Signed-in players also keep a cloud account save (MongoDB) that is merged with the device save at login. The save (v2) stores coins, distance and score records, vehicles, paints, sound, language, units, pilot name and sync identity.
 
-**Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. Open Settings ? Install game to install through the browser prompt, or see instructions for adding it to the Home Screen on iPhone. The button indicates when running as an installed app.
+**Phone:** pedals in the bottom-right corner and arrows in the bottom-left, in portrait or landscape; the arrows disappear while tilt is on. Tilt is optional, requires HTTPS and permission, and has neutral-position calibration. The standalone game installs as a PWA and works offline after the first visit. Open Settings > Install game to install through the browser prompt, or see instructions for adding it to the Home Screen on iPhone. The button indicates when running as an installed app.
 
 ## Billboard ads
 
@@ -94,7 +94,7 @@ The pieces are local and work offline. Paid serving, metrics and integration wit
 ## Phone as controller
 
 1. Open the hosted game on the computer and click **Controle no celular** (Phone controller).
-2. Scan the QR code with the phone. On the private site, sign in with the same account on both devices.
+2. Scan the QR code with the phone. The phone needs no account; pairing uses the room token in the QR code.
 3. Wait for the connection, close the modal on the computer and start the race (or tap **Iniciar corrida** (Start race) on the controller).
 4. Use the arrows and pedals, or enable tilt.
 
@@ -128,12 +128,12 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` checks the project after building. `npm test` runs isolated Node tests, including persistence concurrency and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (154 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.
 - See [storage setup and consistency](docs/STORAGE.md) for MongoDB collections, Redis TTLs, live checks and deployment settings.
-- Backups use the player GUID in `x-player-id`; this is casual game progress rather than strong account authentication. The service worker never caches APIs or tokens. Credentials stay on Node, and only public balance configuration reaches the browser.
+- Accounts use salted scrypt hashes and hashed server-side sessions in a Secure, HttpOnly cookie; scores and progress writes need a session. Scores remain client-reported and this is casual game progress, not a secure wallet. The service worker never caches APIs or tokens. Credentials stay on Node, and only public configuration reaches the browser.
 - Payments, ads and the premium wallet still depend on providers and commercial setup: coin packs will only be sellable once a billing integration exists. The current backup is meant for casual progress and does not make local coins a secure wallet for real money.
 - Helper scripts (Node 24, with the local server running when they open the game): `node scripts/screenshots.ts` (captures in `docs/screenshots/`), `node scripts/reference-shot.ts` (reference scene), `node scripts/native-assets.ts` (icons and splash screens) and `node scripts/verify-hosted.ts` (hosted site verification, configuration via stdin).
 
@@ -141,16 +141,17 @@ npm run test:browser
 
 | Path | Contents |
 | --- | --- |
-| `src/game/` | Pure simulation, no DOM: cars, environment, road, scoring, traffic, race, save and `index.ts` (barrel) |
+| `src/game/` | Pure simulation, no DOM: cars, vehicle tuning, environment, road, scoring, traffic, race, save, merge, units, username and `index.ts` (barrel) |
 | `src/render/` | Canvas renderer, scenery, sprites (atlas and procedural), billboards and noise |
 | `src/audio/` | Audio engine, procedural music player and track data |
-| `src/i18n/` | Translator, types and `locales/*.ts` (pt-BR is the source; en, pt-PT, fr, it, ja, de) |
-| `src/ui/` | Orchestrator (`game-app`), HUD, input, overlays, options, garage, phone dialog, controller page, notifications, car art and DOM |
-| `src/net/remote.ts` | Pairing and controller commands; `room-socket.ts` owns reconnects |
-| `src/server/` | Room protocol, MongoDB durable storage, Redis ephemeral storage and edge API proxy |
-| `src/shared/config.ts` | Public configuration (`PISTA84_COINS`) |
+| `src/i18n/` | Translator, types and fifteen `locales/*.ts` (pt-BR is the source; pt-PT is partial) |
+| `src/ui/` | Orchestrator (`game-app`), HUD, input, overlays, options, account, leaderboard, tutorial, about, garage, phone dialog, controller page, notifications, car art and DOM |
+| `src/net/` | Pairing and controller commands (`remote.ts`, `room-api.ts`, `room-socket.ts`), account client and progress sync outbox |
+| `src/server/` | Accounts, sessions, player API, MongoDB durable storage, Redis rooms and sockets, room protocol and edge API proxy |
+| `src/shared/config.ts` | Public configuration (`PISTA84_COINS`, `PISTA84_PROGRESS_TOOLS`) |
 | `src/client.ts`, `src/qr.ts` | Browser entry point and QR generation |
 | `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
+| `api/` | Vercel Node functions (health, auth, account, progress, score, leaderboard, rooms, controller) |
 | `worker/index.ts` | Static Worker/API proxy |
 | `dev-server.ts`, `production-server.ts` | Local and production launchers for the shared `scripts/node-server.ts` HTTP/WebSocket server |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
@@ -158,15 +159,17 @@ npm run test:browser
 | `tsconfig.json`, `playwright.config.ts` | Configuration |
 | `android/`, `ios/` | Native projects (Capacitor) |
 | `www/`, `dist/` | Build output (generated) |
-| `specs/`, `docs/` | Specifications and documentation |
+| `specs/`, `docs/` | Specifications (source of truth) and documentation |
+| `.agents/`, `.claude/`, `.github/` | AI maintenance skills and agents (see `AGENTS.md`) |
 
 ## Documentation
 
 - **[Game specifications — start here](specs/README.md)**
 - [Game rules](specs/02-gameplay.md)
 - [Vehicles and economy](specs/03-vehicles-and-economy.md)
+- [Architecture and data](specs/06-architecture-and-data.md) and [remote control and API](specs/07-remote-control-api.md)
 - [Pending work and acceptance criteria](specs/09-roadmap.md)
 - [Art direction and prompts](docs/ART_DIRECTION.md)
 - [Pending work (contracts, dependencies and completion tests)](docs/PENDING.md)
 
-`docs/SPECS.md` and `docs/PENDING.md` are legacy paths (the latter has a summary of what is still missing); the canonical definitions are in `specs/`.
+`docs/SPECS.md` and `docs/PENDING.md` are navigation pointers (the latter has a summary of what is still missing); the specifications in `specs/` are the source of truth and must be updated together with the code.

@@ -2,13 +2,13 @@
 
 The four added models now use [vehicle-brazilian-v1.png](../web/assets/vehicle-brazilian-v1.png): 12 detailed transparent sprites, with straight rear, gentle right and strong right views. Left turns mirror the corresponding right views. Each cell is cropped by its alpha bounds; rendering keeps the image aspect ratio and the fleet's common scale. Fiat 147 is narrower than Marea; Puma has a noticeably lower roofline. Model-specific brake-light locations and paint remapping work in each pose.
 
-The sheet is 1024 x 1536, with authored column cuts 0, 320, 675, 1024 and row cuts 0, 384, 768, 1152, 1536. All twelve cells were checked for transparent borders and complete silhouettes. The old procedural artwork remains the loading fallback. The new asset is included in service-worker cache v23.
+The sheet is 1024 x 1536, with authored column cuts 0, 320, 675, 1024 and row cuts 0, 384, 768, 1152, 1536. All twelve cells were checked for transparent borders and complete silhouettes. The old procedural artwork remains the loading fallback. The asset is part of the service worker precache list (the cache version is documented in [specs/06](../specs/06-architecture-and-data.md)).
 
 These are arcade approximations of period road cars, not homologation measurements. Fuel is a relative game multiplier, not litres per 100 km. Acceleration times are measured through the actual tapered acceleration function on dry asphalt, with continuous throttle.
 
 | Model | Speed ceiling (km/h) | Approx. 0–100 (seconds) | Fuel multiplier | Handling | Width relative to compact |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Fiat 147 | 132 | 23.3 | 0.68 | 1.02 | 0.88 |
+| Fiat 147 | 132 | 23.2 | 0.68 | 1.02 | 0.88 |
 | Marea Turbo | 220 | 7.2 | 1.35 | 1.08 | 1.02 |
 | Passat 85 | 170 | 12.3 | 0.88 | 1.04 | 0.94 |
 | Puma GT | 160 | 13.3 | 0.83 | 1.18 | 0.95 |

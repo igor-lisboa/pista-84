@@ -5,12 +5,13 @@ Reference: image supplied by the user in this conversation, used as visual direc
 ## Integrated result
 
 - Chase camera with the horizon at 27.5% of the screen, larger vehicles, with the roof and rear visible.
-- Layered city, pixel-cluster clouds, conifers with shadows and a blue/white shoulder.
+- Layered city, pixel-cluster clouds, conifers with shadows and red/white alternating kerbs (every 4 m) with white road edges.
 - Transparent atlas with eight vehicles (`web/assets/vehicle-atlas-v1.png`) and a turn sheet with 16 poses (`vehicle-turns-v2.png`, see [turn-sprites-v2.md](turn-sprites-v2.md)); rendering without smoothing and cutouts by alpha bounds. Paints keep working through color remapping at runtime.
+- **Eighteen vehicles in total:** the eight above, the six classics below and four Brazilian models (Fiat 147, Marea Turbo, Passat 85, Puma GT) from `vehicle-brazilian-v1.png` with twelve authored sprites (see [brazilian-cars-v1.md](brazilian-cars-v1.md)).
 - **Six classic vehicles:** Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use the transparent vehicle-classics-v2.png sheet with straight, gentle-turn and hard-turn frames. They share the original atlas renderer and paint remapping; procedural art remains a loading fallback. See [artwork provenance and prompts](vehicle-classics-v2.md).
 - Skyline and trees are original Canvas code (`src/render/scenery.ts`), with caching to avoid redrawing thousands of windows per frame.
 - `docs/screenshots/reference-scene.png` is a deterministic composition made by the real renderer (`node scripts/reference-shot.ts`), with a red sports car, a yellow sports car, a Beetle and a blue hatchback. It is not a generated mockup.
-- **Interface 1.4 (arcade sunset):** dark purple background, sun yellow, pink and cyan; Bungee (headings) and Chakra Petch (text) fonts via Google Fonts, with a system fallback; hard outlines, offset shadows without blur and a checkered strip at the top of the menu. The HUD is just a top bar (speed on the left; distance, points and checkpoint in the center; fuel and pause on the right). The bottom corners are left for touch controls.
+- **Interface 1.4 (arcade sunset):** dark purple background, sun yellow, pink and cyan; Bungee (headings) and Chakra Petch (text) fonts via Google Fonts, with a system fallback; hard outlines, offset shadows without blur and a checkered strip at the top of the menu. The HUD is just a top bar (speed on the left; distance, points with the pace multiplier and checkpoint in the center; fuel and pause on the right, with a red fuel-penalty flash after a grass excursion). The bottom corners are left for touch controls.
 
 ## Provenance and tooling
 

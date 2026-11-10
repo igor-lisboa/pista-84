@@ -4,7 +4,7 @@
 
 ## Complete vehicle catalog
 
-Maximum speed is km/h; acceleration is the base coefficient for the tapered automatic-acceleration curve (multiplied by 0.25 with a quadratic taper near top speed). Consumption and handling are dimensionless factors used by the rules in [gameplay](02-gameplay.md). The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
+Maximum speed is km/h; acceleration is the base coefficient of the automatic-acceleration curve, multiplied by the vehicle's own `accelerationGain` and tapered near top speed (see [Per-vehicle tuning](#per-vehicle-tuning) and [gameplay](02-gameplay.md)). Consumption and handling are dimensionless factors used by the rules in gameplay. The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
 The garage lists all cars in ascending coin price order, with no premium category. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.
 
@@ -20,20 +20,45 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `uno` | Uno com Escada | box | 150 | 30 | 0.70 | 1.05 | 120 coins |
 | `chevette` | Chevette 82 | box | 160 | 32 | 0.78 | 1.05 | 240 coins |
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
-| `opala` | Opala SS | sedan | 215 | 40 | 1.50 | 0.95 | 900 coins |
-| `maverick` | Maverick GT | muscle | 240 | 52 | 1.70 | 1.05 | 1600 coins |
+| `opala` | Opala SS | sedan | 215 | 40 | 1.30 | 0.95 | 900 coins |
+| `maverick` | Maverick GT | muscle | 240 | 52 | 1.45 | 1.05 | 1600 coins |
 | `fiat147` | Fiat 147 | box | 132 | 24 | 0.68 | 1.02 | 160 coins |
 | `marea` | Marea Turbo | sedan | 220 | 52 | 1.35 | 1.08 | 2400 coins |
 | `passat` | Passat 85 | box | 170 | 34 | 0.88 | 1.04 | 480 coins |
 | `puma` | Puma GT | sport | 160 | 31 | 0.83 | 1.18 | 1200 coins |
-| `gt` | Veloce GT | sport | 350 | 70 | 1.65 | 1.15 | 30,000 coins |
-| `superbike` | Raio 1000 | bike | 300 | 68 | 1.40 | 1.50 | 20,000 coins |
+| `gt` | Veloce GT | sport | 350 | 84 | 1.20 | 1.15 | 30,000 coins |
+| `superbike` | Raio 1000 | bike | 300 | 68 | 1.05 | 1.50 | 20,000 coins |
 
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
+### Per-vehicle tuning
+
+`src/game/vehicle-tuning.ts` adds four values per car. Gain scales the catalog acceleration into km/h per second at low speed; falloff is the extra loss of pull above 70% of top speed (`1 / (1 + falloff × ((ratio − 0.7) / 0.3)²)`); width is the visual and collision width relative to a compact car; braking is the dry-road deceleration in km/h per second. Measured acceleration times are in [acceleration-v6.md](../docs/acceleration-v6.md).
+
+| ID | Gain | Falloff | Width | Braking |
+| --- | ---: | ---: | ---: | ---: |
+| `fusca` | 0.24 | 1.8 | 0.90 | 34 |
+| `brasilia` | 0.24 | 1.6 | 1.02 | 36 |
+| `gol` | 0.26 | 1.1 | 0.98 | 46 |
+| `palio` | 0.25 | 1.2 | 0.98 | 44 |
+| `moto` | 0.27 | 1.35 | 0.56 | 48 |
+| `suv` | 0.26 | 1.5 | 1.10 | 39 |
+| `kombi` | 0.23 | 2.4 | 1.30 | 29 |
+| `uno` | 0.26 | 1.4 | 0.94 | 38 |
+| `chevette` | 0.245 | 1.5 | 1.03 | 35 |
+| `cg125` | 0.28 | 2.0 | 0.52 | 42 |
+| `opala` | 0.27 | 1.0 | 1.16 | 41 |
+| `maverick` | 0.285 | 0.85 | 1.20 | 45 |
+| `fiat147` | 0.235 | 1.8 | 0.88 | 34 |
+| `marea` | 0.29 | 0.8 | 1.02 | 53 |
+| `passat` | 0.275 | 1.3 | 0.94 | 40 |
+| `puma` | 0.285 | 1.0 | 0.95 | 43 |
+| `gt` | 0.30 | 0.6 | 1.18 | 70 |
+| `superbike` | 0.31 | 0.7 | 0.60 | 64 |
+
 ### Art
 
-The original fourteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
+All eighteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 
@@ -71,10 +96,10 @@ A paint purchase is permanent for the casual save and works on every owned vehic
 
 ## Purchases and persistence
 
-A coin purchase requires enough coins, subtracts the catalog price once, adds ownership and selects the purchased item. Unaffordable or already selected actions are disabled. Vehicle/paint ownership, selection, wallet, distance and score records, sound preference and language persist in the browser and can be exported or manually backed up.
+A coin purchase requires enough coins, subtracts the catalog price once, adds ownership and selects the purchased item. Unaffordable or already selected actions are disabled. Vehicle/paint ownership, selection, wallet, distance and score records, sound preference, language and units persist in the browser (the save also carries the pilot name, player GUID, tutorial flag and timestamps; see [architecture](06-architecture-and-data.md)). They can be exported/imported as a file and, for signed-in players, are synchronized to the account's cloud progress.
 
 The local save is editable and importable. These coins have no cash value and are not a secure commercial wallet. Verified payments, entitlements, receipt validation, refunds, ad rewards and removal of ads are **pending**: [ECO-01, COM-01 and ADS-01](09-roadmap.md).
 
 ## Paid continuation and coin shop
 
-A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu Buy coins previews packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90. Real-money purchases remain unavailable pending a provider and verified server-side credit delivery. See [balance tuning](../docs/vehicle-balance-v3.md).
+A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu **Buy coins** is an unavailable placeholder: a dialog lists packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons. Real-money purchases remain pending a provider and verified server-side credit delivery (ECO-01, COM-01). See [balance tuning](../docs/vehicle-balance-v3.md).

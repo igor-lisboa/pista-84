@@ -1,10 +1,10 @@
 # Per-vehicle acceleration
 
-Replaces the shared 0.25 acceleration gain from the v3 balance. Each model now has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts`.
+Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the eighteen models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.31, falloffs 0.6–2.4).
 
 The existing drag curve is multiplied by an additional taper above 70% of maximum speed. Its value and slope join continuously at the threshold. Stronger falloff makes the last part of the speed range take longer, while acceleration remains positive below the maximum and zero at the maximum. Off-road traction still scales the resulting pull.
 
-Measured in 20 ms simulation steps, starting at rest, with no traffic, unlimited fuel and the car kept centered. These are game tuning values, not real-world vehicle specifications.
+Measured with the real `Race` simulation in 20 ms steps, starting at rest, with no traffic, unlimited fuel and the car kept centered. These are game tuning values, not real-world vehicle specifications.
 
 | Vehicle | Taper starts (km/h) | Time to 70% (s) | Time to 90% (s) | Time to 95% (s) |
 | --- | ---: | ---: | ---: | ---: |
@@ -20,7 +20,11 @@ Measured in 20 ms simulation steps, starting at rest, with no traffic, unlimited
 | CG 125 | 91 | 10.1 | 19.7 | 28.7 |
 | Opala SS | 150.5 | 17.3 | 31.5 | 42.8 |
 | Maverick GT | 168 | 14.0 | 25.4 | 34.1 |
-| Veloce GT | 245 | 15.8 | 28.1 | 36.9 |
+| Fiat 147 | 92.4 | 20.3 | 39.2 | 56.4 |
+| Marea Turbo | 154 | 12.7 | 22.8 | 30.5 |
+| Passat 85 | 119 | 15.8 | 29.4 | 40.9 |
+| Puma GT | 112 | 15.7 | 28.7 | 39.0 |
+| Veloce GT | 245 | 12.0 | 21.4 | 28.1 |
 | Raio 1000 | 210 | 12.3 | 22.1 | 29.2 |
 
 Regression tests cover monotonic pull, continuity at the threshold, distinct initial acceleration, stronger high-speed taper in classics than sports cars, and the actual race speed gains at 70%, 85% and 95%. Existing checks retain the Fusca's gradual 0–100 pace and the GT's ability to approach 350 km/h.

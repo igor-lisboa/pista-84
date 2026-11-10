@@ -15,5 +15,7 @@ Do not put backend details or credentials in player-facing flows.
 Run build, typecheck and Node tests, plus relevant `tests/browser/` Playwright
 specs for visible or interactive behavior. Use the configured isolated browser
 test server; never point automated players at live MongoDB or Redis.
-Update canonical specs for intentional behavior changes. Report observable
-behavior and validation, with screenshots when a visual comparison helps.
+The specs are the source of truth: read the owning page first, and follow
+`.agents/skills/pista-docs/SKILL.md` to update specs, docs, the requirements
+matrix and the baseline in the same change (catalog, locale and test counts included).
+Report observable behavior and validation, with screenshots when a visual comparison helps.

@@ -4,6 +4,18 @@ PISTA 84 is an offline-first TypeScript arcade racer with a browser/PWA client,
 Capacitor wrappers, Node/Vercel APIs and an optional static edge Worker.
 Read the relevant `specs/` page for game behavior and `docs/STORAGE.md` for backend work.
 
+## Documentation is the source of truth
+
+`specs/` and `docs/` were reconciled with the code on 2026-11-10 and are now the
+authoritative definition of the product. Before changing behavior, read the owning
+spec; if a request contradicts it, say so and ask, then change the spec first and
+the code second. Never edit a document to hide a code defect: report it instead.
+Every change that affects behavior, data, endpoints, player text, the vehicle or
+audio catalog, environment settings or tests must update the affected `specs/` and
+`docs/` pages, `specs/10-requirements-matrix.md`, the baseline in `specs/README.md`
+and the roadmap in the same change. Follow `.agents/skills/pista-docs/SKILL.md`.
+Real-money coin packs, payments and ads stay pending work in `specs/09-roadmap.md`.
+
 ## Commands and conventions
 
 - Use Node 24 or newer. Run `npm ci`, `npm run build`, `npm run typecheck`, and `npm test` for code changes. Build generates the Worker asset module required by type checking.
@@ -25,7 +37,8 @@ Read the relevant `specs/` page for game behavior and `docs/STORAGE.md` for back
 
 ## Reusable workflows
 
-Canonical skills: `.agents/skills/pista-storage/SKILL.md` and `.agents/skills/pista-game/SKILL.md`.
+Canonical skills: `.agents/skills/pista-storage/SKILL.md`, `.agents/skills/pista-game/SKILL.md`
+and `.agents/skills/pista-docs/SKILL.md` (documentation sync, required for every change).
 Claude and Copilot entrypoints point to these workflows; update the canonical files first.
 Update relevant specs/docs when behavior, environment settings or storage changes.
 Report what changed, which checks ran, and any unresolved limitation. Preserve unrelated user edits.
