@@ -452,8 +452,6 @@ function snapAlpha(c: Ctx, width: number, height: number): void {
   c.putImageData(image, 0, 0);
 }
 
-export const hasProceduralArt = (carId: string): boolean => carId in PAINTERS;
-
 /** Paints the car onto an empty 128 x 80 context. Returns false for ids without hand-made art. */
 export function paintProceduralCar(c: Ctx, car: CarLook, brake: boolean): boolean {
   const painter = PAINTERS[car.id];

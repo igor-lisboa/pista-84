@@ -46,6 +46,30 @@ async function signedIn(request: Request, store: AccountStore, account: Account)
   return response;
 }
 
+/** Replaces the password of the signed-in account after re-checking the current one. */
+async function changePassword(request: Request, store: AccountStore, input: Record<string, unknown>): Promise<Response> {
+  const account = await authenticatedAccount(request, store);
+  if (!account) return json({error: 'Sign in again.', code: 'session'}, 401);
+  if (!validPassword(input.password) || !validPassword(input.newPassword)) {
+    return json({error: 'Invalid password.', code: 'invalid'}, 400);
+  }
+  // Guessing the current password through this route shares the login budget of the account.
+  const now = Date.now();
+  if (!await store.consumeAttempt('global', 300, 60_000, now) ||
+    !await store.consumeAttempt(digest(account.usernameKey), 10, 15 * 60_000, now)) {
+    const response = json({error: 'Too many attempts. Try again later.', code: 'limited'}, 429);
+    response.headers.set('retry-after', '900');
+    return response;
+  }
+  if (!await verifyPassword(input.password, account.passwordHash)) {
+    return json({error: 'Incorrect password.', code: 'credentials'}, 401);
+  }
+  await store.updatePasswordHash(account.id, await hashPassword(input.newPassword));
+  // Every other device must sign in again with the new password; this one gets a fresh session.
+  await store.deleteAccountSessions(account.id);
+  return await signedIn(request, store, account);
+}
+
 /** Credentials never leave this Node-only path or enter logs or browser storage. */
 export async function authApi(request: Request, store: AccountStore): Promise<Response> {
   if (!validOrigin(request)) return json({error: 'Invalid origin.', code: 'origin'}, 403);
@@ -76,6 +100,7 @@ export async function authApi(request: Request, store: AccountStore): Promise<Re
       response.headers.set('set-cookie', cookie(request, '', 0));
       return response;
     }
+    if (input.action === 'password') return await changePassword(request, store, input);
     if (input.action !== 'login' && input.action !== 'signup') return json({error: 'Invalid action.', code: 'invalid'}, 400);
     const name = typeof input.username === 'string' ? normalizeUsername(input.username.normalize('NFKC')) : null;
     if (!name || !validPassword(input.password)) return json({error: 'Invalid username or password.', code: 'invalid'}, 400);

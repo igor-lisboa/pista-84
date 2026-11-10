@@ -17,7 +17,6 @@ import {
   isPlayerId,
   kmhToUnit,
   metresToUnit,
-  startNewPlayer,
   loadSave,
   paceMultiplier,
   roadCurve,
@@ -259,11 +258,6 @@ test('distance and speed units convert, default to kilometres and survive new pl
   assert.equal(miles.units, 'mi');
   assert.equal(miles.tutorialDone, true);
 
-  // A new player keeps the device's unit but sees the tutorial again.
-  const fresh = startNewPlayer(miles);
-  assert.equal(fresh.units, 'mi');
-  assert.equal(fresh.tutorialDone, false);
-
   // An import without these fields leaves them alone; one with them replaces them.
   assert.equal(importSave(miles, JSON.stringify({ coins: 1 })).units, 'mi');
   assert.equal(importSave(miles, JSON.stringify({ units: 'km', tutorialDone: false })).units, 'km');
@@ -279,8 +273,7 @@ test('a save records when it was created and legacy saves count as created now',
   assert.equal(stored.updatedAt, 2000);
   assert.equal(loadSave({ getItem: () => JSON.stringify({ createdAt: 'soon', updatedAt: -5 }) }).createdAt >= before, true);
 
-  // Starting over is a new save; an import keeps the file's creation time, or ours if it has none.
-  assert.ok(startNewPlayer(stored).createdAt >= before);
+  // An import keeps the file's creation time, or ours if it has none.
   assert.equal(importSave(stored, JSON.stringify({ createdAt: 500 })).createdAt, 500);
   assert.equal(importSave(stored, JSON.stringify({ coins: 1 })).createdAt, 1000);
 });

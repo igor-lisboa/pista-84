@@ -7,8 +7,6 @@ export const setUnits = (unit: DistanceUnit): void => {
   current = unit;
 };
 
-export const getUnits = (): DistanceUnit => current;
-
 /** Distance in the chosen unit, without the unit label. */
 export const formatDistance = (metres: number, digits = 2): string =>
   metresToUnit(metres, current).toLocaleString(getLang(), { minimumFractionDigits: digits, maximumFractionDigits: 2 });

@@ -82,10 +82,30 @@ test('a wrong password does not offer the offline way in', async ({ page, contex
   await page.locator('#tutSkip').click();
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('#usernameSwitch').click();
+  await page.locator('#usernameTab-login').click();
   await page.locator('#usernameInput').fill('Someone');
   await page.locator('#usernamePassword').fill('wrong-pass');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#usernameStatus')).not.toBeEmpty();
   await expect(page.locator('#usernameOffline')).toBeHidden();
+});
+
+test('first launch explains that a username is already taken and lets the player pick another', async ({ page, context }) => {
+  const store = await accountBackend(context);
+  await store.accounts.create({ id: crypto.randomUUID(), username: 'Driver', usernameKey: 'driver', passwordHash: 'unused', createdAt: Date.now() });
+  await page.goto('/');
+  await page.locator('#usernameInput').fill('DRIVER');
+  await page.locator('#usernamePassword').fill('abcde');
+  await page.locator('#usernameForm button[type=submit]').click();
+  await expect(page.locator('#usernameStatus')).toContainText('Escolha outro nome');
+  await expect(page.locator('#usernameInput')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#usernameInput')).toBeFocused();
+  // The form is usable again right away, with the normal label back on the button.
+  await expect(page.locator('#usernameForm button[type=submit]')).toBeEnabled();
+  await expect(page.locator('#usernameForm button[type=submit]')).toHaveText('Criar conta');
+  await page.locator('#usernameInput').fill('FreshDriver');
+  await expect(page.locator('#usernameStatus')).toBeEmpty();
+  await page.locator('#usernamePassword').fill('abcde');
+  await page.locator('#usernameForm button[type=submit]').click();
+  await expect(page.locator('#tutNext')).toBeVisible();
 });

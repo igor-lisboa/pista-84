@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
 
 test.describe('first play', () => {
-  test.use({ storageState: { cookies: [], origins: [] } });
+  test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' });
 
   test('a brand-new player gets the five-step tutorial once, right after choosing a name', async ({ page, context }) => {
     await accountBackend(context);

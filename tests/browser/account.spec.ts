@@ -1,9 +1,8 @@
 import {test, expect} from '@playwright/test';
-import type {BrowserContext, Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 import {playerApi} from '../../src/server/player-api.ts';
 import {syncAccountProgress} from '../../src/server/account-progress.ts';
 import {defaultSave} from '../../src/game/save.ts';
-import {memoryPlayerStore} from '../support/memory-player-store.ts';
 import {accountBackend} from './support/account-backend.ts';
 
 test.use({serviceWorkers: 'block'});
@@ -13,7 +12,7 @@ test('signup and login allow a five-character password and reject four character
   await backend(context);
   await page.goto('/');
   await openAccount(page);
-  await page.locator('#accountSwitch').click();
+  await page.locator('#accountTab-signup').click();
   await expect(page.locator('#accountRules')).toContainText('5–128');
   await expect(page.locator('#accountPassword')).toHaveAttribute('minlength', '5');
   await page.locator('#accountUsername').fill('Driver');
@@ -41,7 +40,7 @@ test('account forms keep typed credentials when a delayed guest session check fi
   });
   await page.goto('/');
   await openAccount(page);
-  await page.locator('#accountSwitch').click();
+  await page.locator('#accountTab-signup').click();
   await page.locator('#accountUsername').fill('Driver');
   await page.locator('#accountPassword').fill(password);
   const response = page.waitForResponse(response => response.url().endsWith('/api/auth'));
@@ -63,9 +62,11 @@ test('a fresh device can sign up directly from the guest name screen', async ({p
   await page.goto('/');
   await expect(page.locator('#usernameForm')).toBeVisible();
   await expect(page.locator('#closeModal')).toBeHidden();
-  await page.locator('#usernameSwitch').click();
+  await page.locator('#usernameTab-login').click();
   await expect(page.locator('#usernamePassword')).toHaveAttribute('autocomplete', 'current-password');
-  await page.locator('#usernameSwitch').click();
+  await expect(page.locator('#usernameTab-signup')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#usernameTab-signup').click();
+  await expect(page.locator('#usernameTab-signup')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#usernamePassword')).toHaveAttribute('autocomplete', 'new-password');
   await page.locator('#usernameInput').fill('Driver');
   await page.locator('#usernamePassword').fill(password);
@@ -86,7 +87,7 @@ async function openAccount(page: Page) {
 }
 
 async function logIn(page: Page, signup = false) {
-  if (signup) await page.locator('#accountSwitch').click();
+  if (signup) await page.locator('#accountTab-signup').click();
   await page.locator('#accountUsername').fill('Driver');
   await page.locator('#accountPassword').fill(password);
   await page.locator('#accountForm button[type=submit]').click();
@@ -98,7 +99,7 @@ test('signup asks for another pilot username when a normalized name is already r
   await store.accounts.create({id: crypto.randomUUID(), username: 'Driver', usernameKey: 'driver', passwordHash: 'unused', createdAt: Date.now()});
   await page.goto('/');
   await openAccount(page);
-  await page.locator('#accountSwitch').click();
+  await page.locator('#accountTab-signup').click();
   await page.locator('#accountUsername').fill('DRIVER');
   await page.locator('#accountPassword').fill(password);
   await page.locator('#accountForm button[type=submit]').click();
@@ -207,7 +208,7 @@ test('a failed account merge keeps guest data and offers a retry with the establ
   await page.goto('/');
   await openAccount(page);
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
-  await page.locator('#accountSwitch').click();
+  await page.locator('#accountTab-signup').click();
   await page.locator('#accountUsername').fill('Driver');
   await page.locator('#accountPassword').fill(password);
   await page.locator('#accountForm button[type=submit]').click();
@@ -234,5 +235,63 @@ for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
     await page.locator('#start').click();
     await expect(page.locator('#raceUI')).toBeVisible();
     expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
+  });
+}
+
+test('a signed-in player changes the password from the account screen', async ({page, context}) => {
+  await backend(context);
+  await page.goto('/');
+  await openAccount(page);
+  await logIn(page, true);
+  await page.locator('#settingsNav').click();
+  // Settings only offers the account: starting over as a new player is not a separate action.
+  await expect(page.locator('#newPlayer')).toHaveCount(0);
+  await page.locator('#account').click();
+  await expect(page.locator('#passwordForm')).toBeVisible();
+
+  await page.locator('#currentPassword').fill('not the password');
+  await page.locator('#newPassword').fill('a different passphrase');
+  await page.locator('#passwordForm button[type=submit]').click();
+  await expect(page.locator('#passwordStatus')).toContainText('senha atual');
+  await expect(page.locator('#currentPassword')).toBeFocused();
+
+  await page.locator('#currentPassword').fill(password);
+  await page.locator('#passwordForm button[type=submit]').click();
+  await expect(page.locator('#passwordStatus')).toContainText('Senha alterada');
+  await expect(page.locator('#currentPassword')).toHaveValue('');
+  await expect(page.locator('#newPassword')).toHaveValue('');
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain('a different passphrase');
+
+  // Only the new password works from now on.
+  await context.clearCookies();
+  await page.reload();
+  await page.locator('#settingsNav').click();
+  await page.locator('#account').click();
+  await page.locator('#accountPassword').fill(password);
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#accountStatus')).toContainText('incorretos');
+  await page.locator('#accountPassword').fill('a different passphrase');
+  await page.locator('#accountForm button[type=submit]').click();
+  await expect(page.locator('#modal')).toBeHidden();
+});
+
+for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+  test(`the close button stays in view while a long dialog scrolls at ${viewport.width}x${viewport.height}`, async ({page}) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.locator('#settingsNav').click();
+    const modal = page.locator('#modal');
+    const close = page.locator('#closeModal');
+    await expect(close).toBeVisible();
+    const scrollable = await modal.evaluate(el => el.scrollHeight > el.clientHeight + 40);
+    expect(scrollable).toBe(true);
+    const gap = async () => (await close.boundingBox())!.y - (await modal.boundingBox())!.y;
+    const before = await gap();
+    await modal.evaluate(el => el.scrollTo(0, el.scrollHeight));
+    expect(await modal.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    await expect(close).toBeInViewport({ratio: 1});
+    expect(Math.abs((await gap()) - before)).toBeLessThan(2);
+    await close.click();
+    await expect(modal).toBeHidden();
   });
 }

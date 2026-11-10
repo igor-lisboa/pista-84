@@ -56,14 +56,10 @@ export interface SettingsDeps {
   persist(): void;
   /** Applies a new UI language everywhere. */
   changeLanguage(lang: Lang): void;
-  /** Opens the player-name dialog. */
-  editUsername(): void;
   openAccount(): void;
   changeUnits(units: SaveData['units']): void;
   /** Opens the how-to-play tutorial. */
   showTutorial(): void;
-  /** Opens the "start over as a new player" confirmation. */
-  newPlayer(): void;
   installPrompt(): InstallPrompt | null;
 }
 
@@ -101,7 +97,6 @@ export class SettingsDialog {
             ${account
               ? row('account', 'user', `${t('auth.account')}: ${account.username}`, { end: 'arrow' })
               : row('account', 'user', `${t('auth.login')} / ${t('auth.signup')}`, { end: 'arrow' })}
-            ${row('newPlayer', 'restart', t('newp.menu'), { end: 'arrow', danger: true })}
           </div>
         </section>
         <section class="settings-group">
@@ -146,7 +141,6 @@ export class SettingsDialog {
       setRow('units', t(units === 'mi' ? 'set.unitsMi' : 'set.unitsKm'));
     };
     byId('tutorial').onclick = () => this.deps.showTutorial();
-    byId('newPlayer').onclick = () => this.deps.newPlayer();
     byId('sound').onclick = () => void this.toggleSound();
     byId('tilt').onclick = () => void this.toggleTilt();
     byId('calibrate').onclick = () => {

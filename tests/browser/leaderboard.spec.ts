@@ -6,7 +6,33 @@ import {leaderboardApi} from '../../src/server/cloud.ts';
 // Service-worker-originated requests bypass Playwright page routes in WebKit.
 test.use({serviceWorkers: 'block'});
 
+const accountId = '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b';
+
+/** The ranking is only for signed-in players, so most tests start with an account on the device. */
+async function signedInDevice(page: import('@playwright/test').Page) {
+  await page.addInitScript((id) => {
+    localStorage.setItem('pista84.account', JSON.stringify({ id, username: 'Tester' }));
+  }, accountId);
+}
+
+test('a guest sees why the ranking is unavailable instead of the ranking or a login button', async ({ page }) => {
+  let rankingRequests = 0;
+  await page.route('**/api/leaderboard**', (route) => {
+    rankingRequests += 1;
+    return route.abort();
+  });
+  await page.goto('/');
+  await page.locator('#leaderboardNav').click();
+  await expect(page.locator('#modalBody .warning')).toContainText('logado');
+  await expect(page.locator('.lb-list')).toHaveCount(0);
+  await expect(page.locator('#modalBody button')).toHaveCount(0);
+  expect(rankingRequests).toBe(0);
+  await page.locator('#closeModal').click();
+  await expect(page.locator('#start')).toBeEnabled();
+});
+
 test('the main menu shows the ranking five drivers at a time', async ({ page }) => {
+  await signedInDevice(page);
   const store = memoryPlayerStore();
   await page.route('**/api/leaderboard**', async (route) => {
     const response = await leaderboardApi(new Request(route.request().url()), store);
@@ -33,6 +59,7 @@ test('the main menu shows the ranking five drivers at a time', async ({ page }) 
 });
 
 test('the ranking says so instead of breaking when the server is unreachable', async ({ page }) => {
+  await signedInDevice(page);
   await page.route('**/api/leaderboard**', (route) => route.abort());
   await page.goto('/');
   await page.locator('#leaderboardNav').click();

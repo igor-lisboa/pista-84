@@ -132,7 +132,7 @@ npm run test:browser
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.
-- See [storage setup and consistency](docs/STORAGE.md) for MongoDB collections, Redis TTLs, live checks and deployment settings. Historical SQL files are not the active schema.
+- See [storage setup and consistency](docs/STORAGE.md) for MongoDB collections, Redis TTLs, live checks and deployment settings.
 - Backups use the player GUID in `x-player-id`; this is casual game progress rather than strong account authentication. The service worker never caches APIs or tokens. Credentials stay on Node, and only public balance configuration reaches the browser.
 - Payments, ads and the premium wallet still depend on providers and commercial setup: coin packs will only be sellable once a billing integration exists. The current backup is meant for casual progress and does not make local coins a secure wallet for real money.
 - Helper scripts (Node 24, with the local server running when they open the game): `node scripts/screenshots.ts` (captures in `docs/screenshots/`), `node scripts/reference-shot.ts` (reference scene), `node scripts/native-assets.ts` (icons and splash screens) and `node scripts/verify-hosted.ts` (hosted site verification, configuration via stdin).
@@ -151,11 +151,11 @@ npm run test:browser
 | `src/shared/config.ts` | Public configuration (`PISTA84_COINS`) |
 | `src/client.ts`, `src/qr.ts` | Browser entry point and QR generation |
 | `web/` | HTML, CSS, manifest, icons, vehicle atlas and `sw.ts` (service worker) |
-| `worker/index.ts`, `db/`, `drizzle/` | Static Worker/API proxy; historical inactive SQL schema and migrations |
+| `worker/index.ts` | Static Worker/API proxy |
 | `dev-server.ts`, `production-server.ts` | Local and production launchers for the shared `scripts/node-server.ts` HTTP/WebSocket server |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
 | `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
-| `tsconfig.json`, `drizzle.config.ts`, `playwright.config.ts` | Configuration |
+| `tsconfig.json`, `playwright.config.ts` | Configuration |
 | `android/`, `ios/` | Native projects (Capacitor) |
 | `www/`, `dist/` | Build output (generated) |
 | `specs/`, `docs/` | Specifications and documentation |

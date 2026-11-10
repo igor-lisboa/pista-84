@@ -80,7 +80,7 @@ racing autosaves; see the automatic-backup regression coverage above.
 
 - Production build, TypeScript checking and all 111 Node tests passed on Node 24.
 - The 36 affected Chromium/WebKit cases in `game.spec.ts`, `new-player.spec.ts`
-  and `progress-sync.spec.ts` were exercised. A WebKit offline failure was fixed
+  (since removed with the New Player action) and `progress-sync.spec.ts` were exercised. A WebKit offline failure was fixed
   by retaining the outbox without fetching when the browser reports offline;
   all four offline-cache/migration cases passed in the final targeted rerun.
 - Legacy saves without GUIDs preserved their garage, coins and stable generated
@@ -137,7 +137,7 @@ the game renderer and that an installed game reloads with its chunks offline.
 1. Update affected canonical specs and roadmap status.
 2. Run `npm run typecheck` and the checks relevant to changed behavior; confirm save compatibility and required assets.
 3. Build from current source; sync native assets if native source is part of the change.
-4. For hosted changes, preserve Site identity/audience and publish the artifact matching pushed source. Configure MongoDB/Redis on Node and `API_ORIGIN` on the optional Worker. Historical SQL migrations are inactive.
+4. For hosted changes, preserve Site identity/audience and publish the artifact matching pushed source. Configure MongoDB/Redis on Node and `API_ORIGIN` on the optional Worker.
 5. Verify returned deployment status; smoke-check changed hosted behavior where appropriate.
 6. Record unverified physical-device/store/payment conditions explicitly.
 

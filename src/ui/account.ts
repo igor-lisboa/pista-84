@@ -3,6 +3,7 @@ import {ACCOUNT_KEY, AccountError, accountRequest, localAccount, mergeAccount} f
 import type {AccountIdentity} from '../net/account.ts';
 import {t} from '../i18n/index.ts';
 import type {MessageKey} from '../i18n/types.ts';
+import {authTabs, bindAuthTabs, setFormBusy} from './auth-tabs.ts';
 import {byId} from './dom.ts';
 
 interface AccountDeps {
@@ -15,14 +16,17 @@ interface AccountDeps {
 
 const errors: Record<string, MessageKey> = {
   taken: 'auth.taken', credentials: 'auth.credentials', invalid: 'auth.invalid', limited: 'auth.limited',
-  secure: 'auth.secure',
+  secure: 'auth.secure', session: 'auth.expired',
 };
+
+const PASSWORD_MIN = 5;
+const PASSWORD_MAX = 128;
 
 /** Translation key for a failed account request. */
 export const authErrorKey = (error: unknown): MessageKey =>
   error instanceof AccountError ? errors[error.code] ?? 'auth.unavailable' : 'auth.unavailable';
 
-/** Optional account access. Password inputs are cleared immediately after submission. */
+/** Account access: log in or sign up, and for a signed-in player change the password or log out. */
 export class AccountDialog {
   private busy = false;
   /** The name typed in the last submission, restored when a merge has to be retried. */
@@ -53,29 +57,19 @@ export class AccountDialog {
     byId('closeModal').hidden = false;
     const known = localAccount();
     if (known) signup = false;
-    byId('modalBody').innerHTML = `
-      <span class="label">${t('auth.account')}</span>
-      <h1>${t(user ? 'auth.account' : signup ? 'auth.signup' : 'auth.login')}</h1>
-      <p>${t(user ? 'auth.logoutHelp' : 'auth.help')}</p>
-      ${user ? '<p id="accountName"></p><button id="accountLogout" class="menu-button danger"><span>' + t('auth.logout') + '</span></button>' : `
-      <form id="accountForm" class="username-form">
-        <label for="accountUsername">${t('auth.username')}</label>
-        <input id="accountUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" autocapitalize="none" spellcheck="false">
-        <label for="accountPassword">${t('auth.password')}</label>
-        <input id="accountPassword" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="5" maxlength="256" aria-describedby="accountRules">
-        <p id="accountRules" class="username-rules">${t('auth.rules')}</p>
-        <button class="menu-button" type="submit"><span>${t(signup ? 'auth.signup' : 'auth.login')}</span></button>
-        ${known ? `<button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button><p>${t('auth.logoutHelp')}</p>` : `<button id="accountSwitch" class="menu-button" type="button"><span>${t(signup ? 'auth.login' : 'auth.signup')}</span></button>`}
-      </form>`}
-      <p id="accountStatus" role="status" aria-live="polite"></p>`;
+    byId('modalBody').innerHTML = user ? this.signedInHtml() : this.signedOutHtml(known, signup);
     if (user) {
       byId('accountName').textContent = user.username;
+      byId('passwordForm').onsubmit = event => {
+        event.preventDefault();
+        void this.changePassword();
+      };
     } else {
       if (known) {
         const username = byId<HTMLInputElement>('accountUsername');
         username.value = known.username;
         username.readOnly = true;
-      } else byId('accountSwitch').onclick = () => this.render(null, !signup);
+      } else bindAuthTabs('account', signup ? 'signup' : 'login', mode => this.render(null, mode === 'signup'));
       byId<HTMLInputElement>('accountUsername').oninput = event => {
         (event.target as HTMLInputElement).removeAttribute('aria-invalid');
         byId('accountStatus').textContent = '';
@@ -106,6 +100,47 @@ export class AccountDialog {
     });
   }
 
+  private signedInHtml(): string {
+    return `
+      <span class="label">${t('auth.account')}</span>
+      <h1>${t('auth.account')}</h1>
+      <p id="accountName" class="account-name"></p>
+      <form id="passwordForm" class="username-form" novalidate>
+        <h3 class="group-title">${t('auth.changePassword')}</h3>
+        <label for="currentPassword">${t('auth.currentPassword')}</label>
+        <input id="currentPassword" type="password" autocomplete="current-password" maxlength="256">
+        <label for="newPassword">${t('auth.newPassword')}</label>
+        <input id="newPassword" type="password" autocomplete="new-password" minlength="${PASSWORD_MIN}" maxlength="${PASSWORD_MAX}" aria-describedby="passwordRules">
+        <p id="passwordRules" class="username-rules">${t('auth.passwordRules')}</p>
+        <p id="passwordStatus" class="form-status" role="status" aria-live="polite"></p>
+        <button class="primary submit" type="submit"><span>${t('auth.changePassword')}</span></button>
+      </form>
+      <p>${t('auth.logoutHelp')}</p>
+      <button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button>
+      <p id="accountStatus" class="form-status" role="status" aria-live="polite"></p>`;
+  }
+
+  /** `known` is a device that already has an account but lost its session: only that name can log in. */
+  private signedOutHtml(known: AccountIdentity | null, signup: boolean): string {
+    const help: MessageKey = known ? 'auth.expiredHelp' : signup ? 'user.hint' : 'user.loginHint';
+    const submit = t(signup ? 'auth.signup' : 'auth.login');
+    return `
+      <span class="label">${t('auth.account')}</span>
+      <h1>${submit}</h1>
+      ${known ? '' : authTabs('account', signup ? 'signup' : 'login')}
+      <p>${t(help)}</p>
+      <form id="accountForm" class="username-form">
+        <label for="accountUsername">${t('auth.username')}</label>
+        <input id="accountUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" autocapitalize="none" spellcheck="false">
+        <label for="accountPassword">${t('auth.password')}</label>
+        <input id="accountPassword" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="${PASSWORD_MIN}" maxlength="256" aria-describedby="accountRules">
+        <p id="accountRules" class="username-rules">${t('auth.rules')}</p>
+        <p id="accountStatus" class="form-status" role="status" aria-live="polite"></p>
+        <button class="primary submit" type="submit"><span>${submit}</span></button>
+      </form>
+      ${known ? `<p>${t('auth.logoutHelp')}</p><button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button>` : ''}`;
+  }
+
   /**
    * Signs in or creates an account from any screen (the first-launch name screen uses this).
    * Throws an AccountError on failure; the guest save is left untouched in that case.
@@ -131,15 +166,43 @@ export class AccountDialog {
     byId<HTMLDialogElement>('modal').close();
   }
 
-  /** Enables or disables the buttons currently on screen (a re-render replaces them). */
-  private setBusy(busy: boolean): void {
-    byId('modalBody').querySelectorAll<HTMLButtonElement>('button').forEach(button => button.disabled = busy);
+  /** Replaces the password of the signed-in account; the server also signs out every other device. */
+  private async changePassword(): Promise<void> {
+    if (this.busy) return;
+    const current = byId<HTMLInputElement>('currentPassword');
+    const next = byId<HTMLInputElement>('newPassword');
+    const status = byId('passwordStatus');
+    const length = [...next.value].length;
+    if ([...current.value].length < PASSWORD_MIN || length < PASSWORD_MIN || length > PASSWORD_MAX) {
+      status.textContent = t('auth.invalid');
+      (current.value ? next : current).focus();
+      return;
+    }
+    const body = byId('modalBody');
+    this.busy = true;
+    setFormBusy(body, true);
+    try {
+      await accountRequest('/api/auth', {action: 'password', password: current.value, newPassword: next.value});
+      current.value = '';
+      next.value = '';
+      status.textContent = t('auth.passwordChanged');
+    } catch (error) {
+      const wrong = error instanceof AccountError && error.code === 'credentials';
+      status.textContent = t(wrong ? 'auth.wrongPassword' : authErrorKey(error));
+      if (wrong) {
+        current.focus();
+        current.select();
+      }
+    } finally {
+      this.busy = false;
+      setFormBusy(body, false);
+    }
   }
 
   private async run(action: () => Promise<void>): Promise<void> {
     if (this.busy) return;
     this.busy = true;
-    this.setBusy(true);
+    setFormBusy(byId('modalBody'), true);
     byId('closeModal').hidden = true;
     const modal = byId<HTMLDialogElement>('modal');
     const preventClose = (event: Event): void => event.preventDefault();
@@ -154,7 +217,7 @@ export class AccountDialog {
         const field = document.getElementById('accountUsername') as HTMLInputElement | null;
         if (field) field.value = this.retryUsername;
       }
-      byId('accountStatus').textContent = t(error instanceof AccountError ? errors[error.code] ?? 'auth.unavailable' : 'auth.unavailable');
+      byId('accountStatus').textContent = t(authErrorKey(error));
       if (error instanceof AccountError && error.code === 'taken') {
         const username = byId<HTMLInputElement>('accountUsername');
         username.setAttribute('aria-invalid', 'true');
@@ -165,7 +228,7 @@ export class AccountDialog {
     } finally {
       this.deps.finished();
       this.busy = false;
-      this.setBusy(false);
+      setFormBusy(byId('modalBody'), false);
       byId('closeModal').hidden = false;
       modal.removeEventListener('cancel', preventClose);
     }

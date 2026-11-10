@@ -131,15 +131,18 @@ The entry script loads the game or phone controller on demand; controllers avoid
 downloading the game renderer. Build-generated chunk lists keep the PWA's lazy
 modules available offline.
 
-Settings > Account shows the signed-in pilot (or offers log in / sign up) and log out.
+Settings > Account shows the signed-in pilot with a change-password form and log out (or offers log in / sign up).
+`POST /api/auth` with `action: "password"` needs a session and the current password, shares the
+per-account login attempt budget, replaces the hash, revokes every session of the account and
+issues a fresh one for the calling device.
 The first-launch screen asks for a driver name and password: that creates the account,
 so the same progress can be used on other devices. Players with an account switch to login
 on the same screen. Progress is merged with the device's offline save at that moment.
 Guests (no signed-in session) never contact the online API: no score, progress, backup or
-health requests, and no leaderboard publication. The leaderboard shows a log-in button instead.
+health requests, and no leaderboard publication. The leaderboard is only for signed-in players: guests see a short message instead of the ranking and no request is made.
 The server rejects `/api/score` and `/api/progress` writes without a session (HTTP 401).
 If the account service cannot be reached on first launch, a "Play offline" button keeps the typed
-name on the device only (no upload); the account can be created later from the leaderboard or Settings.
+name on the device only (no upload); the account can be created later from Settings.
 Guest play still works without an account or network. Guest GUID backups remain
 compatible; they do not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.

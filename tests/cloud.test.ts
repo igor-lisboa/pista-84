@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {cloudProgress, leaderboardApi} from '../src/server/cloud.ts';
-import {importSave, loadSave, startNewPlayer} from '../src/game/index.ts';
+import {importSave, loadSave} from '../src/game/index.ts';
 import {memoryPlayerStore} from './support/memory-player-store.ts';
 import type {PlayerStore} from '../src/server/players.ts';
 
@@ -129,27 +129,14 @@ test('importing replaces everything, but keeps the highest score for the same GU
   assert.equal(legacy.coins, 9);
 });
 
-test('starting a new player gets a fresh GUID and garage but keeps device preferences and history', () => {
-  const current = loadSave({
-    getItem: () => JSON.stringify({playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, coins: 500, owned: ['fusca', 'gol'], lang: 'ja', sound: false}),
-  });
-  const fresh = startNewPlayer(current, {coins: null}, 1234);
-
-  assert.notEqual(fresh.playerId, ALICE);
-  assert.equal(fresh.username, null);
-  assert.equal(fresh.coins, 0);
-  assert.equal(fresh.bestScore, 0);
-  assert.deepEqual(fresh.owned, ['fusca']);
-  assert.equal(fresh.lang, 'ja');
-  assert.equal(fresh.sound, false);
-  assert.deepEqual(fresh.history, [{playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, retired: 1234}]);
-
-  // History survives a save round trip and accumulates; an empty, nameless player is not recorded.
-  const reloaded = loadSave({getItem: () => JSON.stringify(fresh)});
-  assert.equal(reloaded.history.length, 1);
-  assert.equal(startNewPlayer(reloaded, {coins: null}).history.length, 1);
-  const named = {...reloaded, username: 'Bob'};
-  assert.equal(startNewPlayer(named, {coins: null}).history.length, 2);
+test('past players kept in a save survive a round trip, drop invalid entries and stay bounded', () => {
+  const past = {playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, retired: 1234};
+  const stored = loadSave({getItem: () => JSON.stringify({history: [past, {playerId: 'not-a-guid'}, 'junk']})});
+  assert.deepEqual(stored.history, [past]);
+  const reloaded = loadSave({getItem: () => JSON.stringify(stored)});
+  assert.deepEqual(reloaded.history, [past]);
+  const many = Array.from({length: 30}, (_, index) => ({...past, retired: index}));
+  assert.equal(loadSave({getItem: () => JSON.stringify({history: many})}).history.length, 20);
 });
 
 test('the leaderboard is served in pages of five, sorted, with ties going to whoever got there first', async (t) => {

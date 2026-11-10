@@ -28,7 +28,7 @@ test('settings are grouped, switches show their state and nothing spills sideway
   await expect(sound.locator('.switch')).toHaveCount(1);
 
   // Every row is comfortably tappable.
-  for (const id of ['newPlayer', 'units', 'sound', 'tutorial', 'tilt', 'fullscreen', 'install']) {
+  for (const id of ['account', 'units', 'sound', 'tutorial', 'tilt', 'fullscreen', 'install']) {
     const box = (await page.locator(`#${id}`).boundingBox())!;
     expect(box.height, id).toBeGreaterThanOrEqual(48);
   }

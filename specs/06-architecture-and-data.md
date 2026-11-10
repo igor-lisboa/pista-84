@@ -20,13 +20,11 @@ car-game/
     client.ts, qr.ts     browser entry point, QR generation
   web/                   HTML, CSS, PWA files, sw.ts and artwork
   worker/                hosted Worker entrypoint
-  db/                    historical SQL schema (inactive)
-  drizzle/               immutable SQL migrations and metadata
   tests/                 Node tests, test support, Playwright specs
   scripts/               build, env, assets, screenshots and verification (TypeScript)
   dev-server.ts          local Node launcher
   production-server.ts   production Node launcher
-  tsconfig.json, drizzle.config.ts, playwright.config.ts
+  tsconfig.json, playwright.config.ts
   android/ and ios/      generated Capacitor projects
   www/                   generated browser/native assets (ignored)
   dist/                  generated hosted Worker (ignored)
@@ -64,7 +62,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts` | Car previews, DOM/format helpers, toasts and feedback |
 | `src/net/remote.ts` | Pairing and controller commands; `room-api.ts` and `room-socket.ts` own HTTP and socket lifecycles |
 | `src/server/signaling.ts` | Shared room protocol; Redis in production, memory only for isolated tests/local fallback |
-| `src/server/cloud.ts`, `d1.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
+| `src/server/cloud.ts` | Authenticated per-user backup with revision checks; structural MongoDB/Redis adapters |
 | `src/shared/config.ts` | Public runtime config (`PISTA84_COINS`, `PISTA84_PROGRESS_TOOLS`) |
 | `src/client.ts` | Entry point: fetch `/runtime-config.json`, then mount the game or the controller page |
 | `scripts/node-server.ts` | Shared Node static server, MongoDB/Redis APIs, public config, local network/QR, health and socket relay |
@@ -169,8 +167,7 @@ it never acknowledges a volatile cloud backup. Missing/unreachable services
 return 503 without erasing local progress.
 
 See [storage documentation](../docs/STORAGE.md) for exact record/key layouts,
-connection handling, deployment, data transition and verification. Historical
-SQL schema/migrations are retained as reference and are not used at runtime.
+connection handling, deployment, data transition and verification.
 
 ## Build and hosting
 

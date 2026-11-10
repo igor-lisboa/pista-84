@@ -23,9 +23,8 @@ const escapeHtml = (text: string): string =>
   text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
 export interface LeaderboardDeps {
-  /** Whether this device is signed in; only signed-in players publish scores. */
+  /** Whether this device is signed in; only signed-in players see and appear in the ranking. */
   signedIn(): boolean;
-  openAccount(): void;
 }
 
 /** Online ranking, five drivers per page. Needs a connection; the game itself never does. */
@@ -37,21 +36,19 @@ export class LeaderboardDialog {
   }
 
   open(): void {
+    if (!this.deps.signedIn()) {
+      this.shell(`<p class="warning" role="status">${t('lb.signedOnly')}</p>`);
+      return;
+    }
     this.shell(`<p role="status">${t('lb.loading')}</p>`);
     void this.load(1);
   }
 
   private shell(body: string): void {
-    const signInButton = this.deps.signedIn()
-      ? ''
-      : `<button id="lbSignIn" class="primary" type="button"><span>${t('auth.login')}</span></button>`;
     byId('modalBody').innerHTML = `
       <span class="label">${t('lb.label')}</span>
       <h1>${t('lb.title')}<span>.</span></h1>
-      ${body}
-      ${signInButton}`;
-    const button = document.getElementById('lbSignIn');
-    if (button) button.onclick = () => this.deps.openAccount();
+      ${body}`;
   }
 
   private async load(page: number): Promise<void> {

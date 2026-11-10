@@ -19,6 +19,10 @@ export interface AccountStore {
   createSession(hash: string, accountId: string, expires: Date): Promise<void>;
   session(hash: string, now: Date): Promise<Account | null>;
   deleteSession(hash: string): Promise<void>;
+  /** Revokes every session of an account, on every device. */
+  deleteAccountSessions(accountId: string): Promise<void>;
+  /** Replaces the stored password hash. */
+  updatePasswordHash(accountId: string, passwordHash: string): Promise<void>;
   /** Atomic, shared across all Node instances. */
   consumeAttempt(key: string, limit: number, windowMs: number, now: number): Promise<boolean>;
 }

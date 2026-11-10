@@ -191,3 +191,34 @@ test('neither GUID headers nor forged score bodies authorize another account', a
   assert.equal((await playerApi(guestProgress, store)).status, 401);
   assert.equal((await store.read('scores', [])).length, 0);
 });
+
+test('changing the password needs the current one, signs out other devices and keeps this one signed in', async () => {
+  const accounts = memoryAccountStore();
+  const newPassword = 'a brand new passphrase';
+  const phone = cookieOf(await authApi(request('/api/auth', {action: 'signup', username: 'Driver', password}), accounts));
+  const laptop = cookieOf(await authApi(request('/api/auth', {action: 'login', username: 'Driver', password}), accounts));
+  const change = (body: Record<string, unknown>, cookie?: string) =>
+    authApi(request('/api/auth', {action: 'password', ...body}, cookie), accounts);
+
+  const anonymous = await change({password, newPassword});
+  assert.equal(anonymous.status, 401);
+  assert.equal((await anonymous.json()).code, 'session');
+  const wrong = await change({password: 'not the password', newPassword}, laptop);
+  assert.equal(wrong.status, 401);
+  assert.equal((await wrong.json()).code, 'credentials');
+  assert.equal((await change({password, newPassword: 'tiny'}, laptop)).status, 400);
+  // Failed attempts change nothing.
+  assert.ok(await authenticatedAccount(request('/api/auth', undefined, laptop), accounts));
+  assert.equal((await authApi(request('/api/auth', {action: 'login', username: 'Driver', password}), accounts)).status, 200);
+
+  const changed = await change({password, newPassword}, laptop);
+  assert.equal(changed.status, 200);
+  const text = await changed.text();
+  assert.equal(text.includes('scrypt') || text.includes(newPassword), false);
+  const fresh = cookieOf(changed);
+  assert.equal(await authenticatedAccount(request('/api/auth', undefined, phone), accounts), null);
+  assert.equal(await authenticatedAccount(request('/api/auth', undefined, laptop), accounts), null);
+  assert.ok(await authenticatedAccount(request('/api/auth', undefined, fresh), accounts));
+  assert.equal((await authApi(request('/api/auth', {action: 'login', username: 'Driver', password}), accounts)).status, 401);
+  assert.equal((await authApi(request('/api/auth', {action: 'login', username: 'Driver', password: newPassword}), accounts)).status, 200);
+});

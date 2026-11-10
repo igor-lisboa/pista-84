@@ -39,6 +39,14 @@ export function mongoAccountStore(database: () => Promise<Db>): AccountStore {
       const db = await database();
       await db.collection<SessionRecord>('sessions').deleteOne({_id: hash});
     },
+    async deleteAccountSessions(accountId) {
+      const db = await database();
+      await db.collection<SessionRecord>('sessions').deleteMany({accountId});
+    },
+    async updatePasswordHash(accountId, passwordHash) {
+      const db = await database();
+      await db.collection<AccountRecord>('accounts').updateOne({_id: accountId}, {$set: {passwordHash}});
+    },
     async consumeAttempt(key, limit, windowMs, now) {
       const db = await database();
       const attempts = db.collection<AttemptRecord>('auth-attempts');

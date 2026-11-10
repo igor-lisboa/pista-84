@@ -176,21 +176,3 @@ export function importSave(current: SaveData, serialized: string, config: Balanc
   }
   return imported;
 }
-
-/**
- * Starts over as a brand-new player: fresh GUID, no name, starting garage and
- * zero coins. Device preferences (language, sound) carry over and the retired
- * player goes into `history`. Their scores stay online under the old GUID.
- */
-export function startNewPlayer(current: SaveData, config: BalanceConfig = { coins: null }, now = Date.now()): SaveData {
-  const fresh = loadSave({ getItem: () => '{}' }, config);
-  fresh.lang = current.lang;
-  fresh.sound = current.sound;
-  fresh.units = current.units;
-  const retired: PastPlayer[] =
-    current.username !== null || current.bestScore > 0
-      ? [{ playerId: current.playerId, username: current.username, bestScore: current.bestScore, best: current.best, retired: now }]
-      : [];
-  fresh.history = [...current.history, ...retired].slice(-HISTORY_LIMIT);
-  return fresh;
-}

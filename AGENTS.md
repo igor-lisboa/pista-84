@@ -21,7 +21,7 @@ Read the relevant `specs/` page for game behavior and `docs/STORAGE.md` for back
 - Never print, commit, bundle or expose `.env` values, database URIs, credentials or pairing tokens. Only `publicConfig()` may determine browser runtime settings.
 - Normal tests use isolated fakes. `npm run online:check` deliberately uses configured services with unique, removable probe records; run it when connection verification is requested or needed.
 - Vercel serves static assets plus `api/*.ts`. Preserve `vercel.json` rewrites. Do not introduce `app`, `index`, `server` or `main` entrypoints at the root, in `src/`, or as browser bundle names: Vercel may auto-detect them as a backend.
-- The browser-targeted edge Worker proxies APIs to an HTTPS `API_ORIGIN`; never bundle TCP database drivers into it. Historical `db/` and `drizzle/` files are not the active schema.
+- The browser-targeted edge Worker proxies APIs to an HTTPS `API_ORIGIN`; never bundle TCP database drivers into it.
 
 ## Reusable workflows
 

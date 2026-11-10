@@ -3,6 +3,7 @@ import { t } from '../i18n/index.ts';
 import { byId } from './dom.ts';
 import { AccountError } from '../net/account.ts';
 import { authErrorKey } from './account.ts';
+import { authTabs, bindAuthTabs, setFormBusy } from './auth-tabs.ts';
 
 export interface UsernameDeps {
   readonly save: SaveData;
@@ -36,10 +37,12 @@ export class UsernameDialog {
 
   render(): void {
     const login = this.mode === 'login';
+    const submitLabel = t(login ? 'auth.login' : 'auth.signup');
     byId('modalBody').innerHTML = `
       <span class="label">${t('user.label')}</span>
-      <h1>${t(login ? 'auth.login' : 'user.title')}<span>.</span></h1>
-      <p>${t('user.hint')}</p>
+      <h1>${t(login ? 'user.loginTitle' : 'user.title')}<span>.</span></h1>
+      ${authTabs('username', this.mode)}
+      <p>${t(login ? 'user.loginHint' : 'user.hint')}</p>
       <form id="usernameForm" class="username-form" novalidate>
         <label for="usernameInput">${t('auth.username')}</label>
         <input id="usernameInput" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false"
@@ -48,11 +51,10 @@ export class UsernameDialog {
         <input id="usernamePassword" type="password" name="password" autocomplete="${login ? 'current-password' : 'new-password'}"
           minlength="${PASSWORD_MIN}" maxlength="${PASSWORD_MAX}" aria-describedby="usernameRules">
         <p id="usernameRules" class="username-rules">${t('auth.rules')}</p>
-        <p id="usernameStatus" role="status" aria-live="polite"></p>
-        <button class="primary" type="submit"><span>${t(login ? 'auth.login' : 'auth.signup')}</span></button>
+        <p id="usernameStatus" class="form-status" role="status" aria-live="polite"></p>
+        <button class="primary submit" type="submit"><span>${submitLabel}</span></button>
       </form>
-      <button id="usernameSwitch" class="menu-button" type="button"><span>${t(login ? 'auth.signup' : 'auth.login')}</span></button>
-      <button id="usernameOffline" class="menu-button" type="button" hidden><span>${t('user.offline')}</span></button>`;
+      <button id="usernameOffline" class="text-button" type="button" hidden><span>${t('user.offline')}</span></button>`;
     byId('closeModal').hidden = this.required;
 
     const input = byId<HTMLInputElement>('usernameInput');
@@ -60,10 +62,10 @@ export class UsernameDialog {
       event.preventDefault();
       void this.submit();
     };
-    byId('usernameSwitch').onclick = () => {
-      this.mode = login ? 'signup' : 'login';
+    bindAuthTabs('username', this.mode, (mode) => {
+      this.mode = mode;
       this.render();
-    };
+    });
     byId('usernameOffline').onclick = () => this.playOffline();
     input.oninput = () => {
       input.removeAttribute('aria-invalid');
@@ -104,8 +106,8 @@ export class UsernameDialog {
       return;
     }
 
-    const buttons = [...byId('modalBody').querySelectorAll<HTMLButtonElement>('button')];
-    buttons.forEach((button) => (button.disabled = true));
+    const body = byId('modalBody');
+    setFormBusy(body, true);
     try {
       await this.deps.signIn(this.mode, name, password);
       this.deps.onSaved(name);
@@ -117,7 +119,7 @@ export class UsernameDialog {
         input.setAttribute('aria-invalid', 'true');
         input.focus();
       }
-      buttons.forEach((button) => (button.disabled = false));
+      setFormBusy(body, false);
     }
   }
 }

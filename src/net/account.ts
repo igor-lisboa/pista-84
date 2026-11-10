@@ -23,7 +23,7 @@ export function localAccount(): AccountIdentity | null {
 export async function accountRequest(path: string, body?: unknown): Promise<Record<string, unknown>> {
   try {
     const action = body && typeof body === 'object' && 'action' in body ? body.action : null;
-    if ((action === 'login' || action === 'signup') && location.protocol !== 'https:' &&
+    if ((action === 'login' || action === 'signup' || action === 'password') && location.protocol !== 'https:' &&
       !['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) throw new AccountError('secure');
     const response = await fetch(path, {
       method: body === undefined ? 'GET' : path === '/api/account' ? 'PUT' : 'POST',

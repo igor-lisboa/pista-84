@@ -41,21 +41,32 @@ Eighteen cards show model sprite, tagline, maximum speed, acceleration, consumpt
 
 ## Settings (Options)
 
-The player group includes an optional Account screen with login, signup, explicit
-sync and logout. Guest play does not require an account. The forms use labelled
-username/password fields; the first-launch name screen also links directly to
-login/signup so returning users do not need to choose a guest name first. Closing
-the account form returns unnamed guests to the name screen. Forms use
+The player group contains a single Account row (there is no separate "new player"
+action). The Account screen offers sign up / log in; for a signed-in player it shows the
+username, a change-password form (current and new password) and logout. Changing the
+password re-checks the current one, signs every other device out and keeps this device
+signed in. The first-launch screen and the guest Account screen share one layout: a
+two-sided "Sign up | Log in" switch with the selected side highlighted, a short hint for
+that side, labelled username/password fields and one full-width submit button that shows a
+"please wait" label while the request runs. "Play offline" is a small text link that only
+appears after a connection failure. Closing the account form returns unnamed guests to the
+name screen. Forms use
 password-manager autocomplete; passwords accept 5–128 Unicode characters with no
 composition requirements. All account text is
 localized. Login merges local and cloud progress before adopting the account
 identity. The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
-reauthentication to the same account. Signed-in name/new-player actions open the
+reauthentication to the same account. Signed-in name actions open the
 account screen, preventing accidental account renaming or identity replacement.
 Logout explains that local records and unsynced data are cleared while the cloud
 account remains; only sound, language and units carry into the empty guest save.
 Successful logout also refreshes other open game tabs. A network failure during
 session revocation reports failure and leaves local records available.
+
+The online leaderboard is reserved for signed-in players. A guest opening it sees a
+short localized message explaining that, with no ranking request and no sign-in button.
+
+Every dialog's close button is fixed in the dialog's top corner: it stays visible while a
+long dialog scrolls, so the player never has to scroll back up to close it.
 
 The sound switch displays the saved preference while the browser unlocks audio.
 A delayed audio-context resume cannot override a later explicit sound choice.

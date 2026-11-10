@@ -13,9 +13,7 @@ import {
   PAINTS,
   Race,
   loadSave,
-  startNewPlayer,
   SAVE_KEY,
-  type BalanceConfig,
   type CarSpec,
   type SaveData,
   type SaveStorage,
@@ -37,7 +35,6 @@ import { AboutDialog } from './about.ts';
 import { LeaderboardDialog } from './leaderboard.ts';
 import { TutorialDialog } from './tutorial.ts';
 import { setUnits } from './units.ts';
-import { NewPlayerDialog } from './new-player.ts';
 import { UsernameDialog } from './username.ts';
 import { SettingsDialog, type InstallPrompt } from './settings.ts';
 
@@ -72,7 +69,6 @@ const isNativeApp = (): boolean =>
 export class GameApp implements RemoteHost {
   readonly input = new InputController();
 
-  private readonly config: BalanceConfig;
   private readonly storage = createStorage();
   private accountOwner = localAccount();
   private accountTransition = false;
@@ -89,11 +85,7 @@ export class GameApp implements RemoteHost {
   private readonly accountDialog: AccountDialog;
   private readonly remoteDialog: RemoteDialog;
   private readonly usernameDialog: UsernameDialog;
-  private readonly newPlayerDialog: NewPlayerDialog;
-  private readonly leaderboardDialog = new LeaderboardDialog({
-    signedIn: () => this.signedIn(),
-    openAccount: () => this.openAccount(),
-  });
+  private readonly leaderboardDialog = new LeaderboardDialog({ signedIn: () => this.signedIn() });
   private readonly tutorialDialog = new TutorialDialog();
   /** The tutorial owns the modal; closing it by any route finishes it. */
   private tutorialActive = false;
@@ -115,7 +107,6 @@ export class GameApp implements RemoteHost {
   private installPrompt: (InstallPrompt & Event) | null = null;
 
   constructor(config: RuntimeConfig) {
-    this.config = config;
     const localSave = loadSave(this.storage);
     this.applyAccountIdentity(localSave);
     // Persist generated IDs for legacy saves before queueing their first durable copy.
@@ -176,11 +167,9 @@ export class GameApp implements RemoteHost {
       notify: this.notifications,
       persist: () => this.persist(),
       changeLanguage: (lang) => this.changeLanguage(lang),
-      editUsername: () => this.openUsername(),
       openAccount: () => this.openAccount(),
       changeUnits: (units) => this.changeUnits(units),
       showTutorial: () => this.openTutorial(false),
-      newPlayer: () => this.openNewPlayer(),
       installPrompt: () => {
         const prompt = this.installPrompt;
         this.installPrompt = null;
@@ -200,7 +189,6 @@ export class GameApp implements RemoteHost {
         if (!this.save.tutorialDone) this.openTutorial(false);
       },
     });
-    this.newPlayerDialog = new NewPlayerDialog({ save: this.save, confirm: () => this.startNewPlayer() });
     this.remoteDialog = new RemoteDialog(this);
   }
 
@@ -637,24 +625,6 @@ export class GameApp implements RemoteHost {
     setUnits(units);
     this.persist();
     this.hud.invalidate();
-  }
-
-  openNewPlayer(): void {
-    if (this.accountOwner) { this.openAccount(); return; }
-    this.openModal();
-    this.newPlayerDialog.render();
-  }
-
-  /** Retires the current player (kept in history and online) and begins again from scratch. */
-  private startNewPlayer(): void {
-    if (this.race.distance > 0) this.settle();
-    this.race.reset();
-    this.settledCoins = 0;
-    Object.assign(this.save, startNewPlayer(this.save, this.config));
-    this.resetForCar();
-    this.persist();
-    this.notifications.toast(t('newp.done'));
-    this.openUsername();
   }
 
   openUsername(): void {

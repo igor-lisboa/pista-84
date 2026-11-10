@@ -19,6 +19,13 @@ export function memoryAccountStore(): AccountStore {
       return session && session.expires > now ? structuredClone(accounts.get(session.accountId) ?? null) : null;
     },
     async deleteSession(hash) { sessions.delete(hash); },
+    async deleteAccountSessions(accountId) {
+      for (const [hash, session] of sessions) if (session.accountId === accountId) sessions.delete(hash);
+    },
+    async updatePasswordHash(accountId, passwordHash) {
+      const account = accounts.get(accountId);
+      if (account) account.passwordHash = passwordHash;
+    },
     async consumeAttempt(key, limit, windowMs, now) {
       const bucket = `${key}:${Math.floor(now / windowMs)}`;
       const count = (attempts.get(bucket) ?? 0) + 1;
