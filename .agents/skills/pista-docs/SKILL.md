@@ -39,6 +39,7 @@ finished until the documents say what the product does and the code agrees.
 | Tests, commands, release steps, verification evidence | `specs/08-validation-and-release.md` |
 | New, finished or reprioritized work | `specs/09-roadmap.md`, `specs/10-requirements-matrix.md`, `docs/PENDING.md` |
 | Known limitations | `docs/TECH-DEBT.md` |
+| Docker stack, `scripts/local.sh`, `scripts/check-local.ts` | `docs/STORAGE.md` (Local Docker stack), `specs/06`, `specs/08`, `README.md` |
 | User-visible commands, setup, features | `README.md`, `.env.example` |
 | New or renamed agents, skills, maintenance policy | `AGENTS.md`, `docs/STORAGE.md` (AI maintenance section) |
 

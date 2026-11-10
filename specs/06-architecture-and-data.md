@@ -23,11 +23,13 @@ car-game/
   web/                   HTML, CSS, PWA files, sw.ts and artwork
   worker/                optional edge Worker (generated-assets.ts is build output)
   tests/                 Node tests, test support, Playwright specs (tests/browser)
-  scripts/               build, env, Node server, assets, screenshots and verification (TypeScript)
+  scripts/               build, env, Node server, assets, screenshots, verification (TypeScript) and local.sh (Docker stack)
   dev-server.ts          local Node launcher
   production-server.ts   production Node launcher
+  Dockerfile, docker-compose.yml, .dockerignore   local Docker stack: game + MongoDB + Redis (not a deployment)
   tsconfig.json, playwright.config.ts, vercel.json, Procfile, app.json, capacitor.config.json
-  .env.example           documented configuration (real .env is ignored by Git)
+  .env.example           documented configuration (real .env is ignored by Git; .env.docker is generated from it)
+  .gitattributes         forces LF for *.sh and the Dockerfile
   .agents/, .claude/, .github/   shared AI maintenance skills, agents and instructions
   android/ and ios/      generated Capacitor projects
   www/                   generated browser/native assets (ignored)
@@ -87,6 +89,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `scripts/node-server.ts` | Shared Node static server and API router, public config, local network/QR, health and socket upgrades |
 | `scripts/build.ts`, `env.ts` | Build (www, Worker, generated assets, chunk list) and `.env`/runtime-config loading |
 | `scripts/check-online.ts`, `check-socket-storage.ts`, `verify-hosted.ts` | Live MongoDB/Redis diagnostics and hosted smoke check |
+| `scripts/local.sh`, `check-local.ts` | Docker stack control (`up`, `down`, `reset`, `logs`, `status`, `env`, `check`, `test`) and its end-to-end smoke check; see [storage](../docs/STORAGE.md#local-docker-stack) |
 | `scripts/screenshots.ts`, `reference-shot.ts`, `review-driving.ts`, `review-brazilian-cars.ts`, `native-assets.ts` | Review captures and native icon/splash generation |
 | `dev-server.ts`, `production-server.ts` | Local and production launchers; production requires MongoDB/Redis and ignores local env files |
 | `worker/index.ts` | Static edge assets, public config and proxy to Node APIs |
@@ -166,6 +169,8 @@ Redis owns ephemeral pairing rooms (ten minutes) and latest controller input (tw
 See [storage documentation](../docs/STORAGE.md) for exact record/key layouts, connection handling, deployment, data transition and verification.
 
 ## Build and hosting
+
+For a laptop with only Docker, `bash scripts/local.sh up` builds the `Dockerfile` image and starts `docker-compose.yml`: the game (`dev-server.ts`, HTTP) plus private MongoDB 7 and Redis 7 containers, configured from a generated `.env.docker`. It is a development convenience; Heroku, Vercel and the Worker do not use it.
 
 `npm run build` generates `www/`, the Worker asset module (`worker/generated-assets.ts`) and `dist/server/index.js`. Browser entry is `src/client.ts`; local Node entry is `dev-server.ts`. Generated output is not source. `npm run dev` builds before starting the local server (`predev`). `npm start` runs `production-server.ts` against already-built assets. Heroku builds through `heroku-postbuild` and runs the production launcher through the `Procfile`. HTTPS proxy requests use `PUBLIC_ORIGIN` or Heroku's forwarded scheme; production never falls back to in-memory pairing.
 

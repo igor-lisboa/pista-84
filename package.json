@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p .",
     "test:browser": "playwright test",
     "online:check": "node scripts/check-online.ts",
+    "local:check": "node scripts/check-local.ts",
     "native:sync": "npm run build && cap sync",
     "native:android": "cap open android",
     "native:ios": "cap open ios"

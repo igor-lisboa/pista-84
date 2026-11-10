@@ -14,6 +14,19 @@ npm run dev
 
 `npm run dev` builds (the `predev` script) and runs `node dev-server.ts`, which starts `scripts/node-server.ts` to serve the generated `www/` and the APIs. Open `http://localhost:4173`. `PORT` changes the port. Without `MONGODB_URI`/`REDIS_URL` the local server serves the game with cloud features disabled and memory-only pairing. For LAN testing, connect both devices to the same reachable server; allow its port on the private network. Tilt requires a secure context, so use the HTTPS publication or a suitable HTTPS proxy. Configure `PUBLIC_ORIGIN` to the external origin when proxying the Node server.
 
+### Local stack with Docker
+
+Docker with Compose 2.24+ and a bash shell are enough; no Node, MongoDB or Redis is installed on the host:
+
+```bash
+bash scripts/local.sh up      # writes .env.docker from .env.example, builds, starts, waits until healthy
+bash scripts/local.sh check   # live checks against the local MongoDB and Redis
+bash scripts/local.sh test    # check + typecheck + Node tests inside the container
+bash scripts/local.sh down    # stop (reset also deletes the local database)
+```
+
+Open `http://localhost:4173`. Options (`--port N`, `--lan`, `--force-env`), design and limits are in [storage](../docs/STORAGE.md#local-docker-stack).
+
 Production uses `npm run build` followed by `npm start` (`node production-server.ts`).
 Heroku builds through `heroku-postbuild` and starts through the `Procfile`, with no
 runtime rebuild. Configure MongoDB, Redis and the external HTTPS `PUBLIC_ORIGIN`;
@@ -31,10 +44,10 @@ npm run test:browser
 
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
-- `npm test` runs `node --test tests/*.test.ts`: 154 isolated Node tests in 21 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm test` runs `node --test tests/*.test.ts`: 158 isolated Node tests in 22 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
 - `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning, signed-in player); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
-Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records.
+Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
 
 | Coverage | Required evidence (test file) |
 | --- | --- |
@@ -59,6 +72,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Graphics | All 18 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
 | Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
 | Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
+| Local stack | Compose pins private MongoDB/Redis URLs and publishes only the game port; the Dockerfile ignores secrets; `scripts/local.sh` rewrites every `.env.example` key it depends on with LF endings; the smoke check refuses non-local services and cleans up (`local-stack.test.ts`). Live: health, assets, guest 401s, account signup/login/logout, score and leaderboard, progress revisions and device snapshots, account reconciliation, room claim and WebSocket input through Redis (`scripts/check-local.ts`, run by `local.sh check`) |
 | Remote | Socket start/brake without RTCPeerConnection; exactly three pairing HTTP calls and no polling; automatic socket reconnect, safe pause and new QR (`game.spec.ts`, `room-sockets.test.ts`) |
 
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
@@ -66,6 +80,11 @@ Chromium and WebKit projects run against the same local app. WebKit automation i
 ## Hosted verification
 
 The dated sections below are **historical snapshots**; their test counts were true on those dates (the current count is in *Automated checks*). They are kept as evidence of what each change was verified against.
+
+### Docker local stack (2026-11-10)
+
+- Verified on Docker Desktop for Windows with Git Bash: `bash scripts/local.sh up` built the image and reached healthy MongoDB, Redis and app containers; `local.sh check` passed `online:check` and every `check-local.ts` step and left no probe records; `local.sh test` passed `npm run typecheck` and all 158 Node tests inside the container; `reset` removed containers, network and volume.
+- Not covered: Linux/macOS hosts, `--lan` phone pairing, HTTPS/tilt, and the Playwright browser suite (it keeps its own isolated server and fakes). No deployment or commit was made.
 
 ### WebSocket controller transport (2026-11-08)
 

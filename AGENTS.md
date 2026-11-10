@@ -32,6 +32,7 @@ Real-money coin packs, payments and ads stay pending work in `specs/09-roadmap.m
 - Browser localStorage and manual exports preserve offline progress; network errors must not erase or block local play. A missing MongoDB connection must never produce a successful volatile cloud save.
 - Never print, commit, bundle or expose `.env` values, database URIs, credentials or pairing tokens. Only `publicConfig()` may determine browser runtime settings.
 - Normal tests use isolated fakes. `npm run online:check` deliberately uses configured services with unique, removable probe records; run it when connection verification is requested or needed.
+- `bash scripts/local.sh up|check|test|down` runs the game with disposable MongoDB and Redis in Docker (`docker-compose.yml`, generated `.env.docker`) and is the preferred way to verify storage changes without real services. Keep the Compose service URLs pinned and the databases unpublished. Keep `scripts/local.sh` in LF.
 - Vercel serves static assets plus `api/*.ts`. Preserve `vercel.json` rewrites. Do not introduce `app`, `index`, `server` or `main` entrypoints at the root, in `src/`, or as browser bundle names: Vercel may auto-detect them as a backend.
 - The browser-targeted edge Worker proxies APIs to an HTTPS `API_ORIGIN`; never bundle TCP database drivers into it.
 

@@ -67,6 +67,36 @@ Configured service failures return 503 without erasing browser progress.
 `cloudBackup` means MongoDB is configured and `pairing` is `redis` (or `unconfigured`/`memory` locally). Use
 `online:check` for read/write verification.
 
+### Local Docker stack
+
+`docker-compose.yml`, `Dockerfile`, `.dockerignore` and `scripts/local.sh` run the game with its own
+MongoDB 7 and Redis 7 containers. The only requirements are Docker with Compose 2.24 or newer and a
+bash shell (Git Bash on Windows); Node, MongoDB and Redis are not needed on the host.
+
+- `bash scripts/local.sh up` copies `.env.example` to `.env.docker` (ignored by Git), rewriting
+  `MONGODB_URI` to `mongodb://mongo:27017`, `REDIS_URL` to `redis://redis:6379`, `MONGODB_DATABASE` to
+  `pista84`, and clearing `PISTA84_COINS`, `API_ORIGIN` and `PUBLIC_ORIGIN`. It then builds the image,
+  starts the three services, waits for their health checks and prints `http://localhost:4173`.
+  An existing `.env.docker` is kept (it may hold your edits); `--force-env` regenerates it,
+  `--port N` changes the port and `--lan` publishes on all interfaces for a phone.
+- The app container runs `dev-server.ts` with `NODE_ENV=development`: plain HTTP, so accounts and
+  cookies work on `http://localhost`. Compose pins `MONGODB_URI` and `REDIS_URL` to the service names,
+  so neither `.env.docker` nor the host shell can point this stack at real databases.
+- MongoDB and Redis are not published to the host. MongoDB data lives in the named volume
+  `pista84-local_pista84-mongo` (`down` keeps it, `reset` deletes it); Redis has no persistence. The game is
+  published on `127.0.0.1` unless `--lan` is given.
+- `bash scripts/local.sh check` runs `npm run online:check` and `scripts/check-local.ts` inside the app
+  container. The latter drives the real HTTP and WebSocket server with one throwaway account (health,
+  runtime config, static assets, guest 401s, signup/duplicate/login, score and leaderboard, progress
+  revisions with 409, device snapshot isolation, `PUT /api/account`, room creation and exclusive claim,
+  controller input over WebSocket through Redis, logout) and removes its records in `finally`. It refuses
+  to run unless `MONGODB_URI` and `REDIS_URL` point to local hosts and never loads `.env` files.
+  `bash scripts/local.sh test` adds `npm run typecheck` and `npm test`. None of this is part of `npm test`.
+- Limits: `/network` reports the container address, so for phone pairing open the game on the computer
+  through its LAN address (`http://<lan-ip>:4173`, started with `--lan`) before generating the QR.
+  Tilt and secure cookies need HTTPS, which this stack does not provide. It is a development
+  convenience, not a deployment descriptor: Heroku and Vercel do not use these files.
+
 ### Heroku
 
 Use the Node.js buildpack with the repository's Node 24 engine. Heroku runs

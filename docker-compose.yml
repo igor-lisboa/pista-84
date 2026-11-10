@@ -1,0 +1,59 @@
+# PISTA 84 on a laptop with nothing but Docker: the game, a throwaway MongoDB and a
+# throwaway Redis. Start it with `bash scripts/local.sh up`, which also writes
+# .env.docker from .env.example. Not a deployment descriptor.
+name: pista84-local
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    # Not published to the host: only the app container talks to it.
+    volumes:
+      - pista84-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Pairing and controller state is ephemeral by design: no persistence.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Local options (PORT, PISTA84_COINS, ...) come from .env.docker when it exists.
+    env_file:
+      - path: .env.docker
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: ${PORT:-4173}
+      # Pinned here, whatever the env file or the host shell says, so this stack can
+      # never be pointed at real databases by accident.
+      MONGODB_URI: mongodb://mongo:27017
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-4173}:${PORT:-4173}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+process.env.PORT+'/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+volumes:
+  pista84-mongo:

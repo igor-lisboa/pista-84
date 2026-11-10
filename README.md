@@ -29,6 +29,19 @@ Open **http://localhost:4173**. The terminal also shows the network address for 
 
 If startup reports **port 4173 is already in use**, an existing server is still running. Open http://localhost:4173, stop that server with Ctrl+C before starting another, or set a different `PORT` in `.env`.
 
+### Run with Docker (no other infrastructure)
+
+Only Docker (Compose 2.24+) and a bash shell (Git Bash on Windows) are needed: no Node, MongoDB or Redis on your machine.
+
+```bash
+bash scripts/local.sh up      # copies .env.example to .env.docker, builds, starts game + MongoDB + Redis
+bash scripts/local.sh check   # live checks against the local services
+bash scripts/local.sh test    # check + typecheck + Node tests inside the container
+bash scripts/local.sh down    # stop (keeps data); "reset" also deletes the local database
+```
+
+Open **http://localhost:4173**. Options: `--port N`, `--lan` (publish for a phone) and `--force-env` (regenerate `.env.docker`). The databases are private to Docker and disposable; never put real credentials in `.env.docker`. Details and limits: [docs/STORAGE.md](docs/STORAGE.md#local-docker-stack).
+
 ## Local configuration (.env)
 
 Progress is always saved locally first. Signed-in players upload automatically
@@ -128,10 +141,11 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (154 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (158 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.
+- `bash scripts/local.sh check` and `test` verify the game against the Docker stack's own MongoDB and Redis (`scripts/check-local.ts` plus `npm run online:check`); they never touch real services.
 - See [storage setup and consistency](docs/STORAGE.md) for MongoDB collections, Redis TTLs, live checks and deployment settings.
 - Accounts use salted scrypt hashes and hashed server-side sessions in a Secure, HttpOnly cookie; scores and progress writes need a session. Scores remain client-reported and this is casual game progress, not a secure wallet. The service worker never caches APIs or tokens. Credentials stay on Node, and only public configuration reaches the browser.
 - Payments, ads and the premium wallet still depend on providers and commercial setup: coin packs will only be sellable once a billing integration exists. The current backup is meant for casual progress and does not make local coins a secure wallet for real money.
@@ -154,6 +168,7 @@ npm run test:browser
 | `api/` | Vercel Node functions (health, auth, account, progress, score, leaderboard, rooms, controller) |
 | `worker/index.ts` | Static Worker/API proxy |
 | `dev-server.ts`, `production-server.ts` | Local and production launchers for the shared `scripts/node-server.ts` HTTP/WebSocket server |
+| `Dockerfile`, `docker-compose.yml`, `scripts/local.sh` | Local Docker stack: game, MongoDB and Redis from one script |
 | `scripts/*.ts` | Build, environment, native assets, captures and hosted verification |
 | `tests/` | Node tests (`*.test.ts`), `tests/support/` and Playwright tests (`tests/browser/*.spec.ts`) |
 | `tsconfig.json`, `playwright.config.ts` | Configuration |

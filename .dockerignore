@@ -1,0 +1,13 @@
+# Keep secrets, generated output and heavy native projects out of the build context.
+.git
+node_modules
+www
+dist
+test-results
+playwright-report
+android
+ios
+docs/screenshots
+.env
+.env.*
+!.env.example

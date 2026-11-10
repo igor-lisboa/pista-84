@@ -7,6 +7,8 @@ See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency, an
 
 ## Remaining limitations
 
+- The local Docker stack ([STORAGE.md](STORAGE.md#local-docker-stack)) serves plain HTTP: tilt sensors and Secure cookies cannot be exercised there, and its `/network` endpoint reports the container address, so phone pairing needs the computer's LAN address typed by hand.
+
 - **Client-reported scores.** Scores, distances and coins come from the browser. Accounts require sessions, but there is no
   verified run scoring, anti-cheat or server-side wallet; edited saves and device clock skew are possible. Timestamp-based
   reconciliation is not a currency ledger (ECO-01 before any real-money balance).

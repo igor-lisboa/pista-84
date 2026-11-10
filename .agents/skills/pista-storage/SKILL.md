@@ -22,6 +22,9 @@ Add meaningful tests for changed concurrency, expiry, authorization or failure
 behavior. Run `npm run build`, `npm run typecheck`, `npm test`. For requested or
 necessary live validation, `npm run online:check` exercises configured services
 with unique probes and cleanup; do not print driver errors containing secrets.
+To verify without real services, `bash scripts/local.sh up` then `check` or `test`
+runs the game against disposable MongoDB and Redis in Docker; extend
+`scripts/check-local.ts` when an endpoint or data contract changes.
 
 Treat `docs/STORAGE.md` and `specs/06`/`specs/07` as the source of truth: read them
 before changing a contract and follow `.agents/skills/pista-docs/SKILL.md`. Update
