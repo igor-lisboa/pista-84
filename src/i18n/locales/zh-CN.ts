@@ -9,7 +9,7 @@ export const zhCN = {
   'auth.username': "用户名",
   'auth.password': "密码",
   'auth.logoutHelp': "退出登录将清除此设备上的所有玩家记录。账户仍保存在云端。未同步的进度可能丢失。",
-  'auth.rules': "用户名：3–16个字母、数字、_、.或-。密码：5–128个字符。",
+  'auth.rules': "用户名：3–16个字符；小写字母a–z、数字、_或-；不含空格；以字母或数字开头和结尾。密码：5–128个字符。",
   'auth.taken': "此车手名/用户名已被使用。请选择其他用户名。",
   'auth.credentials': "用户名或密码错误。",
   'auth.invalid': "请检查用户名和密码要求。",

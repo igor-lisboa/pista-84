@@ -1,17 +1,42 @@
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 16;
 
-const USERNAME_PATTERN = /^[\p{L}\p{N}_.-]+$/u;
+/** Lower-case a–z and digits, with single `_` or `-` separators between them. */
+const USERNAME_PATTERN = /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/;
+
+/** Names that could be mistaken for the game's own staff or system accounts. */
+const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
+  'admin', 'administrator', 'root', 'system', 'moderator', 'support', 'staff', 'pista84', 'null', 'undefined',
+]);
 
 /**
- * Returns the trimmed player name when it is valid for the leaderboard
- * (3–16 letters, digits, `_`, `.` or `-`), otherwise `null`.
+ * Returns the player name in its canonical form when it is valid, otherwise `null`.
+ *
+ * Rules: 3–16 characters; lower-case letters a–z, digits, `_` and `-` only (no spaces,
+ * accents or other symbols); it starts and ends with a letter or digit; `_` and `-`
+ * never appear twice in a row; reserved names are refused. Upper-case input is
+ * lower-cased and surrounding whitespace is trimmed.
  */
 export function normalizeUsername(value: unknown): string | null {
   if (typeof value !== 'string') return null;
-  const name = value.trim();
-  const length = [...name].length;
-  return length >= USERNAME_MIN && length <= USERNAME_MAX && USERNAME_PATTERN.test(name) ? name : null;
+  const name = value.normalize('NFKC').trim().toLowerCase();
+  if (name.length < USERNAME_MIN || name.length > USERNAME_MAX) return null;
+  if (!USERNAME_PATTERN.test(name) || RESERVED_USERNAMES.has(name)) return null;
+  return name;
+}
+
+/**
+ * Cleans text while the player types: lower-cases it, drops accents (`João` → `joao`)
+ * and removes spaces and every other disallowed character, then caps the length.
+ * The result still has to pass `normalizeUsername` (for example the start/end rules).
+ */
+export function sanitizeUsernameInput(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '')
+    .slice(0, USERNAME_MAX);
 }
 
 const PLAYER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;

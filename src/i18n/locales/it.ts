@@ -9,7 +9,7 @@ export const it: Messages = {
   'auth.username': "Nome utente",
   'auth.password': "Password",
   'auth.logoutHelp': "Uscendo, tutti i dati del giocatore su questo dispositivo vengono cancellati. Il tuo account resta salvato online. I progressi non sincronizzati potrebbero andare persi.",
-  'auth.rules': "Nome: 3–16 lettere, numeri, _, . o -. Password: 5–128 caratteri.",
+  'auth.rules': "Nome: 3–16 caratteri; lettere minuscole a–z, numeri, _ o -; senza spazi; inizia e finisce con una lettera o un numero. Password: 5–128 caratteri.",
   'auth.taken': "Questo nome pilota/utente è già in uso. Scegli un altro nome utente.",
   'auth.credentials': "Nome utente o password errati.",
   'auth.invalid': "Controlla i requisiti del nome e della password.",

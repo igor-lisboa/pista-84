@@ -1,4 +1,4 @@
-import { USERNAME_MAX, USERNAME_MIN, normalizeUsername, type SaveData } from '../game/index.ts';
+import { USERNAME_MAX, USERNAME_MIN, normalizeUsername, sanitizeUsernameInput, type SaveData } from '../game/index.ts';
 import { t } from '../i18n/index.ts';
 import { byId } from './dom.ts';
 import { AccountError } from '../net/account.ts';
@@ -68,6 +68,7 @@ export class UsernameDialog {
     });
     byId('usernameOffline').onclick = () => this.playOffline();
     input.oninput = () => {
+      input.value = sanitizeUsernameInput(input.value);
       input.removeAttribute('aria-invalid');
       byId('usernameStatus').textContent = '';
     };

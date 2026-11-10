@@ -15,6 +15,8 @@ import {
   type Conditions,
   importSave,
   isPlayerId,
+  normalizeUsername,
+  sanitizeUsernameInput,
   kmhToUnit,
   metresToUnit,
   loadSave,
@@ -224,8 +226,9 @@ test('a configured balance takes precedence over local and imported balances', (
 
 test('the player name is kept only when it fits the leaderboard rules', () => {
   const nameOf = (username: unknown): string | null => loadSave({ getItem: () => JSON.stringify({ username }) }).username;
-  assert.equal(nameOf('  Igor_84 '), 'Igor_84');
-  assert.equal(nameOf('Zé.Lisboa'), 'Zé.Lisboa');
+  assert.equal(nameOf('  Igor_84 '), 'igor_84');
+  assert.equal(nameOf('Zé.Lisboa'), null);
+  assert.equal(nameOf('a.b.c'), null);
   assert.equal(nameOf('ab'), null);
   assert.equal(nameOf('a'.repeat(17)), null);
   assert.equal(nameOf('has space'), null);
@@ -238,9 +241,9 @@ test('the player GUID is generated once, survives a rename and rejects malformed
   const first = loadSave({ getItem: () => '{}' });
   assert.match(first.playerId, /^[0-9a-f-]{36}$/);
   const stored = JSON.stringify({ playerId: first.playerId, username: 'Igor_84' });
-  const renamed = loadSave({ getItem: () => JSON.stringify({ ...JSON.parse(stored), username: 'NewName' }) });
+  const renamed = loadSave({ getItem: () => JSON.stringify({ ...JSON.parse(stored), username: 'newname' }) });
   assert.equal(renamed.playerId, first.playerId);
-  assert.equal(renamed.username, 'NewName');
+  assert.equal(renamed.username, 'newname');
   const forged = loadSave({ getItem: () => JSON.stringify({ playerId: 'not-a-guid' }) });
   assert.notEqual(forged.playerId, 'not-a-guid');
   assert.ok(isPlayerId(forged.playerId));
@@ -276,4 +279,20 @@ test('a save records when it was created and legacy saves count as created now',
   // An import keeps the file's creation time, or ours if it has none.
   assert.equal(importSave(stored, JSON.stringify({ createdAt: 500 })).createdAt, 500);
   assert.equal(importSave(stored, JSON.stringify({ coins: 1 })).createdAt, 1000);
+});
+
+test('usernames are lower-case a–z, digits, _ and - with no spaces, odd separators or reserved words', () => {
+  assert.equal(normalizeUsername('  Driver_One  '), 'driver_one');
+  assert.equal(normalizeUsername('ＤＲＩＶＥＲ'), 'driver');
+  assert.equal(normalizeUsername('a-b_c-9'), 'a-b_c-9');
+  for (const bad of ['ab', 'a'.repeat(17), 'has space', 'dot.name', 'João', 'emoji🚗', '_start', 'end_', '-lead', 'trail-', 'dou__ble', 'dou--ble', 'a_-b', 'Admin', 'ROOT', '', 42, null]) {
+    assert.equal(normalizeUsername(bad), null, String(bad));
+  }
+});
+
+test('typed usernames are cleaned as the player types', () => {
+  assert.equal(sanitizeUsernameInput('João Silva!'), 'joaosilva');
+  assert.equal(sanitizeUsernameInput('Pilot_84-X'), 'pilot_84-x');
+  assert.equal(sanitizeUsernameInput('a.b c'), 'abc');
+  assert.equal(sanitizeUsernameInput('x'.repeat(40)).length, 16);
 });

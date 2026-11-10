@@ -9,7 +9,7 @@ export const es = {
   'auth.username': "Nombre de usuario",
   'auth.password': "Contraseña",
   'auth.logoutHelp': "Cerrar sesión borra todos los registros del jugador en este dispositivo. Tu cuenta sigue guardada en línea. El progreso sin sincronizar puede perderse.",
-  'auth.rules': "Nombre: 3–16 letras, números, _, . o -. Contraseña: 5–128 caracteres.",
+  'auth.rules': "Nombre: 3–16 caracteres; letras minúsculas a–z, números, _ o -; sin espacios; empieza y termina con letra o número. Contraseña: 5–128 caracteres.",
   'auth.taken': "Este nombre de piloto/usuario ya está en uso. Elige otro nombre de usuario.",
   'auth.credentials': "Nombre de usuario o contraseña incorrectos.",
   'auth.invalid': "Revisa los requisitos del nombre y la contraseña.",

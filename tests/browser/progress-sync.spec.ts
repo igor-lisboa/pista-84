@@ -4,7 +4,7 @@ test.use({serviceWorkers: 'block'});
 
 // Only a signed-in device uploads; guests never contact the server. These tests sign the device in.
 const ACCOUNT_ID = '6f1c2a3e-9b4d-4e5f-8a7b-0c1d2e3f4a5b';
-const ACCOUNT = JSON.stringify({id: ACCOUNT_ID, username: 'Existing'});
+const ACCOUNT = JSON.stringify({id: ACCOUNT_ID, username: 'existing'});
 
 test('hidden garage tools preserve offline progress and sync on pause after reconnecting', async ({page}) => {
   let online = false;
@@ -13,7 +13,7 @@ test('hidden garage tools preserve offline progress and sync on pause after reco
     // LAN HTTP does not expose randomUUID; device IDs must use the shared fallback.
     Object.defineProperty(crypto, 'randomUUID', {value: undefined, configurable: true});
     if (!localStorage.getItem('migration-test')) {
-      localStorage.setItem('pista84', JSON.stringify({coins: 987, owned: ['fusca', 'gol'], selected: 'gol', username: 'Existing', tutorialDone: true}));
+      localStorage.setItem('pista84', JSON.stringify({coins: 987, owned: ['fusca', 'gol'], selected: 'gol', username: 'existing', tutorialDone: true}));
       localStorage.setItem('pista84.account', account);
       localStorage.setItem('migration-test', 'yes');
     }
@@ -49,7 +49,7 @@ test('autosaves and reconnection stay local during play; pause and exit upload o
   await page.clock.install();
   await page.addInitScript((account: string) => {
     localStorage.setItem('pista84', JSON.stringify({
-      coins: 987, owned: ['fusca', 'gol'], selected: 'gol', username: 'Existing',
+      coins: 987, owned: ['fusca', 'gol'], selected: 'gol', username: 'existing',
       tutorialDone: true, best: 100, bestScore: 300, sound: false,
     }));
     localStorage.setItem('pista84.account', account);
@@ -103,7 +103,7 @@ test('failed uploads preserve local progress and retry on the next entry', async
   await page.addInitScript((account: string) => {
     if (!localStorage.getItem('failure-test')) {
       localStorage.setItem('pista84', JSON.stringify({
-        coins: 432, owned: ['fusca', 'gol'], selected: 'gol', username: 'Existing', tutorialDone: true,
+        coins: 432, owned: ['fusca', 'gol'], selected: 'gol', username: 'existing', tutorialDone: true,
       }));
       localStorage.setItem('pista84.account', account);
       localStorage.setItem('failure-test', 'yes');

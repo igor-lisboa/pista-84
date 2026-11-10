@@ -10,7 +10,7 @@ export const ptPT: Messages = {
   'auth.username': "Nome de utilizador",
   'auth.password': "Palavra-passe",
   'auth.logoutHelp': "Terminar a sessão apaga todos os registos do jogador neste dispositivo. A conta continua guardada online. O progresso não sincronizado pode perder-se.",
-  'auth.rules': "Nome: 3–16 letras, números, _, . ou -. Palavra-passe: 5–128 caracteres.",
+  'auth.rules': "Nome: 3–16 caracteres; letras minúsculas a–z, números, _ ou -; sem espaços; começa e termina com letra ou número. Palavra-passe: 5–128 caracteres.",
   'auth.taken': "Este nome de piloto/utilizador já está em uso. Escolhe outro nome de utilizador.",
   'auth.credentials': "Nome de utilizador ou palavra-passe incorretos.",
   'auth.invalid': "Verifique as regras do nome de utilizador e da palavra-passe.",

@@ -22,7 +22,7 @@ test('first launch demands a valid name and password, creates the account and ke
   await expect(page.locator('#usernameInput')).toHaveAttribute('aria-invalid', 'true');
   await expect(modal).toBeVisible();
 
-  await page.locator('#usernameInput').fill('Igor_84');
+  await page.locator('#usernameInput').fill('igor_84');
   await page.locator('#usernamePassword').fill('abcd');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#usernameStatus')).not.toBeEmpty();
@@ -37,9 +37,9 @@ test('first launch demands a valid name and password, creates the account and ke
   await page.locator('#tutSkip').click();
   await expect(modal).toBeHidden();
   const first = await save(page);
-  expect(first.username).toBe('Igor_84');
+  expect(first.username).toBe('igor_84');
   expect(first.playerId).toMatch(/^[0-9a-f-]{36}$/);
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84.account')!))).toMatchObject({ id: first.playerId, username: 'Igor_84' });
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84.account')!))).toMatchObject({ id: first.playerId, username: 'igor_84' });
 
   await page.reload();
   await expect(modal).toBeHidden();
@@ -56,7 +56,7 @@ test('first launch can continue offline when the account service is unreachable,
   await page.goto('/');
   await expect(page.locator('#usernameOffline')).toBeHidden();
 
-  await page.locator('#usernameInput').fill('Offline_1');
+  await page.locator('#usernameInput').fill('offline_1');
   await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#usernameStatus')).not.toBeEmpty();
@@ -66,7 +66,7 @@ test('first launch can continue offline when the account service is unreachable,
   await expect(page.locator('#tutNext')).toBeVisible();
   await page.locator('#tutSkip').click();
   await expect(page.locator('#modal')).toBeHidden();
-  expect((await save(page)).username).toBe('Offline_1');
+  expect((await save(page)).username).toBe('offline_1');
   expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
   // Only the failed sign-up attempt itself may have been sent: no score or progress upload.
   expect(uploads.filter((url) => !url.endsWith('/api/auth'))).toEqual([]);

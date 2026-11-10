@@ -9,7 +9,7 @@ export const de: Messages = {
   'auth.username': "Benutzername",
   'auth.password': "Passwort",
   'auth.logoutHelp': "Beim Abmelden werden alle Spielerdaten auf diesem Gerät gelöscht. Dein Konto bleibt online gespeichert. Nicht synchronisierter Fortschritt kann verloren gehen.",
-  'auth.rules': "Name: 3–16 Buchstaben, Zahlen, _, . oder -. Passwort: 5–128 Zeichen.",
+  'auth.rules': "Name: 3–16 Zeichen; Kleinbuchstaben a–z, Zahlen, _ oder -; keine Leerzeichen; beginnt und endet mit Buchstabe oder Zahl. Passwort: 5–128 Zeichen.",
   'auth.taken': "Dieser Fahrer-/Benutzername wird bereits verwendet. Bitte wähle einen anderen Benutzernamen.",
   'auth.credentials': "Benutzername oder Passwort falsch.",
   'auth.invalid': "Prüfe die Anforderungen an Name und Passwort.",

@@ -21,7 +21,11 @@ interface OrientationPermission {
   requestPermission?: () => Promise<'granted' | 'denied'>;
 }
 
-const normalizeKey = (key: string): string => (key.length === 1 ? key.toLowerCase() : key);
+/** Browser autofill dispatches key events without a `key`, so it may be undefined at runtime. */
+const normalizeKey = (key: string | undefined): string => {
+  if (!key) return '';
+  return key.length === 1 ? key.toLowerCase() : key;
+};
 
 /**
  * Merges every control scheme — keyboard, on-screen buttons, device tilt and a

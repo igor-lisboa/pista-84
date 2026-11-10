@@ -9,7 +9,7 @@ export const en: Messages = {
   'auth.username': "Username",
   'auth.password': "Password",
   'auth.logoutHelp': "Logging out clears all player records on this device. Your account stays saved online. Unsynced progress may be lost.",
-  'auth.rules': "Username: 3–16 letters, numbers, _, . or -. Password: 5–128 characters.",
+  'auth.rules': "Username: 3–16 characters; lowercase a–z, numbers, _ or -; no spaces; start and end with a letter or number. Password: 5–128 characters.",
   'auth.taken': "This pilot name/username is already in use. Please choose a different username.",
   'auth.credentials': "Incorrect username or password.",
   'auth.invalid': "Check the username and password requirements.",

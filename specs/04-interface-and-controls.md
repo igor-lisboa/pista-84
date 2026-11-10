@@ -54,7 +54,7 @@ name screen. Forms use
 password-manager autocomplete; passwords accept 5–128 Unicode characters with no
 composition requirements. All account text is
 localized. Login merges local and cloud progress before adopting the account
-identity. The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
+identity. Usernames are lower case, 3–16 characters of a–z, 0–9, `_` and `-` (no spaces; the field cleans text as it is typed). The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
 reauthentication to the same account. Signed-in name actions open the
 account screen, preventing accidental account renaming or identity replacement.
 Logout explains that local records and unsynced data are cleared while the cloud

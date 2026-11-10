@@ -72,14 +72,14 @@ test('the leaderboard ranks by best score and a rename keeps the score', async (
 
   assert.equal((await submit(ALICE, 'Alice', 500)).status, 200);
   assert.equal((await submit(BOB, 'Bob', 900)).status, 200);
-  assert.deepEqual((await board(store)).map((entry: {name: string}) => entry.name), ['Bob', 'Alice']);
+  assert.deepEqual((await board(store)).map((entry: {name: string}) => entry.name), ['bob', 'alice']);
 
   // A lower score never replaces the best one; a new name replaces the old one.
   await submit(ALICE, 'AliceRenamed', 100);
   const entries = await board(store);
   assert.deepEqual(entries.map((entry: {name: string; score: number}) => [entry.name, entry.score]), [
-    ['Bob', 900],
-    ['AliceRenamed', 500],
+    ['bob', 900],
+    ['alicerenamed', 500],
   ]);
   assert.ok(entries.every((entry: Record<string, unknown>) => !('playerId' in entry) && !JSON.stringify(entry).includes(ALICE)));
 
@@ -111,26 +111,26 @@ test('importing replaces everything, but keeps the highest score for the same GU
   // Same GUID: progress is replaced, the better score and distance survive, the name follows the file.
   const same = importSave(current, JSON.stringify({playerId: ALICE, username: 'OldAlice', bestScore: 300, best: 1200, coins: 50}));
   assert.equal(same.coins, 50);
-  assert.equal(same.username, 'OldAlice');
+  assert.equal(same.username, 'oldalice');
   assert.equal(same.bestScore, 900);
   assert.equal(same.best, 1200);
 
   // Different GUID: a different player, so identity and scores are taken wholesale.
   const other = importSave(current, JSON.stringify({playerId: BOB, username: 'Bob', bestScore: 100, best: 10, coins: 7}));
   assert.equal(other.playerId, BOB);
-  assert.equal(other.username, 'Bob');
+  assert.equal(other.username, 'bob');
   assert.equal(other.bestScore, 100);
 
   // A legacy export without identity keeps the current one.
   const legacy = importSave(current, JSON.stringify({coins: 9, bestScore: 20}));
   assert.equal(legacy.playerId, ALICE);
-  assert.equal(legacy.username, 'Alice');
+  assert.equal(legacy.username, 'alice');
   assert.equal(legacy.bestScore, 900);
   assert.equal(legacy.coins, 9);
 });
 
 test('past players kept in a save survive a round trip, drop invalid entries and stay bounded', () => {
-  const past = {playerId: ALICE, username: 'Alice', bestScore: 900, best: 800, retired: 1234};
+  const past = {playerId: ALICE, username: 'alice', bestScore: 900, best: 800, retired: 1234};
   const stored = loadSave({getItem: () => JSON.stringify({history: [past, {playerId: 'not-a-guid'}, 'junk']})});
   assert.deepEqual(stored.history, [past]);
   const reloaded = loadSave({getItem: () => JSON.stringify(stored)});
@@ -156,12 +156,12 @@ test('the leaderboard is served in pages of five, sorted, with ties going to who
   assert.equal(first.size, 5);
   assert.equal(first.total, 7);
   assert.equal(first.pages, 2);
-  assert.deepEqual(first.entries.map((e: {name: string}) => e.name), ['Driver6', 'Driver0', 'Driver5', 'Driver4', 'Driver3']);
+  assert.deepEqual(first.entries.map((e: {name: string}) => e.name), ['driver6', 'driver0', 'driver5', 'driver4', 'driver3']);
   assert.deepEqual(first.entries.map((e: {rank: number}) => e.rank), [1, 2, 3, 4, 5]);
   assert.ok(first.entries.every((e: {mine: boolean}) => !e.mine));
 
   const second = await page(2, ids[2]);
-  assert.deepEqual(second.entries.map((e: {name: string; mine: boolean}) => [e.name, e.mine]), [['Driver2', true], ['Driver1', false]]);
+  assert.deepEqual(second.entries.map((e: {name: string; mine: boolean}) => [e.name, e.mine]), [['driver2', true], ['driver1', false]]);
   assert.equal(second.entries[0].rank, 6);
 
   // Out-of-range and junk pages are clamped instead of failing.
@@ -174,7 +174,7 @@ test('the ranking is kept as a compact sorted list apart from the heavy backups'
   const store = memoryPlayerStore();
   await leaderboardApi(scoreRequest({playerId: ALICE, username: 'Alice', score: 500, distance: 50}), store);
   const rows = await store.read<unknown[][]>('scores', []);
-  assert.deepEqual(rows.map((row) => row.slice(0, 4)), [[ALICE, 'Alice', 500, 50]]);
+  assert.deepEqual(rows.map((row) => row.slice(0, 4)), [[ALICE, 'alice', 500, 50]]);
   assert.deepEqual(await store.read('backups', {}), {});
 
   await cloudProgress(progressRequest(ALICE, 'PUT', {save: {coins: 1, owned: ['fusca'], username: 'Alice', bestScore: 900}, revision: 0}), store);
@@ -205,7 +205,7 @@ test('rows and backups carry created and updated times that only move when data 
   await new Promise((resolve) => setTimeout(resolve, 5));
   await submit(100, 'AliceRenamed'); // rename only: updated moves, the score clock does not
   const renamed = await row();
-  assert.equal(renamed[1], 'AliceRenamed');
+  assert.equal(renamed[1], 'alicerenamed');
   assert.equal(renamed[4], better[4]);
   assert.ok(renamed[6] > better[6]);
 

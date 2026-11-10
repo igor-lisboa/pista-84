@@ -1,4 +1,5 @@
 import type {SaveData} from '../game/save.ts';
+import {USERNAME_MAX, USERNAME_MIN, sanitizeUsernameInput} from '../game/username.ts';
 import {ACCOUNT_KEY, AccountError, accountRequest, localAccount, mergeAccount} from '../net/account.ts';
 import type {AccountIdentity} from '../net/account.ts';
 import {t} from '../i18n/index.ts';
@@ -71,7 +72,9 @@ export class AccountDialog {
         username.readOnly = true;
       } else bindAuthTabs('account', signup ? 'signup' : 'login', mode => this.render(null, mode === 'signup'));
       byId<HTMLInputElement>('accountUsername').oninput = event => {
-        (event.target as HTMLInputElement).removeAttribute('aria-invalid');
+        const field = event.target as HTMLInputElement;
+        field.value = sanitizeUsernameInput(field.value);
+        field.removeAttribute('aria-invalid');
         byId('accountStatus').textContent = '';
       };
       byId('accountForm').onsubmit = event => {
@@ -131,7 +134,7 @@ export class AccountDialog {
       <p>${t(help)}</p>
       <form id="accountForm" class="username-form">
         <label for="accountUsername">${t('auth.username')}</label>
-        <input id="accountUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" autocapitalize="none" spellcheck="false">
+        <input id="accountUsername" name="username" autocomplete="username" required minlength="${USERNAME_MIN}" maxlength="${USERNAME_MAX}" autocapitalize="none" spellcheck="false">
         <label for="accountPassword">${t('auth.password')}</label>
         <input id="accountPassword" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" required minlength="${PASSWORD_MIN}" maxlength="256" aria-describedby="accountRules">
         <p id="accountRules" class="username-rules">${t('auth.rules')}</p>

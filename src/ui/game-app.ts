@@ -270,6 +270,8 @@ export class GameApp implements RemoteHost {
   openModal(): void {
     if (this.race.status === 'running') this.pause();
     this.input.clear();
+    // Forced sign-in screens hide the close button; every other dialog starts with it visible.
+    byId('closeModal').hidden = false;
     const modal = byId<HTMLDialogElement>('modal');
     if (!modal.open) modal.showModal();
   }

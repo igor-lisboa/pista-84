@@ -9,7 +9,7 @@ export const id = {
   'auth.username': "Nama pengguna",
   'auth.password': "Kata sandi",
   'auth.logoutHelp': "Keluar akan menghapus semua catatan pemain di perangkat ini. Akun tetap tersimpan daring. Progres yang belum disinkronkan dapat hilang.",
-  'auth.rules': "Nama: 3–16 huruf, angka, _, . atau -. Kata sandi: 5–128 karakter.",
+  'auth.rules': "Nama: 3–16 karakter; huruf kecil a–z, angka, _ atau -; tanpa spasi; diawali dan diakhiri huruf atau angka. Kata sandi: 5–128 karakter.",
   'auth.taken': "Nama pembalap/pengguna ini sudah digunakan. Pilih nama pengguna lain.",
   'auth.credentials': "Nama pengguna atau kata sandi salah.",
   'auth.invalid': "Periksa persyaratan nama pengguna dan kata sandi.",

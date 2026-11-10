@@ -34,7 +34,7 @@ test('signup and login accept a simple five-character password', async () => {
   assert.equal(signup.status, 200);
   const login = await authApi(request('/api/auth', {action: 'login', ...credentials}), accounts);
   assert.equal(login.status, 200);
-  assert.equal((await login.json()).user.username, 'Driver');
+  assert.equal((await login.json()).user.username, 'driver');
 });
 
 test('passwords have independent salts, bounded work parameters and constant-time comparison', async () => {
@@ -150,7 +150,7 @@ test('account progress merges guest data, restores on another device and keeps m
   assert.equal(sync.status, 200);
   const {save} = await sync.json() as {save: typeof guest};
   assert.equal(save.playerId, user.id);
-  assert.equal(save.username, 'Driver');
+  assert.equal(save.username, 'driver');
   assert.equal(save.bestScore, 200);
   assert.equal(save.coins, 250);
   const replay = await playerApi(request('/api/account', {save: guest}, cookie), store);

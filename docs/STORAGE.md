@@ -155,9 +155,12 @@ and focuses the name field to choose another. Historical leaderboard rows are re
 
 `POST /api/auth` accepts JSON `{action: "signup" | "login", username, password}`
 or `{action: "logout"}`. `GET /api/auth` returns only `{user: {id, username} | null}`.
-Usernames use NFKC normalization, trimming and lowercase uniqueness, enforced by
-MongoDB's unique index even for concurrent registrations. Account names retain
-their display case and follow the existing 3–16-character name rules. Account
+Usernames are canonical lower case: NFKC-normalized, trimmed and lower-cased, then
+3–16 characters of `a-z`, `0-9`, `_` and `-` only (no spaces, dots, accents or
+emoji), starting and ending with a letter or digit, with no doubled `_`/`-` and
+no reserved names (`admin`, `root`, `system`, ...). The same `normalizeUsername`
+rules run in the browser and the API; the form cleans text while typing. Uniqueness is
+enforced by MongoDB's unique index even for concurrent registrations. Account
 renaming and password recovery are not implemented.
 
 Passwords are 5–128 Unicode characters, without composition rules or truncation.

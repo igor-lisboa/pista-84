@@ -9,7 +9,7 @@ export const fr: Messages = {
   'auth.username': "Nom d’utilisateur",
   'auth.password': "Mot de passe",
   'auth.logoutHelp': "La déconnexion efface les données du joueur sur cet appareil. Votre compte reste enregistré en ligne. La progression non synchronisée peut être perdue.",
-  'auth.rules': "Nom : 3–16 lettres, chiffres, _, . ou -. Mot de passe : 5–128 caractères.",
+  'auth.rules': "Nom : 3–16 caractères ; lettres minuscules a–z, chiffres, _ ou - ; sans espaces ; commence et finit par une lettre ou un chiffre. Mot de passe : 5–128 caractères.",
   'auth.taken': "Ce nom de pilote/utilisateur est déjà utilisé. Choisissez un autre nom d’utilisateur.",
   'auth.credentials': "Nom d’utilisateur ou mot de passe incorrect.",
   'auth.invalid': "Vérifiez les règles du nom et du mot de passe.",
