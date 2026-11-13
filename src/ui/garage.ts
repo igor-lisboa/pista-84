@@ -42,12 +42,20 @@ export class Garage {
   }
 
   /** Package preview until a payment provider and verified credit delivery are configured. */
-  renderCoinShop(): void {
+  /** Coin packs are a signed-in feature: guests get a notice and no pack list. */
+  renderCoinShop(signedIn: boolean): void {
     const packs = [
       { coins: 1000, price: 9.9 },
       { coins: 3000, price: 24.9 },
       { coins: 7500, price: 49.9 },
     ];
+    if (!signedIn) {
+      byId('modalBody').innerHTML = `
+        <span class="label">${t('shop.menu')}</span>
+        <h1>${t('shop.title')}</h1>
+        <p class="warning" role="status">${t('shop.guest')}</p>`;
+      return;
+    }
     byId('modalBody').innerHTML = `
       <span class="label">${t('shop.menu')}</span>
       <h1>${t('shop.title')}</h1>

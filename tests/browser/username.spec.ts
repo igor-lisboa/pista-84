@@ -5,15 +5,12 @@ test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' }
 
 const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
 
-test('first launch demands a valid name and password, creates the account and keeps the same GUID across reloads', async ({ page, context }) => {
+test('first launch offers an optional sign-up, validates it, creates the account and keeps the same GUID across reloads', async ({ page, context }) => {
   await accountBackend(context);
   await page.goto('/');
   const modal = page.locator('#modal');
   await expect(modal).toBeVisible();
-  await expect(page.locator('#closeModal')).toBeHidden();
-
-  await page.keyboard.press('Escape');
-  await expect(modal).toBeVisible();
+  await expect(page.locator('#closeModal')).toBeVisible();
 
   await page.locator('#usernameInput').fill('ab');
   await page.locator('#usernamePassword').fill('abcde');
@@ -46,7 +43,7 @@ test('first launch demands a valid name and password, creates the account and ke
   expect((await save(page)).playerId).toBe(first.playerId);
 });
 
-test('first launch can continue offline when the account service is unreachable, without uploading', async ({ page }) => {
+test('first launch can play as a guest without an account, offline, without uploading', async ({ page, context }) => {
   const uploads: string[] = [];
   await page.route('**/api/**', (route) => {
     const request = route.request();
@@ -54,25 +51,20 @@ test('first launch can continue offline when the account service is unreachable,
     return route.abort();
   });
   await page.goto('/');
-  await expect(page.locator('#usernameOffline')).toBeHidden();
+  await expect(page.locator('#usernameGuest')).toBeVisible();
+  await context.setOffline(true);
 
-  await page.locator('#usernameInput').fill('offline_1');
-  await page.locator('#usernamePassword').fill('abcde');
-  await page.locator('#usernameForm button[type=submit]').click();
-  await expect(page.locator('#usernameStatus')).not.toBeEmpty();
-  await expect(page.locator('#usernameOffline')).toBeVisible();
-
-  await page.locator('#usernameOffline').click();
+  await page.locator('#usernameGuest').click();
   await expect(page.locator('#tutNext')).toBeVisible();
   await page.locator('#tutSkip').click();
   await expect(page.locator('#modal')).toBeHidden();
-  expect((await save(page)).username).toBe('offline_1');
+  expect((await save(page)).username).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
-  // Only the failed sign-up attempt itself may have been sent: no score or progress upload.
-  expect(uploads.filter((url) => !url.endsWith('/api/auth'))).toEqual([]);
+  // Nothing may have been sent: a guest never contacts the account or score services.
+  expect(uploads).toEqual([]);
 });
 
-test('a wrong password does not offer the offline way in', async ({ page, context }) => {
+test('a wrong password shows the error and the player can still play as a guest', async ({ page, context }) => {
   await accountBackend(context);
   await page.goto('/');
   await page.locator('#usernameInput').fill('Someone');
@@ -87,7 +79,8 @@ test('a wrong password does not offer the offline way in', async ({ page, contex
   await page.locator('#usernamePassword').fill('wrong-pass');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#usernameStatus')).not.toBeEmpty();
-  await expect(page.locator('#usernameOffline')).toBeHidden();
+  await page.locator('#usernameGuest').click();
+  await expect(page.locator('#tutNext')).toBeVisible();
 });
 
 test('first launch explains that a username is already taken and lets the player pick another', async ({ page, context }) => {

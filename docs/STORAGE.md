@@ -172,9 +172,9 @@ on the same screen. Progress is merged with the device's offline save at that mo
 Guests (no signed-in session) never contact the online API: no score, progress, backup or
 health requests, and no leaderboard publication. The leaderboard is only for signed-in players: guests see a short message instead of the ranking and no request is made.
 The server rejects `/api/score` and `/api/progress` writes without a session (HTTP 401).
-If the account service cannot be reached on first launch, a "Play offline" button keeps the typed
-name on the device only (no upload); the account can be created later from Settings.
-Guest play still works without an account or network. Legacy guest GUID records stay in
+Account creation is optional on first launch: "Play without an account" keeps the player a guest with no
+name and no upload, and the account can be created later from Settings. Guest play works without an
+account or network, and the first-launch screen never blocks on the account service. Legacy guest GUID records stay in
 MongoDB, but a GUID header never authorizes a score or progress write without a session and
 does not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.

@@ -31,6 +31,10 @@ export const ptBR = {
   'shop.title': 'Moedas da estrada',
   'shop.balance': 'Seu saldo: {coins} moedas.',
   'shop.unavailable': 'Pacotes previstos. Compras indisponíveis no momento.',
+
+  'shop.guest': "Para comprar moedas é preciso ter uma conta. Crie uma em Opções.",
+
+  'demo.start': "Corrida demo: o Veloce GT é seu só nesta corrida. Se bater, volta para o seu carro.",
   'shop.soon': 'EM BREVE',
   'coins.amount': 'Moedas: {n}',
   'paint.scarlet': 'Vermelho escarlate',

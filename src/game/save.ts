@@ -40,6 +40,8 @@ export interface SaveData {
   units: DistanceUnit;
   /** Whether the how-to-play tutorial was finished or skipped by this player. */
   tutorialDone: boolean;
+  /** Whether the one-time demo run with the demo car (after the tutorial) has been played. */
+  demoUsed: boolean;
   /** When this save was first created (ms since epoch). */
   createdAt: number;
   /** When it was last written (ms since epoch); stamped on every save. */
@@ -82,6 +84,16 @@ function readHistory(value: unknown): PastPlayer[] {
   return past.slice(-HISTORY_LIMIT);
 }
 
+/**
+ * Saves written before the demo run existed have no `demoUsed` field. Players who
+ * had already finished the tutorial then count as having used the demo, so
+ * upgrading never hands them an unexpected Ferrari run or changes their car.
+ */
+function readDemoUsed(saved: Record<string, unknown>): boolean {
+  if (typeof saved.demoUsed === 'boolean') return saved.demoUsed;
+  return saved.tutorialDone === true;
+}
+
 export function defaultSave(now = Date.now()): SaveData {
   return {
     version: 2,
@@ -99,6 +111,7 @@ export function defaultSave(now = Date.now()): SaveData {
     history: [],
     units: 'km',
     tutorialDone: false,
+    demoUsed: false,
     createdAt: now,
     updatedAt: now,
   };
@@ -141,6 +154,7 @@ export function loadSave(storage: Pick<SaveStorage, 'getItem'>, config: BalanceC
       history: readHistory(saved.history),
       units: saved.units === 'mi' ? 'mi' : 'km',
       tutorialDone: saved.tutorialDone === true,
+      demoUsed: readDemoUsed(saved),
       createdAt: createdAt,
       updatedAt: timestamp(saved.updatedAt) ?? createdAt,
     };
@@ -169,6 +183,8 @@ export function importSave(current: SaveData, serialized: string, config: Balanc
   if (!Array.isArray(raw.history)) imported.history = current.history;
   if (raw.units !== 'km' && raw.units !== 'mi') imported.units = current.units;
   if (typeof raw.tutorialDone !== 'boolean') imported.tutorialDone = current.tutorialDone;
+  // A demo that was already played stays played: importing an older file cannot bring it back.
+  imported.demoUsed = imported.demoUsed || current.demoUsed;
   if (timestamp(raw.createdAt) === null) imported.createdAt = current.createdAt;
   if (imported.playerId === current.playerId) {
     imported.bestScore = Math.max(imported.bestScore, current.bestScore);

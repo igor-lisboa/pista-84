@@ -32,6 +32,10 @@ export const fr: Messages = {
   'shop.title': 'Pièces de la route',
   'shop.balance': 'Votre solde : {coins} pièces.',
   'shop.unavailable': 'Packs prévus. Achats indisponibles pour le moment.',
+
+  'shop.guest': "Les packs de pièces nécessitent un compte. Créez-en un dans les Options.",
+
+  'demo.start': "Course démo : la Veloce GT est à vous pour cette course seulement. Si vous percutez, vous reprenez votre voiture.",
   'shop.soon': 'BIENTÔT',
   'coins.amount': 'Pièces : {n}',
   'paint.scarlet': 'Rouge écarlate',

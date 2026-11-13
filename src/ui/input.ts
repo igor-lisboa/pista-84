@@ -16,10 +16,48 @@ export class TiltError extends Error {
 const TILT_FULL_LOCK_DEGREES = 25;
 const TILT_DEAD_ZONE = 0.06;
 const TILT_SENSOR_TIMEOUT_MS = 5000;
+/** Gravity above this (m/s²) on the screen's vertical axis is trusted to fix the sensor's sign convention. */
+const GRAVITY_CONFIDENT = 4;
+/** While motion samples arrive, the Euler-angle fallback from `deviceorientation` is ignored. */
+const MOTION_PRIORITY_MS = 500;
 
-interface OrientationPermission {
+interface SensorPermission {
   requestPermission?: () => Promise<'granted' | 'denied'>;
 }
+
+/**
+ * Gravity in screen axes (x right, y up on the screen) for a device reading
+ * `gx, gy`, rotated by the screen orientation angle (0, 90, 180 or 270).
+ */
+export function gravityOnScreen(gx: number, gy: number, angle: number): [number, number] {
+  switch ((Math.round(angle / 90) * 90 + 360) % 360) {
+    case 90:
+      return [gy, -gx];
+    case 180:
+      return [-gx, -gy];
+    case 270:
+      return [-gy, gx];
+    default:
+      return [gx, gy];
+  }
+}
+
+/**
+ * How far the phone is rolled in its own screen plane, in degrees, positive when the
+ * top leans right. It is read from gravity rather than Euler angles, so it does not
+ * wrap or flip past 90° and does not depend on how exactly square the phone is held.
+ * `sign` is +1 or -1: the platform's sign convention for the gravity reading.
+ */
+export function screenLean(gx: number, gy: number, angle: number, sign: number): number {
+  const [sx, sy] = gravityOnScreen(gx, gy, angle);
+  // Gravity reads "up" on the screen's vertical axis, so the sign is fixed by making that positive.
+  const lean = Math.atan2(sign * sx, sign * sy) * (180 / Math.PI);
+  // Gravity pulls a right-leaning top toward negative screen x, hence the sign flip.
+  return -lean;
+}
+
+const screenAngle = (): number =>
+  screen.orientation?.angle ?? (window as unknown as { orientation?: number }).orientation ?? 0;
 
 /** Browser autofill dispatches key events without a `key`, so it may be undefined at runtime. */
 const normalizeKey = (key: string | undefined): string => {
@@ -49,9 +87,13 @@ export class InputController {
   /** Whether tilt steering put the page into fullscreen, so turning it off can leave again. */
   private fullscreenByTilt = false;
   private lastSensor = 0;
+  private motionSeen = 0;
+  private gravitySign = 1;
+  private gravitySignKnown = false;
 
   constructor() {
-    window.addEventListener('deviceorientation', (event) => this.readSensor(event));
+    window.addEventListener('devicemotion', (event) => this.readMotion(event));
+    window.addEventListener('deviceorientation', (event) => this.readOrientation(event));
     screen.orientation?.addEventListener?.('change', () => {
       this.calibrateNext = true;
     });
@@ -168,11 +210,14 @@ export class InputController {
     // Fullscreen and the orientation lock need a very recent tap, and the sensor
     // permission prompt can take longer than that to answer: ask for the lock first.
     void this.lockLandscape();
-    const permission = DeviceOrientationEvent as unknown as OrientationPermission;
-    if (typeof permission.requestPermission === 'function' && (await permission.requestPermission()) !== 'granted') {
+    const orientation = DeviceOrientationEvent as unknown as SensorPermission;
+    if (typeof orientation.requestPermission === 'function' && (await orientation.requestPermission()) !== 'granted') {
       this.unlockOrientation();
       throw new TiltError('tilt.denied');
     }
+    // Gravity (motion) access is preferred on iOS but optional: without it the Euler angles still steer.
+    const motion = window.DeviceMotionEvent as unknown as SensorPermission | undefined;
+    if (typeof motion?.requestPermission === 'function') await motion.requestPermission().catch(() => 'denied' as const);
     this.tiltEnabled = true;
     this.calibrateNext = true;
     this.lastSensor = 0;
@@ -239,11 +284,31 @@ export class InputController {
     return [...this.held.values()].includes(name);
   }
 
-  private readSensor(event: DeviceOrientationEvent): void {
+  /** Primary source: gravity from the accelerometer, which gives the roll without Euler wrap-around. */
+  private readMotion(event: DeviceMotionEvent): void {
+    const gravity = event.accelerationIncludingGravity;
+    if (!gravity || gravity.x === null || gravity.y === null || gravity.x === undefined || gravity.y === undefined) return;
+    this.motionSeen = performance.now();
+    const [, screenY] = gravityOnScreen(gravity.x, gravity.y, screenAngle());
+    if (!this.gravitySignKnown && Math.abs(screenY) > GRAVITY_CONFIDENT) {
+      this.gravitySign = screenY > 0 ? 1 : -1;
+      this.gravitySignKnown = true;
+    }
+    this.acceptSample(screenLean(gravity.x, gravity.y, screenAngle(), this.gravitySign));
+  }
+
+  /** Fallback when no motion sample is arriving: the Euler roll, read in the phone's current orientation. */
+  private readOrientation(event: DeviceOrientationEvent): void {
     if (event.gamma === null && event.beta === null) return;
+    if (performance.now() - this.motionSeen < MOTION_PRIORITY_MS) return;
+    const angle = screenAngle();
+    this.acceptSample(Math.abs(angle) === 90 ? (event.beta ?? 0) * Math.sign(angle) : (event.gamma ?? 0));
+  }
+
+  /** Turns one roll reading (degrees) into steering, relative to the calibrated neutral. */
+  private acceptSample(degrees: number): void {
     this.lastSensor = performance.now();
-    const angle = screen.orientation?.angle ?? (window as unknown as { orientation?: number }).orientation ?? 0;
-    this.rawTilt = Math.abs(angle) === 90 ? (event.beta ?? 0) * Math.sign(angle) : (event.gamma ?? 0);
+    this.rawTilt = degrees;
     if (this.calibrateNext) {
       this.tiltZero = this.rawTilt;
       this.calibrateNext = false;

@@ -1,7 +1,6 @@
 import { USERNAME_MAX, USERNAME_MIN, normalizeUsername, sanitizeUsernameInput, type SaveData } from '../game/index.ts';
 import { t } from '../i18n/index.ts';
 import { byId } from './dom.ts';
-import { AccountError } from '../net/account.ts';
 import { authErrorKey } from './account.ts';
 import { authTabs, bindAuthTabs, setFormBusy } from './auth-tabs.ts';
 
@@ -11,16 +10,16 @@ export interface UsernameDeps {
   signIn(action: 'login' | 'signup', username: string, password: string): Promise<void>;
   /** Called after the account is ready on this device. */
   onSaved(name: string): void;
-  /** Keeps the name on this device only, when the account service cannot be reached. */
-  offline(name: string): void;
 }
 
 const PASSWORD_MIN = 5;
 const PASSWORD_MAX = 128;
 
 /**
- * First-launch screen: the driver name and a password create the online account, so the same
- * progress can be used on other devices. Players who already have an account switch to login.
+ * Optional first-launch screen. Signing up or logging in creates the online
+ * account, so progress can be published and used on other devices. Everyone else
+ * plays as a guest: the screen can always be closed or skipped with "Play without
+ * an account", and guests keep all local progress without any cloud access.
  */
 export class UsernameDialog {
   private readonly deps: UsernameDeps;
@@ -28,11 +27,6 @@ export class UsernameDialog {
 
   constructor(deps: UsernameDeps) {
     this.deps = deps;
-  }
-
-  /** Whether the player still has to create or log into an account before playing. */
-  get required(): boolean {
-    return this.deps.save.username === null;
   }
 
   render(): void {
@@ -54,8 +48,8 @@ export class UsernameDialog {
         <p id="usernameStatus" class="form-status" role="status" aria-live="polite"></p>
         <button class="primary submit" type="submit"><span>${submitLabel}</span></button>
       </form>
-      <button id="usernameOffline" class="text-button" type="button" hidden><span>${t('user.offline')}</span></button>`;
-    byId('closeModal').hidden = this.required;
+      <button id="usernameGuest" class="text-button" type="button"><span>${t('user.offline')}</span></button>`;
+    byId('closeModal').hidden = false;
 
     const input = byId<HTMLInputElement>('usernameInput');
     byId<HTMLFormElement>('usernameForm').onsubmit = (event) => {
@@ -66,29 +60,14 @@ export class UsernameDialog {
       this.mode = mode;
       this.render();
     });
-    byId('usernameOffline').onclick = () => this.playOffline();
+    // Closing the modal by any route is the guest path; the game opens the tutorial then.
+    byId('usernameGuest').onclick = () => byId<HTMLDialogElement>('modal').close();
     input.oninput = () => {
       input.value = sanitizeUsernameInput(input.value);
       input.removeAttribute('aria-invalid');
       byId('usernameStatus').textContent = '';
     };
     requestAnimationFrame(() => input.focus());
-  }
-
-  /** Offline fallback: network trouble must never block local play. The account can be created later. */
-  private playOffline(): void {
-    const input = byId<HTMLInputElement>('usernameInput');
-    const name = normalizeUsername(input.value);
-    if (name === null) {
-      byId('usernameStatus').textContent = t('auth.invalid');
-      input.setAttribute('aria-invalid', 'true');
-      input.focus();
-      return;
-    }
-    this.deps.offline(name);
-    byId('closeModal').hidden = false;
-    byId<HTMLDialogElement>('modal').close();
-    this.deps.onSaved(name);
   }
 
   private async submit(): Promise<void> {
@@ -114,8 +93,6 @@ export class UsernameDialog {
       this.deps.onSaved(name);
     } catch (error) {
       status.textContent = t(authErrorKey(error));
-      // Only a connection problem opens the offline way in; a wrong password or a taken name does not.
-      byId('usernameOffline').hidden = !(error instanceof AccountError && error.code === 'unavailable');
       if (error instanceof Error && 'code' in error && error.code === 'taken') {
         input.setAttribute('aria-invalid', 'true');
         input.focus();

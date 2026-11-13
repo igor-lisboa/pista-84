@@ -44,7 +44,7 @@ npm run test:browser
 
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
-- `npm test` runs `node --test tests/*.test.ts`: 158 isolated Node tests in 22 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm test` runs `node --test tests/*.test.ts`: 166 isolated Node tests in 24 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
 - `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning, signed-in player); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
@@ -78,6 +78,13 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Hosted verification
+
+### Optional accounts, demo run, phone layout and tilt (2026-11-13)
+
+- `npm run typecheck`, `npm run build` and `npm test` passed: 166 Node tests, including the new `tests/tilt.test.ts` (gravity lean sign and past-90° behavior) and `tests/demo-run.test.ts` (demo flag migration, import and merge rules).
+- Playwright in Chromium passed all 92 tests, including `browser/demo-guest.spec.ts` (guest offline play, guest shop and ranking notices, the one-time demo and the guest enter option), `browser/phone-dialogs.spec.ts` (iPhone SE portrait and landscape: full-screen dialogs, the shop fitting short landscape, zoom and selection guards) and the updated first-launch, account and shop specs.
+- The first full WebKit run reported 86 passed and 3 failed. Two failures were test-expectation fixes and the third (the signed-in shop) was fixed in its spec; all three then passed on rerun. The camera-frame test in `game.spec.ts` also passed on rerun, so it is recorded as flaky under load, not as a regression.
+- Not verified: physical iPhone SE or Android hardware, real gravity and motion sensors, the lock behavior of installed apps, and how the cornering squeal and braking sound sound through a phone speaker. These stay in QA-01.
 
 The dated sections below are **historical snapshots**; their test counts were true on those dates (the current count is in *Automated checks*). They are kept as evidence of what each change was verified against.
 

@@ -32,6 +32,10 @@ export const es = {
   'shop.title': 'Monedas de la carretera',
   'shop.balance': 'Tu saldo: {coins} monedas.',
   'shop.unavailable': 'Paquetes previstos. Las compras aún no están disponibles.',
+
+  'shop.guest': "Para comprar monedas necesitas una cuenta. Crea una en Opciones.",
+
+  'demo.start': "Carrera demo: el Veloce GT es tuyo solo en esta carrera. Si chocas, vuelves a tu coche.",
   'shop.soon': 'PRÓXIMAMENTE',
   'coins.amount': 'Monedas: {n}',
   'paint.scarlet': 'Rojo escarlata',

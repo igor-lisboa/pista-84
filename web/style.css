@@ -421,3 +421,28 @@ html[dir=rtl] .switch:after{left:auto;right:2px}
 .text-button{justify-self:start;margin-top:14px;padding:10px 4px;color:var(--cyan);text-decoration:underline;font:700 14px var(--body)}
 .account-name{font:400 22px var(--display);color:var(--cream);overflow-wrap:anywhere}
 .username-form .group-title{margin:8px 0 0}
+
+/* ---------- phone dialogs fill the screen; short landscape screens fit without scrolling ---------- */
+@media (max-width:600px){
+ dialog{inset:0;width:100%;max-width:none;max-height:none;height:var(--app-height,100dvh);margin:0;border:0;box-shadow:none;--dialog-x:16px;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+ dialog h1{font-size:30px}
+}
+@media (max-height:500px) and (orientation:landscape){
+ dialog{padding-top:10px;padding-bottom:10px}
+ dialog h1{font-size:24px;margin:0 0 6px}
+ dialog h3{font-size:14px;margin:4px 0}
+ dialog p{font-size:12px;line-height:1.4;margin:4px 0}
+ .label{font-size:10px}
+ .auth-tabs{margin-top:6px}.auth-tab{min-height:38px;padding:8px 10px}
+ .username-form{gap:4px}.username-form label{margin-top:0}.username-form input{min-height:38px;padding:6px 10px}
+ .username-form .primary.submit{min-height:42px;margin-top:4px}
+ .username-rules{font-size:11px;line-height:1.35}
+ .text-button{margin-top:4px;padding:6px 4px}
+ .car-card{padding:6px}.car-card canvas{width:72px;height:46px}.car-card h3{font-size:13px}.car-card p{-webkit-line-clamp:1}
+ .car-card dl{margin:0 0 6px}.car-card button{height:36px}
+ .setting-row{min-height:40px}
+}
+
+/* ---------- no accidental text selection, callouts or pinch zoom; form fields keep their own behaviour ---------- */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}

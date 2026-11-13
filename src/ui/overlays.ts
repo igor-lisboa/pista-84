@@ -15,6 +15,8 @@ export interface GameOverActions {
   restart(): void;
   secondChance(): void;
   toMenu(): void;
+  /** Offered to guests only: opens sign-up / log-in. Omitted for signed-in players. */
+  enter?(): void;
 }
 
 const REASON_KEYS: Readonly<Record<EndReason, MessageKey>> = {
@@ -69,6 +71,7 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
       <button id="restart" class="primary"><span>${t('over.again')}</span>${icon('play')}</button>
       ${race.continued ? '' : `<button id="continue" class="secondary" ${save.coins < SECOND_CHANCE_PRICE ? 'disabled' : ''}>${t('over.second', { price: formatInteger(SECOND_CHANCE_PRICE) })}</button>
         <p class="second-chance-balance">${t('over.secondBalance', { coins: formatInteger(save.coins) })}</p>`}
+      ${actions.enter ? `<button id="enter" class="secondary">${t('auth.login')}</button>` : ''}
       <button id="toMenu" class="secondary">${t('over.menu')}</button>
     </div>`,
     crashed,
@@ -77,4 +80,6 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
   byId('toMenu').onclick = actions.toMenu;
   const second = document.getElementById('continue');
   if (second) second.onclick = actions.secondChance;
+  const enter = document.getElementById('enter');
+  if (enter && actions.enter) enter.onclick = actions.enter;
 }

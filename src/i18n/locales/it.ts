@@ -32,6 +32,10 @@ export const it: Messages = {
   'shop.title': 'Monete della strada',
   'shop.balance': 'Il tuo saldo: {coins} monete.',
   'shop.unavailable': 'Pacchetti previsti. Acquisti attualmente non disponibili.',
+
+  'shop.guest': "Per acquistare monete serve un account. Creane uno nelle Opzioni.",
+
+  'demo.start': "Corsa demo: la Veloce GT è tua solo per questa corsa. Se ti schianti, torni alla tua auto.",
   'shop.soon': 'PROSSIMAMENTE',
   'coins.amount': 'Monete: {n}',
   'paint.scarlet': 'Rosso scarlatto',

@@ -33,6 +33,10 @@ export const ptPT: Messages = {
   'shop.title': 'Moedas da estrada',
   'shop.balance': 'O seu saldo: {coins} moedas.',
   'shop.unavailable': 'Pacotes previstos. Compras indisponíveis de momento.',
+
+  'shop.guest': "Para comprar moedas é preciso ter uma conta. Crie uma nas Opções.",
+
+  'demo.start': "Corrida demo: o Veloce GT é seu só nesta corrida. Se bater, volta ao seu carro.",
   'shop.soon': 'EM BREVE',
   'coins.amount': 'Moedas: {n}',
   'garage.unlock': 'DESBLOQUEAR · {price} moedas',

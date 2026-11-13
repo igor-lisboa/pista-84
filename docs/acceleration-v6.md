@@ -1,6 +1,8 @@
 # Per-vehicle acceleration
 
-Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the eighteen models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.31, falloffs 0.6–2.4).
+Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the eighteen models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.36, falloffs 0.5–2.4).
+
+Revision (feedback on the Veloce GT feeling slow off the line): its gain rose from 0.30 to **0.36** and its falloff from 0.6 to **0.5**. Measured with the same method, 0–100 km/h falls from 4.10 s to **3.42 s**, and the 70 % / 90 % / 95 % times are 10.0 / 17.8 / 23.0 s (previously 12.0 / 21.4 / 28.1 s). Top speed is still reached: the taper keeps acceleration positive below 350 km/h. Other cars are unchanged.
 
 The existing drag curve is multiplied by an additional taper above 70% of maximum speed. Its value and slope join continuously at the threshold. Stronger falloff makes the last part of the speed range take longer, while acceleration remains positive below the maximum and zero at the maximum. Off-road traction still scales the resulting pull.
 
@@ -24,7 +26,7 @@ Measured with the real `Race` simulation in 20 ms steps, starting at rest, with 
 | Marea Turbo | 154 | 12.7 | 22.8 | 30.5 |
 | Passat 85 | 119 | 15.8 | 29.4 | 40.9 |
 | Puma GT | 112 | 15.7 | 28.7 | 39.0 |
-| Veloce GT | 245 | 12.0 | 21.4 | 28.1 |
+| Veloce GT (gain 0.36, falloff 0.5) | 245 | 10.0 | 17.8 | 23.0 |
 | Raio 1000 | 210 | 12.3 | 22.1 | 29.2 |
 
 Regression tests cover monotonic pull, continuity at the threshold, distinct initial acceleration, stronger high-speed taper in classics than sports cars, and the actual race speed gains at 70%, 85% and 95%. Existing checks retain the Fusca's gradual 0–100 pace and the GT's ability to approach 350 km/h.

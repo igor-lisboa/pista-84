@@ -32,6 +32,10 @@ export const de: Messages = {
   'shop.title': 'Straßenmünzen',
   'shop.balance': 'Dein Guthaben: {coins} Münzen.',
   'shop.unavailable': 'Geplante Pakete. Käufe sind derzeit nicht verfügbar.',
+
+  'shop.guest': "Für Münzpakete brauchst du ein Konto. Erstelle eins in den Optionen.",
+
+  'demo.start': "Demo-Fahrt: Der Veloce GT gehört dir nur für diese Fahrt. Bei einem Crash geht es mit deinem Auto weiter.",
   'shop.soon': 'DEMNÄCHST',
   'coins.amount': 'Münzen: {n}',
   'paint.scarlet': 'Scharlachrot',

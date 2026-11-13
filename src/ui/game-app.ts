@@ -8,6 +8,7 @@ import {
   CARS,
   CHECKPOINT,
   CHECKPOINT_FUEL,
+  DEMO_CAR_ID,
   FUEL_PICKUP,
   OFFROAD_ENTRY_FUEL,
   PAINTS,
@@ -91,6 +92,10 @@ export class GameApp implements RemoteHost {
   private tutorialActive = false;
   /** Restart the race once an idle-triggered tutorial closes. */
   private tutorialRestart = false;
+  /** The optional sign-up screen owns the modal until it is closed (by any route). */
+  private welcomeActive = false;
+  /** The run in progress is the one-time demo with the demo car; its end uses it up. */
+  private demoRun = false;
   private readonly aboutDialog = new AboutDialog();
 
   private previousStatus: Race['status'] = 'ready';
@@ -179,14 +184,10 @@ export class GameApp implements RemoteHost {
     this.usernameDialog = new UsernameDialog({
       save: this.save,
       signIn: (action, username, password) => this.accountDialog.signInWith(action, username, password),
-      offline: (name) => {
-        this.save.username = name;
-        this.persist();
-      },
       onSaved: (name) => {
         this.notifications.toast(t('user.welcome', { name }));
         void this.syncScore();
-        if (!this.save.tutorialDone) this.openTutorial(false);
+        this.finishWelcome();
       },
     });
     this.remoteDialog = new RemoteDialog(this);
@@ -200,7 +201,7 @@ export class GameApp implements RemoteHost {
     this.input.bindButtons();
     // First entry: a signed-in device uploads whatever it kept offline, without any button.
     void this.syncAtRest();
-    if (this.usernameDialog.required) this.openUsername();
+    if (this.needsWelcome()) this.openWelcome();
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
       this.checkRotation();
@@ -212,7 +213,7 @@ export class GameApp implements RemoteHost {
     byId('garageNav').onclick = () => this.openGarage();
     byId('coinsNav').onclick = () => {
       this.openModal();
-      this.garage.renderCoinShop();
+      this.garage.renderCoinShop(this.signedIn());
     };
     byId('garageOpen').onclick = () => this.openGarage();
     byId('settingsNav').onclick = () => this.openSettings();
@@ -222,17 +223,11 @@ export class GameApp implements RemoteHost {
     byId('remoteNav').onclick = () => void this.remoteDialog.open();
     byId('pause').onclick = () => this.pause();
     byId('closeModal').onclick = () => byId<HTMLDialogElement>('modal').close();
-    // Without a name the dialog is mandatory, so Escape must not dismiss it.
-    byId<HTMLDialogElement>('modal').addEventListener('cancel', (event) => {
-      if (this.usernameDialog.required && document.getElementById('usernameForm')) event.preventDefault();
-    });
     byId<HTMLDialogElement>('modal').addEventListener('close', () => {
-      if (this.usernameDialog.required && !byId<HTMLDialogElement>('modal').open) {
-        this.openUsername();
-        return;
-      }
-      // A modal re-opened in the same tick (name dialog -> tutorial) is still open: ignore its stale close.
-      if (this.tutorialActive && !byId<HTMLDialogElement>('modal').open) this.finishTutorial();
+      const open = byId<HTMLDialogElement>('modal').open;
+      // A modal re-opened in the same tick (sign-up -> tutorial) is still open: ignore its stale close.
+      if (this.tutorialActive && !open) this.finishTutorial();
+      else if (this.welcomeActive && !open) this.finishWelcome();
     });
 
     void this.checkOnline();
@@ -280,7 +275,10 @@ export class GameApp implements RemoteHost {
 
   start(): void {
     if (this.isModalOpen()) return;
+    this.demoRun = this.demoPending();
+    this.race.car = this.demoRun ? this.demoCar() : this.selectedCar();
     this.race.start();
+    if (this.demoRun) this.notifications.feedback(t('demo.start'));
     this.bestDistanceAtStart = this.save.best;
     this.recordShown = false;
     this.settledCoins = 0;
@@ -322,6 +320,7 @@ export class GameApp implements RemoteHost {
     if (this.race.distance > 0) this.settle();
     this.input.clear();
     this.race.reset();
+    this.race.car = this.selectedCar();
     this.settledCoins = 0;
     this.previousStatus = 'ready';
     this.setView('menu');
@@ -330,6 +329,7 @@ export class GameApp implements RemoteHost {
   }
 
   private gameOver(): void {
+    if (this.demoRun) this.finishDemo();
     this.settle();
     void this.syncAtRest();
     this.audio.tone(this.race.crashed ? 55 : 65, 0.5, 'sawtooth', 0.3);
@@ -337,6 +337,8 @@ export class GameApp implements RemoteHost {
     showGameOver(this.race, this.save, {
       restart: () => this.start(),
       toMenu: () => this.backToMenu(),
+      // Guests can enter (sign up or log in) right from the result; signed-in players get no such button.
+      enter: this.signedIn() ? undefined : () => this.openWelcome(),
       secondChance: () => {
         if (!this.race.resume(this.save)) return;
         this.persist();
@@ -592,6 +594,46 @@ export class GameApp implements RemoteHost {
     this.leaderboardDialog.open();
   }
 
+  /** The one-time demo is available once the tutorial is done and until a run with the demo car ends. */
+  private demoPending(): boolean {
+    return this.save.tutorialDone && !this.save.demoUsed;
+  }
+
+  /** The demo car in its own colours; it is never added to the garage. */
+  private demoCar(): CarSpec {
+    return CARS.find((candidate) => candidate.id === DEMO_CAR_ID) ?? this.selectedCar();
+  }
+
+  /** The demo ends with its first crash or empty tank; the player's own car is used from then on. */
+  private finishDemo(): void {
+    this.demoRun = false;
+    this.save.demoUsed = true;
+  }
+
+  /**
+   * Whether the optional sign-up screen should greet a new player: no name yet, no account and no tutorial.
+   * A device that already has a name (an account, or a name kept from before) is never asked again.
+   */
+  private needsWelcome(): boolean {
+    return this.save.username === null && !this.save.tutorialDone && !this.accountOwner;
+  }
+
+  private openWelcome(): void {
+    if (this.accountOwner) {
+      this.openAccount();
+      return;
+    }
+    this.welcomeActive = true;
+    this.openModal();
+    this.usernameDialog.render();
+  }
+
+  /** Closing the welcome screen (sign-up, guest, or the close button) moves on to the tutorial, once. */
+  private finishWelcome(): void {
+    this.welcomeActive = false;
+    if (!this.save.tutorialDone) this.openTutorial(false);
+  }
+
   /** Opens the tutorial; `idle` means the player did not move and the race will restart afterwards. */
   private openTutorial(idle: boolean): void {
     this.tutorialActive = true;
@@ -627,12 +669,6 @@ export class GameApp implements RemoteHost {
     setUnits(units);
     this.persist();
     this.hud.invalidate();
-  }
-
-  openUsername(): void {
-    if (this.accountOwner) { this.openAccount(); return; }
-    this.openModal();
-    this.usernameDialog.render();
   }
 
   private openSettings(): void {
@@ -689,6 +725,33 @@ export class GameApp implements RemoteHost {
     }
   }
 
+  /**
+   * Double taps, pinch zoom and text selection must not break play. Form fields keep
+   * their own behaviour; everything else ignores those gestures.
+   */
+  private bindGestureGuards(): void {
+    const isTextField = (target: EventTarget | null): boolean =>
+      target instanceof HTMLElement && target.matches('input,textarea,select,[contenteditable="true"]');
+    // Double-tap zoom is stopped by the viewport meta and `touch-action: manipulation`; cancelling
+    // touchend here would also swallow the click of a quick repeat tap on a menu button.
+    document.addEventListener('touchmove', (event) => {
+      if (event.touches.length > 1) event.preventDefault();
+    }, { passive: false });
+    for (const type of ['gesturestart', 'gesturechange', 'gestureend'] as const) {
+      document.addEventListener(type, (event) => event.preventDefault(), { passive: false });
+    }
+    document.addEventListener('dblclick', (event) => {
+      if (!isTextField(event.target)) event.preventDefault();
+    });
+    document.addEventListener('selectstart', (event) => {
+      if (!isTextField(event.target)) event.preventDefault();
+    });
+    // Ctrl/Cmd + wheel and + / - zoom the browser page; the game already has its own camera.
+    window.addEventListener('wheel', (event) => {
+      if (event.ctrlKey) event.preventDefault();
+    }, { passive: false });
+  }
+
   private bindWindowEvents(): void {
     window.addEventListener('storage', event => {
       if ((event.key === ACCOUNT_KEY || event.key === null) && !this.sameAccount()) {
@@ -724,6 +787,7 @@ export class GameApp implements RemoteHost {
       if (key === 'p' || key === 'Escape') this.pause();
     });
     window.addEventListener('keyup', (event) => this.input.keyUp(event));
+    this.bindGestureGuards();
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {

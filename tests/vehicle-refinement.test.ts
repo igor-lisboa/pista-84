@@ -5,7 +5,7 @@ import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
 import { car, quietRace } from './support/game.ts';
 
 test('new classics have plausible acceleration, speed ceilings and fuel tradeoffs', () => {
-  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [13, 14], gt: [3.9, 4.3] };
+  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [13, 14], gt: [3.2, 3.6] };
   for (const [id, [min, max]] of Object.entries(ranges)) {
     const spec = car(id);
     let speed = 0;
