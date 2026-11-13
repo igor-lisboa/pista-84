@@ -29,6 +29,8 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `gt` | Veloce GT | sport | 350 | 84 | 1.20 | 1.15 | 30,000 coins |
 | `superbike` | Raio 1000 | bike | 300 | 68 | 1.05 | 1.50 | 20,000 coins |
 
+The Veloce GT was tuned for a stronger launch: 0–100 km/h takes about 3.4 s (was 4.1 s), and its 70 % / 95 % times are 10.0 s / 23.0 s. Its one-time demo run is described in [gameplay](02-gameplay.md#states-and-run-lifecycle).
+
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
 ### Per-vehicle tuning
@@ -53,7 +55,7 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 | `marea` | 0.29 | 0.8 | 1.02 | 53 |
 | `passat` | 0.275 | 1.3 | 0.94 | 40 |
 | `puma` | 0.285 | 1.0 | 0.95 | 43 |
-| `gt` | 0.30 | 0.6 | 1.18 | 70 |
+| `gt` | 0.36 | 0.5 | 1.18 | 70 |
 | `superbike` | 0.31 | 0.7 | 0.60 | 64 |
 
 ### Art
@@ -102,4 +104,4 @@ The local save is editable and importable. These coins have no cash value and ar
 
 ## Paid continuation and coin shop
 
-A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu **Buy coins** is an unavailable placeholder: a dialog lists packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons. Real-money purchases remain pending a provider and verified server-side credit delivery (ECO-01, COM-01). See [balance tuning](../docs/vehicle-balance-v3.md).
+A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu **Buy coins** is available only to signed-in players; a guest sees a notice that an account is needed and no packs. For a signed-in player it is an unavailable placeholder: a dialog lists packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons. Real-money purchases remain pending a provider and verified server-side credit delivery (ECO-01, COM-01). See [balance tuning](../docs/vehicle-balance-v3.md).

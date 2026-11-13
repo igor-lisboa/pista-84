@@ -122,6 +122,8 @@ const ROW_HEIGHT = 2;
 const SCREEN_BLEED = 20;
 /** Screen depth below which road rows are treated as distant (no stripes). */
 const FAR_ROW_LIMIT = 0.07;
+/** Metres per lane-dash cycle (3 m paint, 3 m gap). Half the earlier 12 m cycle, so markings pass twice as often at any speed. */
+const LANE_DASH_PERIOD = 6;
 
 /** Half road width, as a fraction of canvas width, at screen depth `t`. */
 const roadHalfFraction = (t: number): number => ROAD_HALF_MIN + ROAD_HALF_SLOPE * t;
@@ -477,7 +479,7 @@ export class Renderer {
     const line = Math.max(1, w * 0.0045 * t);
     this.rect(center - half * 0.93, y, line, ROW_HEIGHT, '#dfe3ea');
     this.rect(center + half * 0.93 - line, y, line, ROW_HEIGHT, '#dfe3ea');
-    if (!far && world % 12 < 6) {
+    if (!far && world % LANE_DASH_PERIOD < LANE_DASH_PERIOD / 2) {
       for (const divider of LANE_DIVIDERS) this.rect(center + divider * half - line * 0.5, y, line, ROW_HEIGHT, '#f0f0e2');
     }
     if (t > 0.18) this.paintWheelTracks(center, half, y, line);

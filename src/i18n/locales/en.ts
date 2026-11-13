@@ -32,6 +32,10 @@ export const en: Messages = {
   'shop.title': 'Road coins',
   'shop.balance': 'Your balance: {coins} coins.',
   'shop.unavailable': 'Planned packs. Purchases are currently unavailable.',
+
+  'shop.guest': "Coin packs need an account. Create one in Settings to buy coins.",
+
+  'demo.start': "Demo run: the Veloce GT is yours for this run only. Crash and you go back to your own car.",
   'shop.soon': 'COMING SOON',
   'coins.amount': 'Coins: {n}',
   'paint.scarlet': 'Scarlet red',

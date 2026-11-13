@@ -2,9 +2,9 @@
 
 **Start here. This folder is the canonical specification for the game.**
 
-Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v25**. Reconciled with the code on **2026-11-10**. Game source is in [`../`](../).
+Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v26**. Reconciled with the code on **2026-11-13**. Game source is in [`../`](../).
 
-These specifications are the **source of truth** for the game. They were reconciled with the implementation on 2026-11-10; from then on a behavior change starts here and the code follows (see the maintenance rules below). Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
+These specifications are the **source of truth** for the game. They were reconciled with the implementation on 2026-11-13; from then on a behavior change starts here and the code follows (see the maintenance rules below). Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
 
 | Document | Definitions |
 | --- | --- |

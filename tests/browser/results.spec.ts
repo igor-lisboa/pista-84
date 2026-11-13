@@ -1,3 +1,4 @@
+import { accountBackend } from './support/account-backend.ts';
 import { expect, test } from '@playwright/test';
 import { loadHarness } from './support/harness.ts';
 
@@ -24,16 +25,39 @@ test('all game-over reasons explain the actual score-to-coins payout, including 
   }
 });
 
-test('the main menu opens coin packs and clearly marks real-money purchases unavailable', async ({ page }) => {
+test('a guest sees why coin packs are unavailable instead of the packs', async ({ page }) => {
   await page.goto('/');
   const before = await page.locator('#wallet').textContent();
   await page.locator('#coinsNav').click();
-  await expect(page.locator('.coin-pack')).toHaveCount(3);
-  await expect(page.locator('.shop-status')).toContainText('Compras indisponíveis');
-  for (const button of await page.locator('.coin-pack button').all()) await expect(button).toBeDisabled();
-  await expect(page.locator('.coin-pack span').first()).toContainText('9,90');
+  await expect(page.locator('#modalBody .warning')).toContainText('conta');
+  await expect(page.locator('.coin-pack')).toHaveCount(0);
   await page.locator('#closeModal').click();
   await expect(page.locator('#wallet')).toHaveText(before!);
+});
+
+test.describe('a device with no saved name', () => {
+  test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' });
+
+  test('a signed-in player opens coin packs, clearly marked as unavailable purchases', async ({ page, context }) => {
+    await accountBackend(context);
+    await page.goto('/');
+    await expect(page.locator('#usernameInput')).toBeVisible();
+    await page.locator('#usernameInput').fill('shopper_1');
+    await page.locator('#usernamePassword').fill('abcde');
+    await page.locator('#usernameForm button[type=submit]').click();
+    await expect(page.locator('#tutNext')).toBeVisible();
+    await page.locator('#tutSkip').click();
+    await expect(page.locator('#modal')).toBeHidden();
+
+    const before = await page.locator('#wallet').textContent();
+    await page.locator('#coinsNav').click();
+    await expect(page.locator('.coin-pack')).toHaveCount(3);
+    await expect(page.locator('.shop-status')).toContainText('Compras indisponíveis');
+    for (const button of await page.locator('.coin-pack button').all()) await expect(button).toBeDisabled();
+    await expect(page.locator('.coin-pack span').first()).toContainText('9,90');
+    await page.locator('#closeModal').click();
+    await expect(page.locator('#wallet')).toHaveText(before!);
+  });
 });
 
 test('the end-of-game conversion and menu remain reachable on a short landscape phone', async ({ page }) => {

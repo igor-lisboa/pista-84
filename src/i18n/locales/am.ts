@@ -32,6 +32,10 @@ export const am = {
   'shop.title': 'የመንገድ ሳንቲሞች',
   'shop.balance': 'ቀሪ ሂሳብ፦ {coins} ሳንቲሞች።',
   'shop.unavailable': 'የታቀዱ ጥቅሎች። ግዢ ለጊዜው አይገኝም።',
+
+  'shop.guest': "ሳንቲም ለመግዛት መለያ ያስፈልጋል። በአማራጮች ይፍጠሩ።",
+
+  'demo.start': "የማሳያ ውድድር፡ Veloce GT ለዚህ ውድድር ብቻ የእርስዎ ነው። ከተጋጩ ወደ የራስዎ መኪና ይመለሳሉ።",
   'shop.soon': 'በቅርቡ',
   'coins.amount': 'ሳንቲሞች፦ {n}',
   'paint.scarlet': 'ደማቅ ቀይ',

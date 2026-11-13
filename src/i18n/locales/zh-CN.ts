@@ -32,6 +32,10 @@ export const zhCN = {
   'shop.title': '公路金币',
   'shop.balance': '余额：{coins} 金币。',
   'shop.unavailable': '计划推出的礼包，目前暂不可购买。',
+
+  'shop.guest': "购买金币需要账号。请在选项中注册。",
+
+  'demo.start': "体验赛：本局可使用 Veloce GT。撞车后将换回你自己的车。",
   'shop.soon': '敬请期待',
   'coins.amount': '金币：{n}',
   'paint.scarlet': '猩红',

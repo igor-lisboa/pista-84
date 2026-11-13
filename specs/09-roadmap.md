@@ -82,7 +82,7 @@ Have a native speaker per language review every string for tone, length in the H
 
 **P1 before public mobile distribution.** Automated Chromium/WebKit results do not replace actual devices.
 
-Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exercise tilt permission denial, calibration, dead zone, simultaneous touches, screen lock, resume, sensor loss and battery behavior. Run at least 15 minutes per platform through rain/night/fog, recording FPS, memory and temperature. Define the minimum supported device; target 30 sustained FPS there. Native-wrapper remote control needs separate authentication/service validation before enabling it.
+Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exercise tilt permission denial, calibration, dead zone, simultaneous touches, screen lock, resume, sensor loss and battery behavior. Confirm on hardware that gravity tilt steers the same way on Android and iOS (the sign convention is fixed from the first upright reading), that the landscape prompt appears where the lock is refused, that the phone-dialog layout fits an iPhone SE (375 x 667) in both orientations, that pinch and double-tap zoom are blocked, and that the cornering squeal and braking sound are acceptable through a phone speaker. Run at least 15 minutes per platform through rain/night/fog, recording FPS, memory and temperature. Define the minimum supported device; target 30 sustained FPS there. Native-wrapper remote control needs separate authentication/service validation before enabling it.
 
 **Accept:** report listing device, OS, browser/build, results and resolved defects; no claim of physical support based only on emulation.
 

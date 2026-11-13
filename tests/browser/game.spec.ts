@@ -452,8 +452,8 @@ test('the road renders four lane dividers and five lanes using the race seed', a
     const renderer = new Renderer(canvas);
     const y = 644;
     const horizon = Math.round(canvas.height * 0.275);
-    // Sample in the middle of a painted dash, independent of camera depth.
-    race.path = (12 - ((screenToDepth((y - horizon) / (canvas.height - horizon)) * PATH_UNIT) % 12)) % 12 + 3;
+    // Sample in the middle of a painted dash (3 m paint on a 6 m cycle), independent of camera depth.
+    race.path = (6 - ((screenToDepth((y - horizon) / (canvas.height - horizon)) * PATH_UNIT) % 6)) % 6 + 1.5;
     renderer.draw(race, 0, {});
     const pixels = canvas.getContext('2d')!.getImageData(80, y, 800, 1).data;
     let lines = 0;

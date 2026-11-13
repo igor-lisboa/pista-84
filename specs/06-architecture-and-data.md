@@ -118,6 +118,7 @@ Storage key: **`pista84`**, JSON save format **2**. Other device-owned keys use 
   "history": [],
   "units": "km",
   "tutorialDone": false,
+  "demoUsed": false,
   "createdAt": 1700000000000,
   "updatedAt": 1700000000000
 }
@@ -136,6 +137,7 @@ Storage key: **`pista84`**, JSON save format **2**. Other device-owned keys use 
 | `history` | Up to 20 retired players (`playerId`, `username`, `bestScore`, `best`, `retired`); invalid entries are dropped |
 | `units` | `km` or `mi`; anything else is `km` |
 | `tutorialDone` | `true` only when explicitly true |
+| `demoUsed` | `true` once the one-time demo run has ended. Without the field it is `true` when `tutorialDone` is set (older saves never get a demo) and `false` otherwise; an import can only set it, never clear it |
 | `createdAt` / `updatedAt` | Milliseconds; legacy saves without them count as created now; `updatedAt` defaults to `createdAt` and is stamped on every save |
 
 Missing, malformed or null data uses defaults. Ownership is validated against the catalog but not against how a car was paid for. `importSave` replaces everything, but an export without an identity, name, history, units, tutorial flag or creation time keeps the current device's value, and importing the same GUID keeps the highest score and distance of the two.
@@ -150,7 +152,7 @@ The override is applied when loading local, imported or restored progress, and w
 
 ## Online data and cloud sync
 
-Online features require a signed-in account. A guest (no session) never calls the online API: no health check, score, progress or leaderboard request. The server also rejects `/api/score` and `/api/progress` without a session (HTTP 401).
+Playing never requires a session or network access: a guest, a signed-out device and an offline device all run the full game, with local saves and the outbox kept on the device. Online features require a signed-in account. A guest (no session) never calls the online API: no health check, score, progress or leaderboard request. The server also rejects `/api/score` and `/api/progress` without a session (HTTP 401).
 
 For signed-in devices, existing local saves are queued on launch and later local changes are coalesced in a persistent outbox. Autosaves remain local during play; automatic uploads occur only on first entry (launch), pause, game end, return to the menu or page exit/backgrounding, never on a timer or reconnect. Failed uploads stay queued across reloads and player switches until the next such event. Legacy saves receive a stable GUID before upload. Per-player/device snapshots live durably in MongoDB `device-backups` and are isolated from the account's merged progress and from the legacy `backups` collection (read by the server, no longer written by the game). See [storage documentation](../docs/STORAGE.md) for retry, conflict and recovery behavior. Local data can only migrate after that browser visits the updated game with connectivity.
 
@@ -178,6 +180,6 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v25** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v26** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.

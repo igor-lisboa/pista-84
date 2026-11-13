@@ -32,6 +32,10 @@ export const ja: Messages = {
   'shop.title': 'ロードコイン',
   'shop.balance': '所持コイン: {coins}枚。',
   'shop.unavailable': '予定パックです。現在、購入は利用できません。',
+
+  'shop.guest': "コインパックの購入にはアカウントが必要です。オプションから作成してください。",
+
+  'demo.start': "デモ走行：このレースだけ Veloce GT が使えます。クラッシュすると自分の車に戻ります。",
   'shop.soon': '近日公開',
   'coins.amount': 'コイン: {n}',
   'paint.scarlet': 'スカーレットレッド',

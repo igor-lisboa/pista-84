@@ -10,13 +10,15 @@ The 1.4 interface is a sunset-arcade cabinet: deep purple background, sun-yellow
 
 The initial screen contains the PISTA 84 identity, animated scene and five action buttons: **JOGAR**, **GARAGEM**, **COMPRAR MOEDAS**, **RANKING** and **CELULAR COMO CONTROLE**. The top-right corner has two icon buttons: About (info) and Settings. Below are the selected vehicle (with a "change vehicle" link), the record distance and the coin balance, plus an "Enter to play" hint. Vehicle selection is available through both garage entry points. Starting hides the entire menu. Enter also starts a run.
 
-- **Buy coins** opens a placeholder dialog that previews packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons and a note that purchases are unavailable. Real-money coin packs remain pending work ([ECO-01 and COM-01](09-roadmap.md)).
+- **Buy coins** is for signed-in players. A guest sees a localized notice that an account is needed, with no packs. A signed-in player sees a placeholder dialog that previews packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons and a note that purchases are unavailable. Real-money coin packs remain pending work ([ECO-01 and COM-01](09-roadmap.md)).
 - **Ranking** opens the online leaderboard: five pilots per page with rank, name, score and distance, the caller's own row marked "YOU" and previous/next paging. It needs a connection. Guests (no signed-in session) see a short localized message instead and no request is made.
 - **About** shows the author card (Igor Lisboa, GitHub link) and the project's story.
 
+Playing never requires an account. Every control, the race, the tutorial, the demo and saving locally work offline, with or without a signed-in account; a guest can play indefinitely with no network request blocking any screen.
+
 ### First launch and tutorial
 
-A device without a driver name shows a mandatory sign-up screen before play (it cannot be dismissed with Escape or the close button). See *Settings* below for the shared account layout. After the account is created or logged into, a five-step how-to-play tutorial opens once (accelerate, steer, brake, what to do, what to avoid) with Back/Next and Skip; finishing or closing it by any route sets `tutorialDone` in the save. The tutorial can be replayed from Settings. If a first-time player (best distance 0) has not moved after **5 s** of a run, the run is reset, the tutorial opens with a "you haven't moved yet" note and a new run starts when it closes.
+On a new device the first launch opens an **optional** welcome screen: the sign-up / log-in switch from *Settings* (the same account layout) and a **Play without an account** action. Closing that screen by any route (the close button, Escape or the guest action) is the guest path. Signing up or logging in is also optional and can be done later from Settings. Either way a five-step how-to-play tutorial then opens once (accelerate, steer, brake, what to do, what to avoid) with Back/Next and Skip; finishing or closing it by any route sets `tutorialDone` in the save. The tutorial can be replayed from Settings. Once the tutorial is done the first run is the one-time **demo** with the Veloce GT (see [gameplay](02-gameplay.md#states-and-run-lifecycle)). If a first-time player (best distance 0) has not moved after **5 s** of a run, the run is reset, the tutorial opens with a "you haven't moved yet" note and a new run starts when it closes.
 
 ## Race interface
 
@@ -41,7 +43,7 @@ first entry (launch), pause, game end, return to the menu or page exit/backgroun
 not upload during play. Network failure never blocks these transitions or erases
 local progress; the next permitted event retries. Resuming defers any unsent upload.
 
-The result displays the failure reason, score in points, distance, run coins, the score-to-coins conversion (25 points = 1 coin, rounded down) and the best score; the panel scrolls on short screens. A crash (any contact with traffic or the barrier) shows the crash title **"VOCÊ BATEU!"** ("YOU CRASHED!", localized) and the impact speed; an empty tank shows the ordinary end title. Actions are restart, the **1,000-coin second chance** and initial menu. The second-chance button appears only while the run's single continuation is unused; it shows the price and the current balance ("one purchase per run") and is disabled while the wallet cannot pay. Restart creates a new run rather than restoring the failed one.
+The result displays the failure reason, score in points, distance, run coins, the score-to-coins conversion (25 points = 1 coin, rounded down) and the best score; the panel scrolls on short screens. A crash (any contact with traffic or the barrier) shows the crash title **"VOCÊ BATEU!"** ("YOU CRASHED!", localized) and the impact speed; an empty tank shows the ordinary end title. Actions are restart, the **1,000-coin second chance** and initial menu. A guest also sees an **enter** action (labelled Log in) that opens the sign-up / log-in screen from the result, so a player can enter at any game end; signed-in players do not see it. The second-chance button appears only while the run's single continuation is unused; it shows the price and the current balance ("one purchase per run") and is disabled while the wallet cannot pay. Restart creates a new run rather than restoring the failed one.
 
 ## Garage
 
@@ -56,13 +58,13 @@ password re-checks the current one, signs every other device out and keeps this 
 signed in. The first-launch screen and the guest Account screen share one layout: a
 two-sided "Sign up | Log in" switch with the selected side highlighted, a short hint for
 that side, labelled username/password fields and one full-width submit button that shows a
-"please wait" label while the request runs. "Play offline" is a small text link that only
-appears after a connection failure. Closing the account form returns unnamed guests to the
-name screen. Forms use
+"please wait" label while the request runs. On the first-launch screen "Play without an account" is always
+available and keeps the player a guest; no name is needed. Closing the account form returns to the game with
+the guest save unchanged. Forms use
 password-manager autocomplete; passwords accept 5–128 Unicode characters with no
 composition requirements. All account text is
 localized. Login merges local and cloud progress before adopting the account
-identity. Usernames are lower case, 3–16 characters of a–z, 0–9, `_` and `-` (no spaces; the field cleans text as it is typed). The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guest names remain local offline display names rather than reserved account identities. Failures keep local progress and allow retry. Expired sessions allow
+identity. Usernames are lower case, 3–16 characters of a–z, 0–9, `_` and `-` (no spaces; the field cleans text as it is typed). The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guests have no account name; the local save keeps the guest player id and no username is reserved. Failures keep local progress and allow retry. Expired sessions allow
 reauthentication to the same account. Signed-in name actions open the
 account screen, preventing accidental account renaming or identity replacement.
 Logout explains that local records and unsynced data are cleared while the cloud
@@ -108,15 +110,19 @@ Input must not override typing in form fields. Keyboard controls do not act thro
 
 ## Tilt behavior and Safari
 
-Tilt is optional and starts from an explicit button gesture. Require a secure context and motion permission where the browser exposes `DeviceOrientationEvent.requestPermission()`.
+Tilt is optional, starts from an explicit button gesture and is for landscape play. Require a secure context and the motion and orientation permissions where the browser exposes `requestPermission()` (iOS asks for both). While tilt is on the page asks for landscape: where the lock is refused (iOS Safari, or a tab outside fullscreen) a "turn your phone" prompt covers the game and a running race pauses until the phone is landscape again.
 
-The first sensor sample after activation becomes neutral. Calibration resets neutral to the current comfortable position. Read gamma in portrait and signed beta in landscape; normalize by **25 degrees**, apply a **0.06** dead zone and clamp to [-1, 1]. Rotation recalibrates on the next sample. No sample within **5 s** disables tilt and directs the player to buttons.
+Steering reads the phone's **roll in its own screen plane from gravity** (`devicemotion`, `accelerationIncludingGravity`), mapped onto the screen axes for the current orientation. It does not use Euler angles, so it does not wrap or flip past 90° and does not depend on how square the phone is held. The sign convention is fixed once from the upright reading, so Android and iOS steer the same way. The first sample after activation becomes neutral; calibration resets neutral to the current comfortable position. The roll is normalized by **25 degrees**, has a **0.06** dead zone and is clamped to [-1, 1]. `deviceorientation` Euler angles are used only when no motion sample arrives. Rotation recalibrates on the next sample. No sample within **5 s** disables tilt and directs the player to buttons.
 
 Permission rejection, missing sensors and unsupported audio/fullscreen must leave solo touch play available. Every browser, including Safari, uses the WebSocket controller transport; see [remote control](07-remote-control-api.md).
 
 ## Responsive layout and focus
 
 Use actual `visualViewport.height` when available and safe-area insets for notches/home indicators. The fixed 960 x 720 camera is uniformly contained in every viewport without stretching or cropping. On short landscape screens, speed and trip information stack at the upper left while fuel and pause sit at the upper right; the bend warning sits below the left stack. HUD panels stay above the steering buttons and pedals, with horizontal safe-area insets respected.
+
+Phone dialogs (width 600 px or less) fill the whole screen inside the safe areas, with the close button in the top corner. On short landscape screens (height 500 px or less) dialog type and spacing tighten so the compact dialogs (sign-up, shop, tutorial) fit without scrolling. Long dialogs scroll inside the dialog: the settings, garage and result panels, which keep their close button in the corner. The reference for this is an iPhone SE (375 x 667) in portrait and landscape.
+
+Gestures never change the page: pinch zoom is blocked (viewport `maximum-scale=1,user-scalable=no`, plus gesture and multi-touch cancellation), double taps do not select text or zoom, and text selection is off everywhere except form fields. Form fields keep normal selection and editing.
 
 Layouts cover portrait, landscape and short landscape menus. Hidden race/menu layers must not intercept taps. Hiding the document pauses the game. Touch-device browser-chrome blur alone does not pause it. Wake lock is best-effort, not a requirement to play. `prefers-reduced-motion` disables CSS transitions and animations.
 

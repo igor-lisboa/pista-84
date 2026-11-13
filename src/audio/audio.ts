@@ -85,8 +85,10 @@ export function engineWave(ctx: BaseAudioContext, profile: EngineProfile): Perio
 const EFFECTS_VOLUME = 0.2;
 const MUSIC_VOLUME = 0.07;
 const ENGINE_LEVEL = 0.28;
-const BRAKE_LEVEL = 0.32;
-const BRAKE_SQUEAL_LEVEL = 0.06;
+const BRAKE_LEVEL = 0.42;
+const BRAKE_SQUEAL_LEVEL = 0.09;
+/** Tyre squeal while cornering at speed; scaled by steering load and each car's squeal mix. */
+const TURN_LEVEL = 0.07;
 
 type AudioContextConstructor = typeof AudioContext;
 const contextConstructor = (): AudioContextConstructor | undefined =>
@@ -118,6 +120,8 @@ export class AudioEngine {
   private brakeToneGain: GainNode | null = null;
   private windFilter: BiquadFilterNode | null = null;
   private windGain: GainNode | null = null;
+  private turnFilter: BiquadFilterNode | null = null;
+  private turnGain: GainNode | null = null;
   private wantedMusic: MusicMode = 'menu';
 
   /** Turns audio on or off, creating the audio graph on first use. Returns the new state. */
@@ -165,7 +169,7 @@ export class AudioEngine {
   }
 
   /** Per-frame engine pitch and brake squeal. */
-  update(race: Pick<Race, 'status' | 'speed' | 'car'>, braking: boolean, accelerating = false): void {
+  update(race: Pick<Race, 'status' | 'speed' | 'car'> & Partial<Pick<Race, 'steer'>>, braking: boolean, accelerating = false): void {
     if (!this.enabled || !this.ctx) return;
     const now = this.ctx.currentTime;
     const running = race.status === 'running';
@@ -197,6 +201,10 @@ export class AudioEngine {
     const air = Math.max(0, Math.min(1, (race.speed - 40) / 310));
     this.windFilter!.frequency.setTargetAtTime(450 + air * 2600, now, 0.12);
     this.windGain!.gain.setTargetAtTime(running ? 0.035 * air + 0.12 * air * air : 0, now, 0.12);
+    // Tyres grip and squeal harder the more the car is turned at speed; braking hides it.
+    const cornering = running && !braking ? Math.min(1, Math.abs(race.steer ?? 0)) * Math.min(1, Math.max(0, race.speed - 20) / 80) : 0;
+    this.turnFilter!.frequency.setTargetAtTime(1200 + race.speed * 4, now, 0.1);
+    this.turnGain!.gain.setTargetAtTime(cornering * TURN_LEVEL * (0.5 + tuning.squeal), now, 0.08);
   }
 
   private ensureContext(): AudioContext {
@@ -266,6 +274,14 @@ export class AudioEngine {
     source.connect(this.windFilter);
     this.windFilter.connect(this.windGain);
     this.windGain.connect(this.effects);
+    this.turnFilter = ctx.createBiquadFilter();
+    this.turnFilter.type = 'bandpass';
+    this.turnFilter.Q.value = 1.4;
+    this.turnGain = ctx.createGain();
+    this.turnGain.gain.value = 0;
+    source.connect(this.turnFilter);
+    this.turnFilter.connect(this.turnGain);
+    this.turnGain.connect(this.effects);
     source.start();
     return ctx;
   }

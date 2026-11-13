@@ -17,6 +17,7 @@ export function mergeProgress(remote: SaveData | null, incoming: SaveData, playe
     owned: [...new Set([...(previous?.owned ?? []), ...local.owned])],
     paints: [...new Set([...(previous?.paints ?? []), ...local.paints])],
     tutorialDone: !!previous?.tutorialDone || local.tutorialDone,
+    demoUsed: !!previous?.demoUsed || local.demoUsed,
     history: [],
     createdAt: Math.min(previous?.createdAt ?? local.createdAt, local.createdAt),
     updatedAt: Math.max(previous?.updatedAt ?? 0, local.updatedAt),
@@ -41,6 +42,7 @@ export function reconcileStoredSave(stored: SaveData, current: SaveData): SaveDa
     owned: [...new Set([...stored.owned, ...current.owned])],
     paints: [...new Set([...stored.paints, ...current.paints])],
     tutorialDone: stored.tutorialDone || current.tutorialDone,
+    demoUsed: stored.demoUsed || current.demoUsed,
     createdAt: Math.min(stored.createdAt, current.createdAt),
     updatedAt: Math.max(stored.updatedAt, current.updatedAt),
   };

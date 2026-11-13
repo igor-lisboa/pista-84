@@ -32,6 +32,10 @@ export const id = {
   'shop.title': 'Koin jalan raya',
   'shop.balance': 'Saldo: {coins} koin.',
   'shop.unavailable': 'Paket yang direncanakan. Pembelian belum tersedia.',
+
+  'shop.guest': "Membeli koin perlu akun. Buat akun lewat Opsi.",
+
+  'demo.start': "Balapan demo: Veloce GT milikmu hanya untuk balapan ini. Jika menabrak, kamu kembali ke mobilmu.",
   'shop.soon': 'SEGERA HADIR',
   'coins.amount': 'Koin: {n}',
   'paint.scarlet': 'Merah menyala',

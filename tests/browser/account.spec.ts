@@ -61,7 +61,7 @@ test('a fresh device can sign up directly from the guest name screen', async ({p
   await backend(context);
   await page.goto('/');
   await expect(page.locator('#usernameForm')).toBeVisible();
-  await expect(page.locator('#closeModal')).toBeHidden();
+  await expect(page.locator('#closeModal')).toBeVisible();
   await page.locator('#usernameTab-login').click();
   await expect(page.locator('#usernamePassword')).toHaveAttribute('autocomplete', 'current-password');
   await expect(page.locator('#usernameTab-signup')).toHaveAttribute('aria-pressed', 'false');

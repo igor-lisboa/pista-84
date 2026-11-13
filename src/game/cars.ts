@@ -77,4 +77,6 @@ export const PAINTS: readonly Paint[] = [
 ];
 
 export const DEFAULT_CAR_ID = 'fusca';
+/** The car lent for the one demo run right after the tutorial (the Veloce GT, "Ferrari" in play). */
+export const DEMO_CAR_ID = 'gt';
 export const DEFAULT_PAINT_ID = 'original';
