@@ -5,7 +5,7 @@ import {ptBR} from '../../src/i18n/locales/pt-BR.ts';
 
 test.use({serviceWorkers: 'block'});
 
-for (const viewport of [{width: 375, height: 667}, {width: 667, height: 375}, {width: 768, height: 1024}, {width: 1440, height: 900}]) {
+for (const viewport of [{width: 375, height: 667}, {width: 667, height: 375}, {width: 768, height: 1024}, {width: 1024, height: 768}, {width: 900, height: 1440}, {width: 1440, height: 900}]) {
   test(`motorcycle taglines fit all locales at ${viewport.width}x${viewport.height}`, async ({page}, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize(viewport);
@@ -15,7 +15,7 @@ for (const viewport of [{width: 375, height: 667}, {width: 667, height: 375}, {w
       await page.locator(`.flag[data-lang="${lang}"]`).click();
       await page.locator('#closeModal').click();
       await page.locator('#garageNav').click();
-      for (const name of ['Biz 125', 'Hayabusa']) {
+      for (const name of ['Biz 125', 'Hayabusa', 'Harley Electra Glide']) {
         const card = page.locator('.car-card').filter({has: page.getByRole('heading', {name, exact: true})});
         const text = card.locator('.car-tagline');
         expect(await text.innerText()).not.toContain('tag.');
@@ -84,6 +84,7 @@ test('new motorcycle purchases persist and an already-owned ladder Uno stays sel
   for (const name of ['Biz 125', 'Hayabusa', 'Uno com Escada']) {
     await page.locator('#garageNav').click();
     const card = page.locator('.car-card').filter({has: page.getByRole('heading', {name, exact: true})});
+    if (name === 'Hayabusa') await expect(card.locator('dd').first()).toHaveText('370 km/h');
     await card.locator('button').click();
     await expect(card.locator('button')).toBeDisabled();
     await page.locator('#closeModal').click();

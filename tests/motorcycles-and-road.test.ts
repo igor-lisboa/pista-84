@@ -43,6 +43,28 @@ test('ladder Uno costs more than Maverick and legacy ownership survives price ch
   assert.equal(restored.selected, 'uno');
 });
 
+test('arcade Hayabusa keeps its launch pull and approaches its 370 km/h ceiling without overshooting', () => {
+  const spec = car('hayabusa');
+  assert.equal(spec.max, 370);
+  assert.equal(spec.purchase.price, 24000);
+  assert.equal(vehicleAcceleration(spec, 0), 36.75);
+  assert.equal(vehicleAcceleration(spec, 370), 0);
+  assert.ok(vehicleAcceleration(spec, 369) > 0);
+  const race = quietRace(spec);
+  race.speed = 369;
+  for (let i = 0; i < 1000; i++) {
+    race.x = 0;
+    race.fuel = 100;
+    race.update(0.02, {accelerate: true});
+    assert.ok(race.speed <= 370);
+  }
+  assert.ok(race.speed > 369);
+  const profile = AUDIO_PROFILES.hayabusa;
+  assert.ok(profile?.gears);
+  assert.equal(profile.gears.at(-1), 370);
+  assert.ok(engineVoice(profile, 369, true).frequency > engineVoice(profile, 300, true).frequency);
+});
+
 test('road section caching preserves original curves across seeds, random access and eviction', () => {
   const distances = [480, 640, 880, 1980, 2180, 2530, 5070];
   const snapshots = [

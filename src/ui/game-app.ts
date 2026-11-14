@@ -204,6 +204,7 @@ export class GameApp implements RemoteHost {
     if (!this.save.tutorialDone) this.openTutorial(false);
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
+      this.settingsDialog.refreshTilt();
       this.checkRotation();
     };
     this.input.onTiltSilent = () => this.notifications.toast(t('tilt.silent'));

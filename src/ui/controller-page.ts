@@ -29,7 +29,6 @@ export function mountControllerPage(params: URLSearchParams): void {
           <button id="remoteStart" class="go">${t('ctl.start')}</button>
           <button id="remotePause">${t('ctl.pause')}</button>
           <button id="tilt">${t('tilt.off')}</button>
-          <button id="calibrate" hidden>${t('ctl.calibrate')}</button>
         </div>
       </div>
       <div class="controller-wheel"><div id="wheel" class="wheel"><i></i></div></div>
@@ -46,18 +45,26 @@ export function mountControllerPage(params: URLSearchParams): void {
   input.bindButtons();
 
   const tiltButton = byId('tilt');
+  const checkRotation = (): void => {
+    const needed = input.tiltEnabled && innerHeight > innerWidth;
+    document.body.dataset.rotate = needed ? 'needed' : '';
+    if (needed) input.clear();
+  };
+  window.addEventListener('resize', checkRotation);
+  window.addEventListener('orientationchange', checkRotation);
   input.onTiltChange = (enabled) => {
     tiltButton.textContent = enabled ? t('tilt.on') : t('tilt.off');
-    byId('calibrate').hidden = !enabled;
     // Tilting steers, so the on-screen left/right buttons get out of the way.
     document.body.dataset.tilt = enabled ? 'on' : 'off';
+    checkRotation();
   };
+  input.onTiltSilent = () => { byId('connection').textContent = t('tilt.silent'); };
   tiltButton.onclick = () => {
     input.toggleTilt().catch((error: unknown) => {
       byId('connection').textContent = error instanceof TiltError ? t(error.key) : String(error);
     });
   };
-  byId('calibrate').onclick = () => input.calibrate();
+  byId('rotateOff').onclick = () => void input.toggleTilt().catch(() => undefined);
 
   let startUntil = 0;
   let pauseUntil = 0;
@@ -87,9 +94,11 @@ export function mountControllerPage(params: URLSearchParams): void {
 
   setInterval(() => {
     const idle = { steer: 0, accelerate: false, brake: false };
-    const drive = document.hidden ? idle : input.read();
+    const portraitBlocked = input.tiltEnabled && innerHeight > innerWidth;
+    const blocked = document.hidden || portraitBlocked;
+    const drive = blocked ? idle : input.read();
     const now = performance.now();
-    void connection.send({ ...drive, start: now < startUntil, pause: now < pauseUntil });
+    void connection.send({ ...drive, start: !blocked && now < startUntil, pause: portraitBlocked || now < pauseUntil });
     byId('wheel').style.setProperty('--wheel-angle', `${(drive.steer ?? 0) * WHEEL_DEGREES}deg`);
   }, SEND_INTERVAL_MS);
 }

@@ -5,7 +5,7 @@ import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
 import { car, quietRace } from './support/game.ts';
 
 test('new classics have plausible acceleration, speed ceilings and fuel tradeoffs', () => {
-  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [13, 14], gt: [2.5, 2.8] };
+  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [8.1, 8.4], gt: [1.8, 2] };
   for (const [id, [min, max]] of Object.entries(ranges)) {
     const spec = car(id);
     let speed = 0;
@@ -30,6 +30,48 @@ test('new classics have plausible acceleration, speed ceilings and fuel tradeoff
   assert.ok(burn('puma') < burn('passat'));
   assert.ok(burn('passat') < burn('marea'));
   assert.ok(car('puma').handling > car('passat').handling);
+});
+
+test('Puma arcade tuning approaches 250 km/h smoothly with acceleration rating 45', () => {
+  const spec = car('puma');
+  assert.equal(spec.max, 250);
+  assert.equal(spec.accel, 45);
+  assert.equal(spec.purchase.price, 1200);
+  assert.ok(Math.abs(vehicleAcceleration(spec, 0) - 12.825) < 1e-10);
+  assert.equal(vehicleAcceleration(spec, 250), 0);
+  assert.ok(vehicleAcceleration(spec, 249) > 0);
+  const race = quietRace(spec);
+  race.speed = 249;
+  for (let i = 0; i < 1000; i++) {
+    race.x = 0;
+    race.fuel = 100;
+    race.update(0.02, {accelerate: true});
+    assert.ok(race.speed <= 250);
+  }
+  assert.ok(race.speed > 249);
+  const profile = AUDIO_PROFILES.puma;
+  assert.ok(profile?.gears);
+  assert.equal(profile.gears.at(-1), 250);
+  assert.ok(engineVoice(profile, 249, true).frequency > engineVoice(profile, 180, true).frequency);
+});
+
+test('Veloce GT acceleration 150 strengthens launch while retaining its 350 km/h ceiling', () => {
+  const spec = car('gt');
+  assert.equal(spec.accel, 150);
+  assert.equal(spec.max, 350);
+  assert.equal(vehicleAcceleration(spec, 0), 54);
+  assert.equal(vehicleAcceleration(spec, 350), 0);
+  assert.ok(vehicleAcceleration(spec, 349) > 0);
+  const race = quietRace(spec);
+  const targets = [100, 245, 315, 332.5];
+  const times = targets.map(() => 0);
+  while (race.speed < 332.5 && race.time < 20) {
+    race.x = 0;
+    race.fuel = 100;
+    race.update(0.02, {accelerate: true});
+    targets.forEach((speed, i) => { if (times[i] === 0 && race.speed >= speed) times[i] = race.time; });
+  }
+  [1.92, 5.62, 9.90, 12.90].forEach((expected, i) => assert.ok(Math.abs((times[i] ?? 0) - expected) < 0.04));
 });
 
 test('modelled engines rise through each gear, drop pitch on shifts and reserve turbo hiss for load', () => {

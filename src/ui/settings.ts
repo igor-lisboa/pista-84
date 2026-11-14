@@ -113,7 +113,6 @@ export class SettingsDialog {
           <h3 class="group-title">${t('set.groupControls')}</h3>
           <div class="setting-card">
             ${row('tilt', 'phone', input.tiltEnabled ? t('set.tiltOn') : t('set.tiltOff'), { switch: true, pressed: input.tiltEnabled })}
-            ${row('calibrate', 'target', t('set.calibrate'), { hidden: !input.tiltEnabled })}
             <p id="sensorStatus" class="settings-note">${t('set.sensor')}</p>
             <p class="settings-note help-keys">${t('set.keys')}</p>
           </div>
@@ -144,10 +143,6 @@ export class SettingsDialog {
     byId('tutorial').onclick = () => this.deps.showTutorial();
     byId('sound').onclick = () => void this.toggleSound();
     byId('tilt').onclick = () => void this.toggleTilt();
-    byId('calibrate').onclick = () => {
-      input.calibrate();
-      this.deps.notify.toast(t('tilt.centered'));
-    };
     byId('fullscreen').onclick = () => void this.toggleFullscreen();
 
     this.updateInstallButton();
@@ -204,12 +199,18 @@ export class SettingsDialog {
     }
   }
 
+  /** Sensor loss can switch tilt off while this dialog is still open. */
+  refreshTilt(): void {
+    if (!document.querySelector('#tilt.setting-row')) return;
+    const enabled = this.deps.input.tiltEnabled;
+    setRow('tilt', enabled ? t('tilt.on') : t('tilt.off'), enabled);
+  }
+
   private async toggleTilt(): Promise<void> {
     const { input, notify } = this.deps;
     try {
       const enabled = await input.toggleTilt();
       setRow('tilt', enabled ? t('tilt.on') : t('tilt.off'), enabled);
-      byId('calibrate').hidden = !enabled;
       notify.toast(enabled ? t('tilt.hold') : t('tilt.buttons'));
     } catch (error) {
       notify.toast(error instanceof TiltError ? t(error.key) : String(error));

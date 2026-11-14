@@ -1,6 +1,7 @@
 import type { MessageKey } from '../types.ts';
 
 export const zhCN = {
+  "tag.harley": "闪亮镀铬与经典V型双缸",
   "demo.transition": "GT只是演示赛的借用车辆。现在，驾驶{car}开启你的PISTA 84旅程：参加比赛、赚取金币，壮大你的车库！",
   "tag.biz125": "每天可靠的伙伴",
   "tag.hayabusa": "公路上的澎湃动力",
@@ -186,7 +187,7 @@ export const zhCN = {
   'tilt.https': '请打开游戏的HTTPS链接以使用倾斜控制。',
   'tilt.denied': '运动权限被拒绝，按钮仍可正常使用。',
   'tilt.silent': '未收到传感器信号，请继续使用按钮。',
-  'tilt.hold': '以舒适角度握住手机，此位置将作为方向盘中心。',
+  "tilt.hold": "横握手机，屏幕朝向自己。保持水平即可直行，像方向盘一样转动即可转弯。",
   'tilt.buttons': '按钮转向已启用。',
   'tilt.centered': '方向盘已居中。',
   'garage.label': '选择旅途伙伴',

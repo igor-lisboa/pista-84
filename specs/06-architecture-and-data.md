@@ -46,7 +46,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 
 | Module | Responsibility |
 | --- | --- |
-| `src/game/cars.ts` | 21-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
+| `src/game/cars.ts` | 22-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
 | `src/game/race.ts` | `Race`: states, driving, off-road penalties, crashes, score, coins, checkpoints, fuel, second chance, spawning |
 | `src/game/traffic.ts` | Traffic and fuel entities: ramp, late-game pressure, waves, lane changes, following, separation |
 | `src/game/road.ts` | Seeded stateless road curve plus lane/camera geometry constants |
@@ -60,7 +60,8 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/render/renderer.ts` | Responsive perspective, road, scene projection, environment effects, shake and overlays |
 | `src/render/scenery.ts`, `billboards.ts`, `noise.ts`, `color.ts` | Cached city, clouds, trees, lamps, billboards and their ad texts, deterministic hash, color helpers |
 | `src/render/sprites.ts`, `procedural-cars.ts` | Atlas loading/trimming, paints, turn frames; procedural sprites used as loading fallback |
-| `src/audio/audio.ts`, `src/audio/engine-voices.ts` | `AudioEngine`, 21 engine profiles, braking noise, effects, single toggle |
+| `src/render/harley-art.ts` | Harley atlas gutters, brake-lamp coordinates and touring-bike loading fallback |
+| `src/audio/audio.ts`, `src/audio/engine-voices.ts` | `AudioEngine`, 22 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data (menu loop plus seven race tracks) |
 | `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
 | `src/ui/game-app.ts` | `GameApp`: owns save, race, renderer, audio and the menu/race/pause/over flow, autosave, sync triggers and platform plumbing |
@@ -69,6 +70,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/account.ts`, `auth-tabs.ts`, `username.ts` | Post-demo/account screen, sign up / log in switch, username field cleaning |
 | `src/ui/leaderboard.ts`, `tutorial.ts`, `about.ts` | Ranking dialog, how-to-play steps, About dialog |
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |
+| `src/ui/tilt-control.ts`, `tilt-math.ts`, `landscape-lock.ts` | Sensor permissions/lifetime, absolute wheel steering/filter and cancellable landscape/fullscreen ownership |
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts`, `icons.ts`, `flags.ts`, `units.ts` | Car previews, DOM/format helpers, toasts and feedback, SVG icons, SVG language flags, unit formatting |
 | `src/net/account.ts` | Account client: session identity marker, requests to `/api/auth` and `/api/account`, device cleanup on logout |
@@ -180,7 +182,7 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v30** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v34** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.
 

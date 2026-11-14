@@ -1,6 +1,7 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  "tag.harley": "輝くクロームと伝統のVツイン",
   "demo.transition": "GTはデモ専用の貸出車でした。ここからは{car}でPISTA 84の旅へ！走ってコインを集め、ガレージを充実させよう！",
   "tag.biz125": "毎日の頼れる相棒",
   "tag.hayabusa": "高速道路でも余裕のパワー",
@@ -198,7 +199,7 @@ export const ja: Messages = {
   'tilt.https': '傾き操作にはゲームのHTTPSリンクを開いてください。',
   'tilt.denied': 'モーションの許可が拒否されました。ボタンは引き続き使えます。',
   'tilt.silent': 'センサーの信号がありません。ボタンで続けてください。',
-  'tilt.hold': '楽な角度で持ってください。そこがハンドルの中心になります。',
+  "tilt.hold": "画面を自分に向けてスマホを横向きに持ちます。水平で直進、ハンドルのように回して曲がります。",
   'tilt.buttons': 'ボタン操作に切り替えました。',
   'tilt.centered': 'ハンドルを中央に戻しました。',
 

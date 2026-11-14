@@ -26,15 +26,20 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `fiat147` | Fiat 147 | box | 132 | 24 | 0.68 | 1.02 | 160 coins |
 | `marea` | Marea Turbo | sedan | 220 | 52 | 1.35 | 1.08 | 2400 coins |
 | `passat` | Passat 85 | box | 170 | 34 | 0.88 | 1.04 | 480 coins |
-| `puma` | Puma GT | sport | 160 | 31 | 0.83 | 1.18 | 1200 coins |
-| `gt` | Veloce GT | sport | 350 | 110 | 1.20 | 1.15 | 30,000 coins |
+| `puma` | Puma GT | sport | 250 | 45 | 0.83 | 1.18 | 1200 coins |
+| `gt` | Veloce GT | sport | 350 | 150 | 1.20 | 1.15 | 30,000 coins |
 | `superbike` | Raio 1000 | bike | 300 | 68 | 1.05 | 1.50 | 20,000 coins |
 | `biz125` | Biz 125 | bike | 110 | 32 | 0.35 | 1.40 | 200 coins |
-| `hayabusa` | Hayabusa | bike | 299 | 105 | 1.10 | 1.35 | 24,000 coins |
+| `hayabusa` | Hayabusa | bike | 370 | 105 | 1.10 | 1.35 | 24,000 coins |
+| `harley` | Harley Electra Glide | bike | 165 | 42 | 1.10 | 0.90 | 6000 coins |
 
-The Veloce GT uses acceleration 110 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID and ownership are preserved; its price is 3,200 coins, above the Maverick GT, without retuning its performance. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
+Hayabusa's 370 km/h maximum is a requested arcade exception, not a real-world specification. Its ID, ownership, price, base acceleration, gain/falloff, handling, consumption, size and braking remain unchanged; the final synthesized gear range extends to 370 km/h.
 
-Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125, Biz 125, Hayabusa) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
+Puma GT uses the requested arcade maximum of 250 km/h and acceleration rating 45. Its ID, ownership, price, gain/falloff, handling, consumption, size and braking remain unchanged. These are game values rather than real-world performance claims.
+
+The Veloce GT uses the requested acceleration 150 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID and ownership are preserved; its price is 3,200 coins, above the Maverick GT, without retuning its performance. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
+
+Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125, Biz 125, Hayabusa, Harley Electra Glide) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
 ### Per-vehicle tuning
 
@@ -63,12 +68,15 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 | `superbike` | 0.31 | 0.7 | 0.60 | 64 |
 | `biz125` | 0.27 | 1.8 | 0.50 | 40 |
 | `hayabusa` | 0.35 | 0.65 | 0.66 | 68 |
+| `harley` | 0.28 | 1.7 | 0.84 | 40 |
 
 ### Art
 
+Harley Electra Glide represents a 1977 FLH 1200 Shovelhead touring motorcycle. Its larger body, hard saddlebags, chrome and upright rider distinguish it from the other bikes. Speed, acceleration, price and synthesized RPM/gear thresholds are arcade approximations, not certified real specifications. It uses authored straight/mild/strong poses, custom paint and brake feedback while preserving every existing saved vehicle ID. [Model references, art prompt and review](../docs/harley-v1.md).
+
 Biz 125 and Hayabusa use the six-pose transparent `vehicle-motorcycles-v1.png` sheet. Model/year/engine references, arcade choices, full generation prompt and review limits are in [motorcycle notes](../docs/motorcycles-v1.md).
 
-All twenty-one cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Normal Uno uses `vehicle-uno-v1.png`, with provenance and a pose contact sheet in [Uno notes](../docs/uno-v1.md). Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
+All twenty-two cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Normal Uno uses `vehicle-uno-v1.png`, with provenance and a pose contact sheet in [Uno notes](../docs/uno-v1.md). Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 

@@ -1,6 +1,7 @@
 import type { MessageKey } from '../types.ts';
 
 export const am = {
+  "tag.harley": "ብዙ ክሮም እና ክላሲክ V-twin",
   "demo.transition": "GT ለሙከራው ብቻ የተዋሰ መኪና ነበር። አሁን የPISTA 84 ጉዞዎ በ{car} ይጀምራል፤ ይወዳደሩ፣ ሳንቲሞችን ያግኙ እና ጋራዥዎን ያሳድጉ!",
   "tag.biz125": "የዕለት ተዕለት ታማኝ ጓደኛ",
   "tag.hayabusa": "በአውራ ጎዳና ላይ የተትረፈረፈ ኃይል",
@@ -186,7 +187,7 @@ export const am = {
   'tilt.https': 'ማዘንበልን ለመጠቀም የጨዋታውን HTTPS አገናኝ ይክፈቱ።',
   'tilt.denied': 'የእንቅስቃሴ ፈቃድ አልተሰጠም። አዝራሮቹ ይሠራሉ።',
   'tilt.silent': 'የሴንሰር ምልክት የለም። አዝራሮቹን ይጠቀሙ።',
-  'tilt.hold': 'ስልኩን ምቹ በሆነ ማዕዘን ይያዙ፤ ይህ የመሪው መሃል ይሆናል።',
+  "tilt.hold": "ስልኩን በአግድም ማያውን ወደ እርስዎ አዙረው ይያዙ። እኩል ሲሆን ቀጥ ይሄዳል፤ ለመታጠፍ እንደ መሪ ያዙሩት።",
   'tilt.buttons': 'በአዝራር መምራት ነቅቷል።',
   'tilt.centered': 'መሪው መሃል ተደርጓል።',
   'garage.label': 'የጉዞ ጓደኛዎን ይምረጡ',

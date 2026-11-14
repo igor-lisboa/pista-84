@@ -9,6 +9,11 @@ async function openController(browser: Browser, host: Page, viewport: { width: n
     // Desktop Chromium has no motion sensor API; a phone does.
     const sensor = ((window as unknown as Record<string, unknown>).DeviceOrientationEvent ??= class {}) as Record<string, unknown>;
     sensor.requestPermission = async () => 'granted';
+    setInterval(() => {
+      const motion = new Event('devicemotion');
+      Object.defineProperty(motion, 'accelerationIncludingGravity', {value: {x: 0, y: 9.81, z: 0}});
+      window.dispatchEvent(motion);
+    }, 100);
   };
   await host.addInitScript(disableRtc);
   await host.goto('/');
@@ -23,6 +28,22 @@ async function openController(browser: Browser, host: Page, viewport: { width: n
   await expect(phone.locator('#connection')).toHaveText('Conectado. Boa viagem!');
   return { phone, context };
 }
+
+test('portrait tilt blocks the phone controller and pauses the paired race', async ({browser, page}) => {
+  const {phone, context} = await openController(browser, page, {width: 390, height: 844});
+  await page.locator('#closeModal').click();
+  await page.locator('#start').click();
+  await expect(page.locator('body')).toHaveAttribute('data-view', 'race');
+  await phone.locator('#tilt').click();
+  await expect(phone.locator('#rotateHint')).toBeVisible();
+  await expect(page.locator('body')).toHaveAttribute('data-view', 'overlay');
+  await phone.locator('#rotateOff').click();
+  await expect(phone.locator('#rotateHint')).toBeHidden();
+  await expect(phone.locator('[data-control="left"]')).toBeVisible();
+  await phone.locator('#remoteStart').click();
+  await expect(page.locator('body')).toHaveAttribute('data-view', 'race');
+  await context.close();
+});
 
 const inside = (b: { x: number; y: number; width: number; height: number }, v: { width: number; height: number }) =>
   b.x >= 0 && b.y >= 0 && b.x + b.width <= v.width && b.y + b.height <= v.height;
@@ -63,14 +84,17 @@ for (const [name, viewport] of [['sideways', { width: 844, height: 390 }], ['upr
     await expect(phone.locator('body')).toHaveAttribute('data-tilt', 'on');
     await expect(phone.locator('[data-control="left"]')).toBeHidden();
     await expect(phone.locator('[data-control="right"]')).toBeHidden();
-    await expect(phone.locator('#calibrate')).toBeVisible();
+    await expect(phone.locator('#calibrate')).toHaveCount(0);
     const after = await box(phone, '#wheel');
     expect(after.width).toBeGreaterThanOrEqual(before.width);
     expect(inside(after, viewport)).toBe(true);
     for (const control of ['brake', 'accelerate']) expect(inside(await box(phone, `[data-control="${control}"]`), viewport)).toBe(true);
 
     // And the buttons come back when tilt is switched off again.
-    await phone.locator('#tilt').click();
+    if (name === 'upright') {
+      await expect(phone.locator('#rotateHint')).toBeVisible();
+      await phone.locator('#rotateOff').click();
+    } else await phone.locator('#tilt').click();
     await expect(phone.locator('[data-control="left"]')).toBeVisible();
     await context.close();
   });

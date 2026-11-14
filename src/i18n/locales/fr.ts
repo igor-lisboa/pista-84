@@ -1,6 +1,7 @@
 import type { Messages } from '../types.ts';
 
 export const fr: Messages = {
+  "tag.harley": "Du chrome et un V-twin à l’ancienne",
   "demo.transition": "Le GT était prêté pour la démo. Votre aventure PISTA 84 commence avec {car} : courez, gagnez des pièces et agrandissez votre garage !",
   "tag.biz125": "Votre alliée au quotidien",
   "tag.hayabusa": "Une réserve de puissance sur route",
@@ -198,7 +199,7 @@ export const fr: Messages = {
   'tilt.https': 'Ouvrez le lien HTTPS du jeu pour utiliser l’inclinaison.',
   'tilt.denied': 'Autorisation de mouvement refusée. Les boutons fonctionnent toujours.',
   'tilt.silent': 'Aucun signal du capteur. Continuez avec les boutons.',
-  'tilt.hold': 'Tenez le téléphone dans une position confortable : ce sera le centre du volant.',
+  "tilt.hold": "Tenez le téléphone à l’horizontale, écran face à vous. À niveau, vous allez droit ; tournez comme un volant.",
   'tilt.buttons': 'Direction par boutons activée.',
   'tilt.centered': 'Volant centré.',
 

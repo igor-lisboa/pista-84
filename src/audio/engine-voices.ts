@@ -39,7 +39,7 @@ export const AUDIO_PROFILES: Readonly<Record<string, EngineProfile>> = {
   passat: { base: 52, ratio: 0.74, wave: 'sawtooth', filter: 740, brake: 980,
     gears: [40, 73, 114, 150, 170], cylinders: 4, idleRpm: 900, redlineRpm: 6100, harmonics: [1, 0.62, 0.23, 0.2, 0.1] },
   puma: { base: 36, ratio: 0.88, wave: 'triangle', filter: 880, brake: 1080,
-    gears: [39, 72, 112, 160], cylinders: 4, idleRpm: 850, redlineRpm: 5500, harmonics: [1, 0.24, 0.6, 0.12, 0.28, 0.08] },
+    gears: [39, 72, 112, 250], cylinders: 4, idleRpm: 850, redlineRpm: 5500, harmonics: [1, 0.24, 0.6, 0.12, 0.28, 0.08] },
   gt: { base: 27, ratio: 1.1, wave: 'sawtooth', filter: 1300, brake: 680,
     gears: [68, 113, 163, 220, 283, 350], cylinders: 8, idleRpm: 950, redlineRpm: 8500, harmonics: [1, 0.38, 0.3, 0.2, 0.13, 0.08] },
   suv: { base: 22, ratio: 0.5, wave: 'sawtooth', filter: 320, brake: 520,
@@ -63,7 +63,9 @@ export const AUDIO_PROFILES: Readonly<Record<string, EngineProfile>> = {
   biz125: { base: 85, ratio: 1.15, wave: 'triangle', filter: 900, brake: 1250,
     gears: [24, 44, 72, 110], cylinders: 1, idleRpm: 1400, redlineRpm: 7500, harmonics: [1, 0.8, 0.45, 0.24, 0.12] },
   hayabusa: { base: 100, ratio: 1.65, wave: 'sawtooth', filter: 1650, brake: 950,
-    gears: [80, 120, 165, 210, 260, 299], cylinders: 4, idleRpm: 1050, redlineRpm: 11000, harmonics: [1, 0.5, 0.3, 0.16, 0.08, 0.04] },
+    gears: [80, 120, 165, 210, 260, 370], cylinders: 4, idleRpm: 1050, redlineRpm: 11000, harmonics: [1, 0.5, 0.3, 0.16, 0.08, 0.04] },
+  harley: { base: 28, ratio: 0.68, wave: 'sawtooth', filter: 420, brake: 620,
+    gears: [35, 65, 110, 165], cylinders: 2, idleRpm: 950, redlineRpm: 5500, harmonics: [1, 0.85, 0.35, 0.65, 0.2, 0.3, 0.12] },
 };
 
 /** Synthesised firing frequency follows engine RPM through automatic gear changes. */

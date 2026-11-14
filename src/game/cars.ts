@@ -52,11 +52,12 @@ export const CARS: readonly CarSpec[] = [
   { id: 'fiat147', name: 'Fiat 147', color: '#e6b45b', max: 132, accel: 24, consumption: 0.68, handling: 1.02, purchase: { kind: 'coins', price: 160 }, shape: 'box' },
   { id: 'marea', name: 'Marea Turbo', color: '#527a68', max: 220, accel: 52, consumption: 1.35, handling: 1.08, purchase: { kind: 'coins', price: 2400 }, shape: 'sedan' },
   { id: 'passat', name: 'Passat 85', color: '#9b4840', max: 170, accel: 34, consumption: 0.88, handling: 1.04, purchase: { kind: 'coins', price: 480 }, shape: 'box' },
-  { id: 'puma', name: 'Puma GT', color: '#e8d7a6', max: 160, accel: 31, consumption: 0.83, handling: 1.18, purchase: { kind: 'coins', price: 1200 }, shape: 'sport' },
-  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 110, consumption: 1.2, handling: 1.15, purchase: { kind: 'coins', price: 30_000 }, shape: 'sport' },
+  { id: 'puma', name: 'Puma GT', color: '#e8d7a6', max: 250, accel: 45, consumption: 0.83, handling: 1.18, purchase: { kind: 'coins', price: 1200 }, shape: 'sport' },
+  { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 150, consumption: 1.2, handling: 1.15, purchase: { kind: 'coins', price: 30_000 }, shape: 'sport' },
   { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.05, handling: 1.5, purchase: { kind: 'coins', price: 20_000 }, shape: 'bike' },
   { id: 'biz125', name: 'Biz 125', color: '#d33a3a', max: 110, accel: 32, consumption: 0.35, handling: 1.4, purchase: { kind: 'coins', price: 200 }, shape: 'bike' },
-  { id: 'hayabusa', name: 'Hayabusa', color: '#2852b8', max: 299, accel: 105, consumption: 1.1, handling: 1.35, purchase: { kind: 'coins', price: 24_000 }, shape: 'bike' },
+  { id: 'hayabusa', name: 'Hayabusa', color: '#2852b8', max: 370, accel: 105, consumption: 1.1, handling: 1.35, purchase: { kind: 'coins', price: 24_000 }, shape: 'bike' },
+  { id: 'harley', name: 'Harley Electra Glide', color: '#147d75', max: 165, accel: 42, consumption: 1.1, handling: 0.9, purchase: { kind: 'coins', price: 6000 }, shape: 'bike' },
 ];
 
 export const PAINTS: readonly Paint[] = [

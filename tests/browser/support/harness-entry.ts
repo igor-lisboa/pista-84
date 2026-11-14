@@ -8,5 +8,6 @@ export { AudioEngine, AUDIO_PROFILES, engineVoice, engineWave } from '../../../s
 export { showGameOver } from '../../../src/ui/overlays.ts';
 export { paintCarPreview } from '../../../src/ui/car-art.ts';
 export { Hud } from '../../../src/ui/hud.ts';
+export {InputController} from '../../../src/ui/input.ts';
 
-export {setLang, LANGS} from '../../../src/i18n/index.ts';
+export {setLang, LANGS, t} from '../../../src/i18n/index.ts';

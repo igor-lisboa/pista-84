@@ -1,6 +1,7 @@
 import type { Messages } from '../types.ts';
 
 export const de: Messages = {
+  "tag.harley": "Viel Chrom und ein klassischer V-Twin",
   "demo.transition": "Der GT war für die Demo geliehen. Deine PISTA 84-Reise beginnt mit {car}: Fahre Rennen, sammle Münzen und erweitere deine Garage!",
   "tag.biz125": "Deine Begleiterin im Alltag",
   "tag.hayabusa": "Kraftreserven auf der Autobahn",
@@ -198,7 +199,7 @@ export const de: Messages = {
   'tilt.https': 'Öffne den HTTPS-Link des Spiels, um die Neigung zu nutzen.',
   'tilt.denied': 'Bewegungszugriff verweigert. Die Tasten funktionieren weiter.',
   'tilt.silent': 'Kein Sensorsignal. Nutze weiter die Tasten.',
-  'tilt.hold': 'In bequemer Haltung festhalten: Das wird die Lenkradmitte.',
+  "tilt.hold": "Halte das Handy quer, mit dem Bildschirm zu dir. Waagerecht fährst du geradeaus; drehe es wie ein Lenkrad.",
   'tilt.buttons': 'Tastenlenkung aktiviert.',
   'tilt.centered': 'Lenkrad zentriert.',
 

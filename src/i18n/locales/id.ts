@@ -1,6 +1,7 @@
 import type { MessageKey } from '../types.ts';
 
 export const id = {
+  "tag.harley": "Krom berkilau dan V-twin klasik",
   "demo.transition": "GT hanya dipinjamkan untuk demo. Perjalanan PISTA 84-mu dimulai dengan {car}: balapan, kumpulkan koin, dan isi garasimu!",
   "tag.biz125": "Teman setia setiap hari",
   "tag.hayabusa": "Tenaga berlimpah di jalan raya",
@@ -186,7 +187,7 @@ export const id = {
   'tilt.https': 'Buka tautan HTTPS game untuk memakai kemiringan.',
   'tilt.denied': 'Izin gerakan ditolak. Tombol tetap berfungsi.',
   'tilt.silent': 'Tidak ada sinyal sensor. Tetap gunakan tombol.',
-  'tilt.hold': 'Pegang pada sudut yang nyaman: ini akan menjadi titik tengah kemudi.',
+  "tilt.hold": "Pegang ponsel mendatar dengan layar menghadapmu. Posisi rata untuk lurus; putar seperti setir.",
   'tilt.buttons': 'Kemudi tombol aktif.',
   'tilt.centered': 'Kemudi dipusatkan.',
   'garage.label': 'PILIH TEMAN PERJALANAN',

@@ -2,7 +2,7 @@
 
 **Start here. This folder is the canonical specification for the game.**
 
-Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v30**. Reconciled with the code on **2026-11-14**. Game source is in [`../`](../).
+Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v34**. Reconciled with the code on **2026-11-14**. Game source is in [`../`](../).
 
 These specifications are the **source of truth** for the game. They were reconciled with the implementation on 2026-11-14; from then on a behavior change starts here and the code follows (see the maintenance rules below). Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
 
@@ -10,7 +10,7 @@ These specifications are the **source of truth** for the game. They were reconci
 | --- | --- |
 | [01 — Product and scope](01-product-and-scope.md) | Concept, platforms, design decisions, delivery boundaries |
 | [02 — Gameplay](02-gameplay.md) | States, movement, fuel, fatal crashes, off-road, traffic, score, environment |
-| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 21-vehicle catalog, statistics, coin prices, paints, score-based rewards, paid second chance |
+| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 22-vehicle catalog, statistics, coin prices, paints, score-based rewards, paid second chance |
 | [04 — Interface and controls](04-interface-and-controls.md) | Initial menu, top-bar race HUD, accounts, leaderboard, tutorial, keyboard, touch, tilt, fifteen languages, Safari |
 | [05 — Art and audio](05-art-and-audio.md) | Reference direction, sunset-arcade look, camera, sprites, scenery, procedural music and sounds |
 | [06 — Architecture and data](06-architecture-and-data.md) | TypeScript modules, save schema, runtime config, accounts, MongoDB/Redis, offline sync, offline and native packaging |

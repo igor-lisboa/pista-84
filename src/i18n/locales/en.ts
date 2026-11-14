@@ -1,6 +1,7 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  "tag.harley": "Big chrome and an old-school V-twin",
   "demo.transition": "The GT was a demo loan. Your PISTA 84 journey begins with {car}: race, earn coins and grow your garage!",
   "tag.biz125": "Your everyday companion",
   "tag.hayabusa": "Highway power to spare",
@@ -198,7 +199,7 @@ export const en: Messages = {
   'tilt.https': 'Open the HTTPS link of the game to use tilt.',
   'tilt.denied': 'Motion permission denied. The buttons still work.',
   'tilt.silent': 'No sensor signal. Keep using the steering buttons.',
-  'tilt.hold': 'Hold at a comfortable angle: this will be the wheel centre.',
+  "tilt.hold": "Hold the phone sideways with the screen facing you. Level goes straight; turn it like a steering wheel.",
   'tilt.buttons': 'Button steering enabled.',
   'tilt.centered': 'Wheel centred.',
 

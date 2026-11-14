@@ -11,12 +11,12 @@ These are arcade approximations of period road cars, not homologation measuremen
 | Fiat 147 | 132 | 23.2 | 0.68 | 1.02 | 0.88 |
 | Marea Turbo | 220 | 7.2 | 1.35 | 1.08 | 1.02 |
 | Passat 85 | 170 | 12.3 | 0.88 | 1.04 | 0.94 |
-| Puma GT | 160 | 13.3 | 0.83 | 1.18 | 0.95 |
-| Veloce GT | 350 | 2.6 | 1.20 | 1.15 | 1.18 |
+| Puma GT | 250 | 8.3 | 0.83 | 1.18 | 0.95 |
+| Veloce GT | 350 | 1.9 | 1.20 | 1.15 | 1.18 |
 
 Historical tuning: the GT acceleration rating rose from 64 to 70 (9.375% stronger pull), retaining its 350 km/h ceiling. Its previous 0–100 time was approximately 5.35 seconds. It later rose again from 70 to 84 (20% stronger pull), cutting 0–100 from about 4.9 to 4.1 seconds.
 
-Current GT acceleration is 110 with gain 0.36; see [measured times](acceleration-v6.md).
+Current GT acceleration is 150 with gain 0.36; see [measured times](acceleration-v6.md).
 
 The four new cars and GT now have model-specific exhaust harmonics, firing rates derived from cylinder count and simulated RPM, automatic gear pitch drops, a low exhaust layer and smooth pitch/filter envelopes. Marea uses a five-cylinder voice plus quiet load-dependent filtered turbo air noise. Puma uses a deeper flat-four spectrum. These remain synthesized game sounds, not recordings of the real vehicles. Other current profiles are cataloged in spec 05; later Uno changes are documented in [Uno notes](uno-v1.md). Non-running states mute engine layers; braking removes turbo load.
 
@@ -48,3 +48,7 @@ Use whole-cell composition centered per cell and complete vehicle in every cell.
 Edit target: this 3-column 4-row vehicle sprite sheet. Preserve the 12 vehicle identities, model details, colors, high quality illustration, straight/gentle-right/hard-right pose order and true alpha transparency. Correct ONLY spacing and yaw: shrink each individual vehicle by 18 percent about its own cell center so EVERY car including wheels and mirrors has at least 30 fully transparent pixels clearance from its cell boundary. Exact equal cells: columns x=0..341,342..682,683..1023; rows y=0..383,384..767,768..1151,1152..1535. Center each vehicle horizontally within its own cell. Do not move rows or columns or change model identities. Third column should have distinctly stronger 28 degree right yaw than column two's gentle 12 degrees, showing noticeably more right flank with rear to left, front away upper right. Entire body within cell. Remove all smoky colored backdrops, halos and floor shadows: ONLY vehicle pixels, everything else completely alpha zero. No text outside car badges. Transparent background production sprite atlas.
 ```
 
+
+Puma GT follow-up (2026-11-14): maximum 250 km/h and acceleration rating 45 are requested arcade settings, not real specifications. Price, saved ID/ownership and other tuning stay unchanged. The final synthesized gear limit is 250 km/h; earlier limits and flat-four voice remain unchanged. Full measured acceleration is in the acceleration table.
+
+Follow-up audit: catalog/spec 03, audio/spec 05, the measured table, roadmap, requirement VEH02 and cache baseline `pista84-v32` agree. Build, strict typecheck, docs checks and 172 Node tests pass; focused browser checks pass five cases with three unsupported Windows WebKit audio skips (exact command in spec 08). Tests check actual near-ceiling Race behavior, launch/acceleration, gear pitch, garage stats and purchase/reload persistence. Source catalog/voice modules remain 85/87 lines; the touched Node test is 90 lines. The existing large browser test file and unrelated QLT-01 debt remain. No new unsafe typing, implementation abstraction, asset or translation change is introduced. Diff whitespace checks pass; earlier Hayabusa edits are preserved. Physical/native/speaker review remains pending.

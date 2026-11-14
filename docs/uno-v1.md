@@ -1,6 +1,6 @@
 # Normal Uno and ladder meme - 2026-11-14
 
-`uno-normal` retains the former ladder Uno game specifications: 150 km/h, acceleration 30, gain 0.26, falloff 1.4, consumption 0.70, handling 1.05, width 0.94, braking 38 and price 120 coins. These inherited arcade values are not sourced real-model specifications. `uno` remains the saved identity of Uno com Escada, now intentionally exaggerated to 400 km/h and acceleration 90/gain 0.36. GT acceleration is 110/gain 0.36, preserving its 0.5 high-speed falloff. The meme reflects Brazilian jokes about company Uno drivers carrying roof ladders.
+`uno-normal` retains the former ladder Uno game specifications: 150 km/h, acceleration 30, gain 0.26, falloff 1.4, consumption 0.70, handling 1.05, width 0.94, braking 38 and price 120 coins. These inherited arcade values are not sourced real-model specifications. `uno` remains the saved identity of Uno com Escada, now intentionally exaggerated to 400 km/h and acceleration 90/gain 0.36. GT acceleration is 150/gain 0.36, preserving its 0.5 high-speed falloff. The meme reflects Brazilian jokes about company Uno drivers carrying roof ladders.
 
 The [normal Uno sheet](../web/assets/vehicle-uno-v1.png) was made with the built-in imagegen tool, using `vehicle-classics-v2.png` as reference. Three equal horizontal cells contain straight, mild and strong right turns. Left turns mirror those authored poses. Factory white body recoloring preserves glass, lamps and bumper; brake feedback uses the shared renderer. The procedural fallback shares the Uno body with the ladder omitted.
 

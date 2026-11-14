@@ -2,6 +2,7 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  "tag.harley": "Muito cromado e um V-twin clássico",
   "demo.transition": "O GT foi só uma demonstração. A tua jornada no PISTA 84 começa com o {car}: corre, ganha moedas e constrói a tua garagem!",
   "tag.biz125": "A companheira do dia a dia",
   "tag.hayabusa": "Potência de sobra na estrada",
@@ -162,7 +163,7 @@ export const ptPT: Messages = {
   'tilt.noSensor': 'Sensor indisponível. Use os botões de direção.',
   'tilt.denied': 'Permissão de movimento recusada. Os botões continuam a funcionar.',
   'tilt.silent': 'Sem sinal do sensor. Continue com os botões de direção.',
-  'tilt.hold': 'Segure numa posição confortável: será o centro do volante.',
+  "tilt.hold": "Segura o telemóvel na horizontal, com o ecrã virado para ti. Nivelado segue em frente; roda como um volante.",
 
   'garage.export': 'Exportar progresso',
   'garage.import': 'Importar progresso',

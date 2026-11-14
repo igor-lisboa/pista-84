@@ -29,7 +29,7 @@ for (const [width, height] of [[320, 568], [375, 667], [390, 844], [568, 320], [
     }
     await page.screenshot({path: testInfo.outputPath(`menu-${width}x${height}.png`)});
     await page.locator('#garageNav').click();
-    await expect(page.locator('.car-card')).toHaveCount(21);
+    await expect(page.locator('.car-card')).toHaveCount(22);
     await page.locator('#closeModal').click();
     if (width! < height!) {
       await page.locator('#coinsNav').click();

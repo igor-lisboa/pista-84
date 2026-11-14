@@ -39,7 +39,7 @@ test('the garage shows one car per row on a phone, with its stats inside the car
   await page.locator('#garageNav').click();
 
   const cards = page.locator('.car-card');
-  expect(await cards.count()).toBe(21);
+  expect(await cards.count()).toBe(22);
   const first = (await cards.nth(0).boundingBox())!;
   const second = (await cards.nth(1).boundingBox())!;
   expect(second.y).toBeGreaterThan(first.y + first.height - 1); // stacked, never side by side
@@ -50,7 +50,7 @@ test('the garage shows one car per row on a phone, with its stats inside the car
   const stat = (await cards.nth(0).locator('dl > div').first().boundingBox())!;
   expect(stat.width).toBeGreaterThan(120);
   // The thumbnail and the buy/select button are both there for every car.
-  for (let i = 0; i < 21; i += 1) {
+  for (let i = 0; i < 22; i += 1) {
     await expect(cards.nth(i).locator('canvas')).toHaveCount(1);
     await expect(cards.nth(i).locator('button')).toHaveCount(1);
   }

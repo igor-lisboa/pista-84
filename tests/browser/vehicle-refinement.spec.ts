@@ -70,7 +70,7 @@ test('engine audio switches between geared models and legacy vehicles without er
     const { AudioEngine, CARS } = window.Pista;
     const audio = new AudioEngine();
     await audio.toggle();
-    for (const id of ['fiat147', 'marea', 'passat', 'puma', 'gt', 'fusca', 'uno-normal', 'uno']) {
+    for (const id of ['fiat147', 'marea', 'passat', 'puma', 'gt', 'fusca', 'uno-normal', 'uno', 'harley']) {
       const car = CARS.find((car) => car.id === id)!;
       for (const speed of [0, 35, 80, car.max]) {
         audio.update({ status: 'running', speed, car }, false, true);

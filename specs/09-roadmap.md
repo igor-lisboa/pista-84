@@ -14,7 +14,7 @@ Implement authenticated server-issued race sessions, bounded/plausible progress 
 
 ## COM-01 — Payments, premium currency and paid vehicles
 
-**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** Real-money coin purchases are **pending work**: no payment provider is connected and the shop is a placeholder. All twenty-one cars are priced in coins with no premium distinction, so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
+**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** Real-money coin purchases are **pending work**: no payment provider is connected and the shop is a placeholder. All twenty-two cars are priced in coins with no premium distinction, so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
 
 Add MongoDB collections for `orders`, `payment_events`, `wallet_entries` and `entitlements` (documented in [storage](../docs/STORAGE.md) when created). The main-menu **Buy coins** dialog is currently a disabled "coming soon" placeholder listing the planned 1,000 / 3,000 / 7,500 coin packs (R$ 9.90 / 24.90 / 49.90); it must become the checkout entry point. Implement:
 
@@ -68,7 +68,7 @@ Open `ios/App/App.xcodeproj`, set the final application identity/team, resolve S
 
 ## ART-01 — Authored atlas art for the six newer vehicles
 
-**Implemented.** All twenty-one vehicles have authored straight, gentle-turn and hard-turn sprites, mirrored left turns and runtime paint remapping. The eight original models use vehicle-atlas-v1.png and vehicle-turns-v2.png, the six classics vehicle-classics-v2.png and the four Brazilian additions vehicle-brazilian-v1.png and normal Uno vehicle-uno-v1.png; procedural art remains an asset-loading fallback. Atlas cells have transparent borders, and browser checks compare cropped poses to reject sideways translations. See [provenance, prompts and review captures](../docs/vehicle-classics-v2.md).
+**Implemented.** All twenty-two vehicles have authored straight, gentle-turn and hard-turn sprites, mirrored left turns and runtime paint remapping. The eight original models use vehicle-atlas-v1.png and vehicle-turns-v2.png, the six classics vehicle-classics-v2.png and the four Brazilian additions vehicle-brazilian-v1.png and normal Uno vehicle-uno-v1.png; procedural art remains an asset-loading fallback. Atlas cells have transparent borders, and browser checks compare cropped poses to reject sideways translations. See [provenance, prompts and review captures](../docs/vehicle-classics-v2.md).
 
 ## I18N-01 — Translation review
 
@@ -82,7 +82,7 @@ Have a native speaker per language review every string for tone, length in the H
 
 **P1 before public mobile distribution.** Automated Chromium/WebKit results do not replace actual devices.
 
-Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exercise tilt permission denial, calibration, dead zone, simultaneous touches, screen lock, resume, sensor loss and battery behavior. Confirm on hardware that gravity tilt steers the same way on Android and iOS (the sign convention is fixed from the first upright reading), that the landscape prompt appears where the lock is refused, that the phone-dialog layout fits an iPhone SE (375 x 667) in both orientations, that pinch and double-tap zoom are blocked, and that the cornering squeal and braking sound are acceptable through a phone speaker. Run at least 15 minutes per platform through rain/night/fog, recording FPS, memory and temperature. Define the minimum supported device; target 30 sustained FPS there. Native-wrapper remote control needs separate authentication/service validation before enabling it.
+Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exercise tilt permission denial, level steering center, dead zone, simultaneous touches, screen lock, resume, sensor loss and battery behavior. Confirm on hardware that gravity tilt steers the same way on Android and iOS (the sign convention is fixed from the first upright reading), that the landscape prompt appears where the lock is refused, that the phone-dialog layout fits an iPhone SE (375 x 667) in both orientations, that pinch and double-tap zoom are blocked, and that the cornering squeal and braking sound are acceptable through a phone speaker. Run at least 15 minutes per platform through rain/night/fog, recording FPS, memory and temperature. Define the minimum supported device; target 30 sustained FPS there. Native-wrapper remote control needs separate authentication/service validation before enabling it.
 
 **Accept:** report listing device, OS, browser/build, results and resolved defects; no claim of physical support based only on emulation.
 
@@ -90,7 +90,7 @@ Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exerc
 
 **P2 before commercial release.** Complete human playtests and broader browser/update checks.
 
-Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category (21 vehicles); fuel availability, coin prices against score-based earnings, the pace multiplier, the 120 s traffic ramp and 240 s late-game pressure, grass penalties, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
+Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category (22 vehicles); fuel availability, coin prices against score-based earnings, the pace multiplier, the 120 s traffic ramp and 240 s late-game pressure, grass penalties, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
 
 **Accept:** recorded metrics drive balance changes; all vehicle categories remain viable; no update loses legitimate progress; no unsupported global browser/device claim.
 
@@ -108,6 +108,14 @@ Run physical/balance QA alongside native tool provisioning. ART-01 is implemente
 
 ## Maintenance delivery - 2026-11-14
 
+Harley Electra Glide adds a broad old-school touring motorcycle at 6,000 coins, 165 km/h and acceleration rating 42, with three authored poses, mirrored left turns, paint/brake support, four-gear synthetic V-twin audio and fifteen translated taglines. Ownership keeps the new `harley` ID and existing save format. [References, art prompt and review evidence](../docs/harley-v1.md) distinguish arcade choices from manufacturer data; hardware/audio and native-speaker checks remain QA-01/I18N-01.
+
+Veloce GT acceleration raised to 150 with its 350 km/h ceiling retained. Tilt uses level landscape as an absolute wheel center with smoothing and gravity-based orientation fallback; calibration controls are removed. Landscape/fullscreen ownership is cancellation-safe, unsupported locks block portrait play, and portrait controllers pause their host. Physical sensor/OS-lock certification remains QA-01.
+
+Puma GT maximum raised to the requested arcade 250 km/h and acceleration rating 45, with matching final audio gear range and measured acceleration. Other tuning, price and saved ownership remain intact; physical performance is not implied.
+
+Hayabusa maximum raised to the requested arcade 370 km/h, with matching final audio gear range and updated measured acceleration. Other tuning, price and saved identity stay intact; this is not a real-world performance claim.
+
 The first completed demo result explains the temporary GT loan and the transition to Fusca 76 (or the player's saved selection), with fifteen-language text and no extra modal. Later/continued results do not repeat the explanation; smaller-screen demo summaries keep their actions reachable.
 
 Guest-only optional-account note; ladder Uno price of 3,200 coins with its tuning and ownership preserved; Biz 125 and Hayabusa with authored poses, paint/brake support, distinct geared sounds and fifteen-language taglines. Road drawing batches, reusable projection buffers, bounded section caching and incremental sprite-cache eviction reduce repeated work while retaining the same camera and rules. Physical performance and speaker mixing remain QA-01 work; [motorcycle provenance](../docs/motorcycles-v1.md) distinguishes source evidence from arcade settings.
@@ -118,7 +126,7 @@ Normal Uno and its three authored poses added; ladder Uno intentionally tuned to
 
 ## QLT-01 — Focused implementation modules
 
-**P2; existing maintainability debt.** The quality skill and review agents are implemented; seven production TypeScript modules still exceed the new below-300-line target (see [technical debt](../docs/TECH-DEBT.md#module-size-debt)).
+**P2; existing maintainability debt.** The quality skill and review agents are implemented; six production TypeScript modules still exceed the new below-300-line target (see [technical debt](../docs/TECH-DEBT.md#module-size-debt)).
 
 Decompose oversized implementation files by cohesive responsibilities as affected areas are maintained. Keep strict runtime boundaries, existing interfaces and offline/storage invariants. Avoid introducing generic frameworks or arbitrary file fragments. This workflow addition does not itself refactor those modules.
 

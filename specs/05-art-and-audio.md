@@ -31,6 +31,8 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 
 Biz 125 and Hayabusa add six straight/mild/strong right sprites in `vehicle-motorcycles-v1.png`, mirrored for left turns. Model references, prompt, paint/brake support and review evidence: [motorcycle notes](../docs/motorcycles-v1.md).
 
+Harley Electra Glide adds three authored touring-bike poses in `vehicle-harley-v1.png`, with mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters and the loading fallback live in `render/harley-art.ts`. References, full imagegen prompt and review limits: [Harley provenance](../docs/harley-v1.md).
+
 Authored asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the original catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 
 The atlas has transparent alpha. Runtime regions are trimmed to visible alpha bounds; every model preserves its own width/height ratio. Motorcycles are narrower; sports-car width is adjusted independently. Garage/menu thumbnails fit the full vehicle inside their canvas rather than cutting off the roof.
@@ -55,7 +57,11 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **21** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/engine-voices.ts`, re-exported by `src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
+Puma GT's requested 250 km/h arcade maximum extends its final synthesized gear limit to 250 km/h; earlier limits remain 39/72/112, with the same flat-four voice and RPM/harmonic profile.
+
+Hayabusa's requested 370 km/h arcade maximum extends its final synthesized gear limit to 370 km/h; its earlier limits remain 80/120/165/210/260, with the same cylinders, RPM range and harmonic profile.
+
+Each of the **22** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/engine-voices.ts`, re-exported by `src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
 
 The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while accelerating). Engine gain is 0.28 × 0.8 coasting or × 1.5 accelerating. Braking combines broad, lower-pitched friction noise (bandpass at `brake + speed × 1.5`) with a quiet per-model tonal squeal scaled by `squeal` in `vehicle-tuning.ts`; the Veloce GT has `squeal: 0` (friction only) and a 680 Hz brake filter base. Full braking peaks at friction level **0.42** and squeal **0.09** (scaled by the car's brake rate and squeal mix), so braking reads clearly over the engine. Envelopes respond in about 60 ms and fade as the car stops. **Tyre squeal** while cornering: bandpass noise at `1200 + speed × 4` Hz, rising with the steering load (`|steer|`) and with speed above 20 km/h (full at 100 km/h), scaled by `0.5 + squeal` from [vehicle-tuning](../src/game/vehicle-tuning.ts) and silent while braking. Wind noise rises with speed (40–350 km/h). Effects gain is 0.20; music bus gain is 0.07 in menus and 0.0455 (× 0.65) in races. The sound toggle controls the full mix.
 
@@ -82,6 +88,7 @@ The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while a
 | superbike | 125 | 1.80 | square | 1800 | 1000 | 4 | 1300 / 13000 |
 | biz125 | 85 | 1.15 | triangle | 900 | 1250 | 1 | 1400 / 7500 |
 | hayabusa | 100 | 1.65 | sawtooth | 1650 | 950 | 4 | 1050 / 11000 |
+| harley | 28 | 0.68 | sawtooth | 420 | 620 | 2 | 950 / 5500 |
 
 ### Music
 

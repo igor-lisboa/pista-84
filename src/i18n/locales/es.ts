@@ -1,6 +1,7 @@
 import type { MessageKey } from '../types.ts';
 
 export const es = {
+  "tag.harley": "Mucho cromo y un V-twin clásico",
   "demo.transition": "El GT era un préstamo para la demo. Tu aventura en PISTA 84 empieza con {car}: ¡corre, gana monedas y amplía tu garaje!",
   "tag.biz125": "Tu compañera de cada día",
   "tag.hayabusa": "Potencia de sobra en carretera",
@@ -186,7 +187,7 @@ export const es = {
   'tilt.https': 'Abre el enlace HTTPS del juego para usar la inclinación.',
   'tilt.denied': 'Permiso de movimiento denegado. Los botones siguen funcionando.',
   'tilt.silent': 'No hay señal del sensor. Sigue usando los botones.',
-  'tilt.hold': 'Sujeta el móvil en una posición cómoda: será el centro del volante.',
+  "tilt.hold": "Sujeta el móvil en horizontal, con la pantalla hacia ti. Nivelado vas recto; gíralo como un volante.",
   'tilt.buttons': 'Dirección con botones activada.',
   'tilt.centered': 'Volante centrado.',
   'garage.label': 'ELIGE TU COMPAÑERO',

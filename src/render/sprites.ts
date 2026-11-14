@@ -1,4 +1,6 @@
 import { shade } from './color.ts';
+import {CARS} from '../game/cars.ts';
+import {HARLEY_REGIONS, HARLEY_BRAKE_LAMP, paintHarleyFallback} from './harley-art.ts';
 import {BASE_PAINTS, recolorTile} from './sprite-paint.ts';
 import { paintProceduralCar } from './procedural-cars.ts';
 import type { CarLook } from '../game/index.ts';
@@ -19,8 +21,8 @@ const SPRITE_CACHE_LIMIT = 150;
 const PAINT_CACHE_LIMIT = 80;
 const ALPHA_THRESHOLD = 80;
 const DEFAULT_BODY_COLOR = '#efce5e';
-const ATLAS_TILE_COUNT = 21;
-const TURN_TILE_COUNT = 42;
+const ATLAS_TILE_COUNT = CARS.length;
+const TURN_TILE_COUNT = ATLAS_TILE_COUNT * 2;
 const TURN_SHEET_SIZE = 1254;
 
 const DEFAULT_ATLAS_URL = './assets/vehicle-atlas-v1.png';
@@ -240,7 +242,9 @@ export async function loadSprites(
   const brazilian = new Map<string, HTMLCanvasElement>();
   const uno = new Map<string, HTMLCanvasElement>();
   const motorcycles = new Map<string, HTMLCanvasElement>();
+  const harley = new Map<string, HTMLCanvasElement>();
   await Promise.all([
+    loadAtlas('./assets/vehicle-harley-v1.png', HARLEY_REGIONS, harley),
     loadAtlas('./assets/vehicle-motorcycles-v1.png', {
       'biz125:0': [0, 0, 1 / 3, 0.5], 'biz125:1': [1 / 3, 0, 1 / 3, 0.5], 'biz125:2': [2 / 3, 0, 1 / 3, 0.5],
       'hayabusa:0': [0, 0.5, 1 / 3, 0.5], 'hayabusa:1': [1 / 3, 0.5, 1 / 3, 0.5], 'hayabusa:2': [2 / 3, 0.5, 1 / 3, 0.5],
@@ -255,7 +259,7 @@ export async function loadSprites(
     loadAtlas(classicsUrl, CLASSIC_REGIONS, classics),
     loadAtlas(brazilianUrl, BRAZILIAN_REGIONS, brazilian),
   ]);
-  for (const [key, tile] of [...classics, ...brazilian, ...uno, ...motorcycles]) {
+  for (const [key, tile] of [...classics, ...brazilian, ...uno, ...motorcycles, ...harley]) {
     const [id, pose] = key.split(':');
     if (pose === '0') atlasTiles.set(id!, tile);
     else turnTiles.set(key, tile);
@@ -550,7 +554,7 @@ function sprite(car: CarLook, brake: boolean, turn: number): HTMLCanvasElement {
   const painter = createPainter(c);
   const livery = createLivery(car, brake);
   c.translate(turn * 3, 0);
-  if (!paintProceduralCar(c, car, brake)) {
+  if (!paintHarleyFallback(c, car, brake) && !paintProceduralCar(c, car, brake)) {
     if (car.shape === 'bike') paintBike(painter, car, livery);
     else paintFourWheeler(painter, car, livery);
   }
@@ -572,6 +576,7 @@ const TURNING_BRAKE_LAMPS = [0.1, 0.58] as const;
 
 // Positions on the cropped authored images. These cars' lights sit higher than the bumper.
 const MODEL_BRAKE_LAMPS: Readonly<Record<string, { y: number; centers: readonly (readonly number[])[] }>> = {
+  harley: HARLEY_BRAKE_LAMP,
   biz125: { y: 0.45, centers: [[0.5], [0.22], [0.25]] },
   hayabusa: { y: 0.51, centers: [[0.5], [0.29], [0.26]] },
   'uno-normal': { y: 0.37, centers: [[0.1, 0.88], [0.06, 0.65], [0.07, 0.57]] },

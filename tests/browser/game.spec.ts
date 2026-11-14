@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { hudSpeed, loadHarness } from './support/harness.ts';
 
-const CAR_COUNT = 21;
+const CAR_COUNT = 22;
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -193,6 +193,10 @@ test('new models and high-price vehicles can be purchased and stay owned after r
   await page.locator('#garageNav').click();
   for (const name of ['Fiat 147', 'Marea Turbo', 'Passat 85', 'Puma GT', 'Raio 1000', 'Veloce GT']) {
     const card = page.locator('.car-card').filter({ has: page.getByRole('heading', { name, exact: true }) });
+    if (name === 'Puma GT') {
+      await expect(card.locator('dd').nth(0)).toHaveText('250 km/h');
+      await expect(card.locator('dd').nth(1)).toHaveText('45');
+    }
     await card.getByRole('button').click();
     await expect(card.getByRole('button')).toHaveText('SELECIONADO');
   }
@@ -216,6 +220,12 @@ test('the offline cache serves the app and sound can be switched on', async ({ p
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   await context.setOffline(true);
   await page.reload();
+  expect(await page.evaluate(async () => {
+    const image = new Image();
+    image.src = '/assets/vehicle-harley-v1.png';
+    await image.decode();
+    return image.naturalWidth;
+  })).toBe(1536);
   await page.locator('#start').click();
   await expect(page.locator('#raceUI')).toBeVisible();
   expect(errors).toEqual([]);

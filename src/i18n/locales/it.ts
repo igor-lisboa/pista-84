@@ -1,6 +1,7 @@
 import type { Messages } from '../types.ts';
 
 export const it: Messages = {
+  "tag.harley": "Cromature e un V-twin d’altri tempi",
   "demo.transition": "La GT era in prestito per la demo. Il tuo viaggio in PISTA 84 inizia con {car}: corri, guadagna monete e amplia il garage!",
   "tag.biz125": "La compagna di ogni giorno",
   "tag.hayabusa": "Potenza da vendere in autostrada",
@@ -198,7 +199,7 @@ export const it: Messages = {
   'tilt.https': 'Apri il link HTTPS del gioco per usare l’inclinazione.',
   'tilt.denied': 'Permesso di movimento negato. I pulsanti continuano a funzionare.',
   'tilt.silent': 'Nessun segnale dal sensore. Continua con i pulsanti.',
-  'tilt.hold': 'Tieni il telefono in una posizione comoda: sarà il centro del volante.',
+  "tilt.hold": "Tieni il telefono in orizzontale con lo schermo verso di te. Dritto vai avanti; giralo come un volante.",
   'tilt.buttons': 'Sterzo a pulsanti attivato.',
   'tilt.centered': 'Volante centrato.',
 

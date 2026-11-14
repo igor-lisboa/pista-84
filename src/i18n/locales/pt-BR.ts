@@ -1,5 +1,6 @@
 // Source language: every key is defined here, and the other locales fall back to it.
 export const ptBR = {
+  "tag.harley": "Muito cromo e um V-twin clássico",
   "demo.transition": "O GT foi só uma demonstração. Sua jornada no PISTA 84 começa com o {car}: corra, ganhe moedas e monte sua garagem!",
   "tag.biz125": "A parceira de todo dia",
   "tag.hayabusa": "Potência de sobra na estrada",
@@ -197,7 +198,7 @@ export const ptBR = {
   'tilt.https': 'Abra o link HTTPS do jogo para usar a inclinação.',
   'tilt.denied': 'Permissão de movimento negada. Os botões continuam funcionando.',
   'tilt.silent': 'Nenhum sinal do sensor. Continue com os botões de direção.',
-  'tilt.hold': 'Segure na posição confortável: este será o centro do volante.',
+  "tilt.hold": "Segure o celular na horizontal, com a tela de frente para você. Nivelado segue reto; gire como um volante.",
   'tilt.buttons': 'Direção pelos botões ativada.',
   'tilt.centered': 'Volante centralizado.',
 

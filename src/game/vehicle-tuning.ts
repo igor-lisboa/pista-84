@@ -35,6 +35,7 @@ export const VEHICLE_TUNING: Readonly<Record<string, VehicleTuning>> = {
   superbike: { accelerationGain: 0.31, accelerationFalloff: 0.7, width: 0.6, braking: 64, squeal: 0.1 },
   biz125: { accelerationGain: 0.27, accelerationFalloff: 1.8, width: 0.5, braking: 40, squeal: 0.15 },
   hayabusa: { accelerationGain: 0.35, accelerationFalloff: 0.65, width: 0.66, braking: 68, squeal: 0.1 },
+  harley: { accelerationGain: 0.28, accelerationFalloff: 1.7, width: 0.84, braking: 40, squeal: 0.35 },
 };
 
 export const vehicleTuning = (car: CarLook): VehicleTuning =>

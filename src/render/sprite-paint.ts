@@ -27,6 +27,7 @@ export const BASE_PAINTS: Readonly<Record<string, string>> = {
   puma: '#e8d7a6',
   biz125: '#d33a3a',
   hayabusa: '#2852b8',
+  harley: '#147d75',
 };
 
 /** Hue (0..1) of the paintable body area of each atlas tile. */
@@ -52,6 +53,7 @@ const BASE_HUES: Readonly<Record<string, number>> = {
   puma: 0.13,
   biz125: 0,
   hayabusa: 0.63,
+  harley: 0.49,
 };
 
 const HUE_TOLERANCE = 0.13;
@@ -125,6 +127,7 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
     const diff = Math.min(Math.abs(h - baseHue), 1 - Math.abs(h - baseHue));
     const x = ((i / 4) % canvas.width) / canvas.width;
     const y = Math.floor(i / 4 / canvas.width) / canvas.height;
+    if (car.id === 'harley' && (y < 0.32 || y > 0.91)) continue;
     // New bikes keep neutral helmets, reflected mirror glass and red brake lenses.
     if (car.id === 'biz125' || car.id === 'hayabusa') {
       const lampX = car.id === 'biz125' ? [0.5, 0.22, 0.25] : [0.5, 0.29, 0.26];
@@ -136,7 +139,7 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
       (car.id === 'uno' && y > 0.25 && y < 0.72 && !(y > 0.59 && x > 0.28 && x < 0.72))
       || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.53 && y < 0.70 && x > 0.28 && x < 0.68))
     );
-    const paintable = whiteBody || (diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
+    const paintable = whiteBody || (diff < (car.id === 'harley' ? 0.08 : HUE_TOLERANCE) && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
     if (!paintable) continue;
     // Dark and neutral paints must change brightness too, while retaining panel shading.
     const lightness = whiteBody && car.id === 'uno-normal' ? Math.min(0.96, l * target[2] / 0.8)

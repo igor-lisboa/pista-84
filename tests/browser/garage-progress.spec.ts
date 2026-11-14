@@ -10,7 +10,7 @@ for (const viewport of [{width: 1280, height: 720}, {width: 390, height: 844}, {
       await page.route('**/health', route => route.fulfill({json: {ok: true, cloudBackup: true}}));
       await page.goto('/');
       await page.locator('#garageNav').click();
-      await expect(page.locator('#garageGrid .car-card')).toHaveCount(21);
+      await expect(page.locator('#garageGrid .car-card')).toHaveCount(22);
       // Cloud buttons no longer exist: uploads are automatic for signed-in devices.
       await expect(page.locator('#cloudUpload, #cloudRestore, #cloudTools, .cloud-note')).toHaveCount(0);
       for (const id of ['exportSave', 'importSave']) {

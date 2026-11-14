@@ -33,7 +33,7 @@ The experience is a playable racing game with an initial menu, rather than a das
 | Progress | Local browser save (v2) and file export/import for everyone; optional username/password account that merges progress across devices; automatic device snapshots and account sync for signed-in players. There is no manual cloud backup button |
 | Ranking | Online leaderboard (five pilots per page) for signed-in players only; guests see an explanatory message |
 | Code | Full TypeScript; Node 24 runs `.ts` natively, `tsc --noEmit` type-checks, esbuild bundles |
-| Monetization | All 21 vehicles use coins, with prices from 0 to 30,000 and no premium category. The menu's "Buy coins" dialog only previews planned packs with disabled "coming soon" buttons. No payment provider, premium wallet or ads are connected |
+| Monetization | All 22 vehicles use coins, with prices from 0 to 30,000 and no premium category. The menu's "Buy coins" dialog only previews planned packs with disabled "coming soon" buttons. No payment provider, premium wallet or ads are connected |
 | Native | Android/iOS Capacitor projects exist; distributable builds are not validated or signed |
 
 ## Design priorities

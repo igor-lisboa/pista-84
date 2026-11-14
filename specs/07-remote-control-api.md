@@ -16,6 +16,8 @@ The QR is rendered locally. No camera or microphone permission is requested. A l
 
 ## Socket contract and input
 
+With tilt enabled, a portrait controller blocks driving/start input, sends neutral steering/pedals plus `pause: true`, and exposes the existing Use buttons escape hatch. Returning to landscape permits controls again; the paused host resumes only from an explicit start/continue action. No transport or message shape changes are required.
+
 Connect to `wss://<game-origin>/api/controller` (local HTTP uses `ws:`). The first text frame is:
 
 ```json

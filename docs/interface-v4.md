@@ -2,6 +2,8 @@
 
 The main menu centers its portrait stack with breathing room around the identity, actions and selected vehicle. Landscape uses fluid paired columns instead of fixed-width tracks, with separate header tools and footer records. Compact portrait dialogs and pause menus center vertically; long dialogs retain top-first scrolling. Responsive composition lives in `web/menu-layout.css`, included in the offline cache.
 
+Tilt steering uses a screen-facing upright phone, level for straight and rotated like a steering wheel for turns. Settings and the paired controller no longer show calibration controls. Landscape is requested on enable; unsupported locks use a portrait blocker with Use buttons. A blocked phone controller pauses the host and sends neutral driving controls. Sensor loss restores buttons and refreshes the settings switch.
+
 Player-facing strings no longer embed emoji or decorative icon characters. A small inline SVG set in `src/ui/icons.ts` provides consistent artwork for settings, play/pause, steering, controller, coin, fuel, info, trophy, user, volume, fullscreen, install, help, units, tilt, calibration, restart and bend icons. Currency amounts are localized text. Keyboard-help arrows still describe the actual arrow keys; language flags remain authored SVGs.
 
 HUD columns and card dimensions are fixed per responsive layout. Score lines and checkpoint labels cannot resize their parent cards; numeric text uses tabular figures and values stay right-aligned. Phone landscape retains its left/right arrangement.

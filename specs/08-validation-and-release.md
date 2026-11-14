@@ -45,7 +45,7 @@ npm run test:browser
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
 - `npm run docs:check` checks catalog, tuning and engine tables, application/save/cache baseline, translation counts, source references and local Markdown links. It runs automatically as `pretest`; behavior and prose still require manual review.
-- `npm test` runs `node --test tests/*.test.ts`: 170 isolated Node tests in 25 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm test` runs `node --test tests/*.test.ts`: 180 isolated Node tests in 26 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
 - `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning guest with tutorial/demo complete; account tests explicitly seed or establish sessions); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
@@ -57,7 +57,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race.test.ts`, `world.test.ts`) |
 | State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
 | Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
-| Vehicles and audio | 21 distinct coin vehicles, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
+| Vehicles and audio | 22 distinct coin vehicles, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
 | Environment | Road bounds/direction changes by seed; local-clock start, per-run weather, continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, GUID/username/units/timestamps, import rules, past players (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
 | Accounts | Password rules, scrypt parameters, atomic unique usernames, session rotation/expiry/revocation, HTTPS requirement, shared attempt budgets, forged-GUID rejection, password change, MongoDB account adapters and indexes (`auth.test.ts`, `mongo-accounts.test.ts`, `mongo-store.test.ts`) |
@@ -70,7 +70,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
 | Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
 | Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
-| Graphics | All 21 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
+| Graphics | All 22 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
 | Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
 | Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
 | Local stack | Compose pins private MongoDB/Redis URLs and publishes only the game port; the Dockerfile ignores secrets; `scripts/local.sh` rewrites every `.env.example` key it depends on with LF endings; the smoke check refuses non-local services and cleans up (`local-stack.test.ts`). Live: health, assets, guest 401s, account signup/login/logout, score and leaderboard, progress revisions and device snapshots, account reconciliation, room claim and WebSocket input through Redis (`scripts/check-local.ts`, run by `local.sh check`) |
@@ -79,6 +79,22 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Verification evidence
+
+### Screen-facing wheel tilt and GT acceleration 150 (2026-11-14)
+
+- Production build, strict typecheck, docs checks and 177 Node tests pass. The focused Chromium/WebKit tilt/controller/mobile/demo/language/settings/offline/audio scope passes 54 cases and skips two unsupported Windows WebKit audio cases, with no final failures.
+- Real Race GT 0–100/70%/90%/95% times are 1.92/5.62/9.90/12.90 s. Tilt tests cover absolute level center, both landscape grips/signs, smoothing, orientation-only gravity fallback, invalid/flat data, timeout, cancellation-safe lock ownership, portrait blocking and paired-host pause. All fifteen hold-help translations fit phone/tablet/desktop orientations.
+- Exact commands, source/spec mapping, initial fixture corrections, screenshots, standards, module-size review and physical/native limitations are in the [wheel tilt audit](../docs/tilt-wheel-review-2026-11-14.md).
+
+### Puma GT 250/45 arcade tuning (2026-11-14)
+
+- Production build, strict typecheck, docs checks and all 172 Node tests pass. Actual Race measurements (`node scripts/measure-acceleration.ts`, dry road, centered steering, no traffic, unlimited fuel, 20 ms steps): 0–100 in 8.26 s, 70/90/95% in 16.90/30.88/41.94 s. Regression tests check 250 km/h maximum, acceleration rating 45, initial pull 12.825 km/h/s, positive near-ceiling acceleration, no overshoot and top-gear pitch growth.
+- `playwright test tests/browser/game.spec.ts tests/browser/audio.spec.ts tests/browser/vehicle-refinement.spec.ts --grep 'new models and high-price|brake friction|delayed audio|engine audio' --workers=4`: five passed, three unsupported Windows WebKit audio skips, no failures. Both engines check garage 250 km/h and 45 readouts, purchases and reload ownership; Chromium checks audio. This is affected-scope emulation, not physical/native certification.
+
+### Hayabusa 370 km/h arcade ceiling (2026-11-14)
+
+- Production build, strict typecheck, documentation checks and all 171 Node tests pass. `node scripts/measure-acceleration.ts` measures Hayabusa 0–100 in 2.80 s and 70/90/95% in 8.74/15.56/20.52 s. Regression coverage checks unchanged initial pull, positive near-maximum acceleration, no overshoot and final-gear pitch growth through the new range.
+- `playwright test tests/browser/motorcycles.spec.ts tests/browser/audio.spec.ts tests/browser/vehicle-refinement.spec.ts --grep 'drive|purchases|brake friction|delayed audio|engine audio' --workers=4`: nine passed, three unsupported Windows WebKit audio skips, no failures. Both engines check phone driving/pause/return, ownership/purchases and the garage's 370 km/h readout; Chromium checks audio. Physical high-speed/audio validation is not claimed.
 
 ### Demo-to-journey explanation (2026-11-14)
 
