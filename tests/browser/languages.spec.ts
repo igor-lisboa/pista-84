@@ -6,6 +6,7 @@ const NEW_LANGUAGES = {
 };
 
 test('all new language flags select translated text and persist the choice', async ({ page }) => {
+  test.setTimeout(90000); // Exercises eight languages and repeated dialog transitions in both engines.
   await page.goto('/');
   await page.locator('#settingsNav').click();
   await expect(page.locator('.flag')).toHaveCount(15);
@@ -28,14 +29,17 @@ test('all new language flags select translated text and persist the choice', asy
 });
 
 test('Urdu browser detection preserves physical steering and pedal positions on a phone', async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ur-PK', hasTouch: true, isMobile: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ur-PK', hasTouch: true, isMobile: true, storageState: {cookies: [], origins: []} });
   try {
     const page = await context.newPage();
-    await page.goto('/');
+    await page.goto('/', {waitUntil: 'domcontentloaded'});
     await expect(page.locator('html')).toHaveAttribute('lang', 'ur');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('#start span')).toHaveText(NEW_LANGUAGES.ur);
+    await page.locator('#tutSkip').tap();
+    await expect(page.locator('#modal')).toBeHidden();
     await page.locator('#start').tap();
+    await expect(page.locator('#raceUI')).toBeVisible();
     const positions = await page.evaluate(() => {
       const left = (name: string) => document.querySelector(`[data-control="${name}"]`)!.getBoundingClientRect().left;
       return { left: left('left'), right: left('right'), brake: left('brake'), accelerate: left('accelerate') };

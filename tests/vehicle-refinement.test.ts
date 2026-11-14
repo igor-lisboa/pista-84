@@ -5,7 +5,7 @@ import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
 import { car, quietRace } from './support/game.ts';
 
 test('new classics have plausible acceleration, speed ceilings and fuel tradeoffs', () => {
-  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [13, 14], gt: [3.2, 3.6] };
+  const ranges = { fiat147: [22, 25], marea: [7, 8], passat: [12, 13], puma: [13, 14], gt: [2.5, 2.8] };
   for (const [id, [min, max]] of Object.entries(ranges)) {
     const spec = car(id);
     let speed = 0;
@@ -50,4 +50,18 @@ test('modelled engines rise through each gear, drop pitch on shifts and reserve 
   }
   assert.ok(engineVoice(AUDIO_PROFILES.marea!, 45, true).turbo > 0);
   assert.equal(engineVoice(AUDIO_PROFILES.puma!, 35, true).turbo, 0);
+});
+
+test('ladder Uno is a deliberate 400 km/h meme while the normal Uno retains its previous tuning', () => {
+  const normal = car('uno-normal');
+  const ladder = car('uno');
+  const gt = car('gt');
+  assert.equal(normal.max, 150);
+  assert.equal(normal.accel, 30);
+  assert.equal(ladder.max, 400);
+  assert.ok(Math.abs(vehicleAcceleration(normal, 0) - 7.8) < 1e-10);
+  assert.ok(vehicleAcceleration(ladder, 0) > 30);
+  assert.ok(vehicleAcceleration(ladder, 0) < vehicleAcceleration(gt, 0));
+  assert.equal(vehicleAcceleration(ladder, 400), 0);
+  assert.ok(vehicleAcceleration(ladder, 399) > 0);
 });

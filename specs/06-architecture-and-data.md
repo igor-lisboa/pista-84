@@ -46,7 +46,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 
 | Module | Responsibility |
 | --- | --- |
-| `src/game/cars.ts` | 18-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
+| `src/game/cars.ts` | 19-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
 | `src/game/race.ts` | `Race`: states, driving, off-road penalties, crashes, score, coins, checkpoints, fuel, second chance, spawning |
 | `src/game/traffic.ts` | Traffic and fuel entities: ramp, late-game pressure, waves, lane changes, following, separation |
 | `src/game/road.ts` | Seeded stateless road curve plus lane/camera geometry constants |
@@ -60,13 +60,13 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/render/renderer.ts` | Responsive perspective, road, scene projection, environment effects, shake and overlays |
 | `src/render/scenery.ts`, `billboards.ts`, `noise.ts`, `color.ts` | Cached city, clouds, trees, lamps, billboards and their ad texts, deterministic hash, color helpers |
 | `src/render/sprites.ts`, `procedural-cars.ts` | Atlas loading/trimming, paints, turn frames; procedural sprites used as loading fallback |
-| `src/audio/audio.ts` | `AudioEngine`: 18 engine profiles, braking noise, effects, single toggle |
+| `src/audio/audio.ts` | `AudioEngine`: 19 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data (menu loop plus seven race tracks) |
 | `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
 | `src/ui/game-app.ts` | `GameApp`: owns save, race, renderer, audio and the menu/race/pause/over flow, autosave, sync triggers and platform plumbing |
 | `src/ui/hud.ts`, `overlays.ts` | Top-bar HUD, pause/result screens |
 | `src/ui/settings.ts`, `garage.ts` | Options dialog, garage (cars, paints, file export/import, coin-pack preview) |
-| `src/ui/account.ts`, `auth-tabs.ts`, `username.ts` | First-launch/account screen, sign up / log in switch, username field cleaning |
+| `src/ui/account.ts`, `auth-tabs.ts`, `username.ts` | Post-demo/account screen, sign up / log in switch, username field cleaning |
 | `src/ui/leaderboard.ts`, `tutorial.ts`, `about.ts` | Ranking dialog, how-to-play steps, About dialog |
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
@@ -180,6 +180,14 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v26** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v27** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.
+
+Maintenance tools: `scripts/audit-docs.ts` validates documentation facts and links; `scripts/measure-acceleration.ts` measures every vehicle with the actual simulation; `scripts/review-uno.ts` renders Uno pose and driving review captures against an isolated local server.
+
+## TypeScript maintainability
+
+Keep strict, erasable typing and explicit `.ts` relative imports. Validate external values from `unknown`; assertions do not replace runtime validation. Use clear contracts, discriminated states, narrow interfaces and explicit errors. Apply SOLID by separating simulation, rendering/UI, transport, connection setup and business rules, using existing interfaces where useful rather than adding abstraction layers by default.
+
+New handwritten implementation modules stay below 300 physical lines (299 maximum, including comments/blanks). Review new and touched files; split along responsibility and dependency boundaries while preserving behavior. Track remaining existing overages in [module-size debt](../docs/TECH-DEBT.md#module-size-debt) and QLT-01. Data-only catalogs, locales and tests are included in size reports with their purpose identified. The [quality workflow](../.agents/skills/pista-quality/SKILL.md) defines review and evidence; the repository is not yet entirely below the limit.

@@ -25,6 +25,7 @@ const escapeHtml = (text: string): string =>
 export interface LeaderboardDeps {
   /** Whether this device is signed in; only signed-in players see and appear in the ranking. */
   signedIn(): boolean;
+  openAccount(): void;
 }
 
 /** Online ranking, five drivers per page. Needs a connection; the game itself never does. */
@@ -37,7 +38,8 @@ export class LeaderboardDialog {
 
   open(): void {
     if (!this.deps.signedIn()) {
-      this.shell(`<p class="warning" role="status">${t('lb.signedOnly')}</p>`);
+      this.shell(`<p class="warning" role="status">${t('lb.signedOnly')}</p><button id="lbLogin" class="primary">${t('auth.login')} / ${t('auth.signup')}</button>`);
+      byId('lbLogin').onclick = () => this.deps.openAccount();
       return;
     }
     this.shell(`<p role="status">${t('lb.loading')}</p>`);

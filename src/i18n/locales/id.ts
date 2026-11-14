@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const id = {
+  "account.optional": "Akun opsional: simpan di cloud dan ikuti peringkat.",
+  "tag.uno-normal": "Mobil klasik sehari-hari",
   'auth.secure': "Gunakan koneksi HTTPS untuk masuk atau membuat akun.",
   'auth.account': "Akun",
   'auth.login': "Masuk",
@@ -35,7 +37,7 @@ export const id = {
 
   'shop.guest': "Membeli koin perlu akun. Buat akun lewat Opsi.",
 
-  'demo.start': "Balapan demo: Veloce GT milikmu hanya untuk balapan ini. Jika menabrak, kamu kembali ke mobilmu.",
+  "demo.start": "Demo: Veloce GT untuk satu balapan.",
   'shop.soon': 'SEGERA HADIR',
   'coins.amount': 'Koin: {n}',
   'paint.scarlet': 'Merah menyala',

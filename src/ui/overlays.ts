@@ -54,7 +54,7 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
   const reason = t(reasonKey, { speed: speedValue(race.crashSpeed), unit: speedUnit() });
   showOverlay(
     `
-    <div class="overlay-card">
+    <div class="overlay-card result-card">
       <span class="kicker">${crashed ? t('over.crashKicker') : t('over.kicker')}</span>
       <h2>${crashed ? t('over.crashTitle') : t('over.title')}</h2>
       <p>${reason}</p>
@@ -71,7 +71,7 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
       <button id="restart" class="primary"><span>${t('over.again')}</span>${icon('play')}</button>
       ${race.continued ? '' : `<button id="continue" class="secondary" ${save.coins < SECOND_CHANCE_PRICE ? 'disabled' : ''}>${t('over.second', { price: formatInteger(SECOND_CHANCE_PRICE) })}</button>
         <p class="second-chance-balance">${t('over.secondBalance', { coins: formatInteger(save.coins) })}</p>`}
-      ${actions.enter ? `<button id="enter" class="secondary">${t('auth.login')}</button>` : ''}
+      ${actions.enter ? `<button id="enter" class="secondary">${t('auth.login')} / ${t('auth.signup')}</button>` : ''}
       <button id="toMenu" class="secondary">${t('over.menu')}</button>
     </div>`,
     crashed,

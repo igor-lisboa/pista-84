@@ -2,7 +2,7 @@
 
 Brazilian pixel-art endless racing arcade game. It runs in the browser, installs as a PWA, uses your phone as a remote controller, and has native Android/iOS projects (Capacitor).
 
-Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 18 vehicles, heavier traffic, pace-based scoring, optional accounts with an online leaderboard, 15 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
+Version 1.4: sunset arcade look (Bungee and Chakra Petch fonts, hard outlines and a checkered strip), 19 vehicles, heavier traffic, pace-based scoring, optional accounts with an online leaderboard, 15 languages and a procedural soundtrack. All code is TypeScript. See the [art direction](docs/ART_DIRECTION.md) and the [rendered composition](docs/screenshots/reference-scene.png).
 
 ## Table of contents
 
@@ -90,11 +90,11 @@ MongoDB stores scores, accounts, sessions and progress snapshots; Redis stores p
 - **Demo run:** the first run after the tutorial is a one-time demo with the Veloce GT (not added to the garage). Its first crash or empty tank ends the demo and later runs use your own car.
 - **Speed feel:** lane markings pass twice as often as before, and the Veloce GT accelerates about 17 % faster to 100 km/h.
 - During the race only the track, speed, distance, points, fuel and pause appear (top bar). Garage, options and language are in the start menu.
-- **Account and ranking:** the first launch offers an optional account (driver name and password) so the same progress works on other devices, or "Play without an account". Guests play the full game offline with no sign-up. Only signed-in players publish to the online ranking (five drivers per page), sync progress and buy coins. Settings also offer km/mi units, the how-to-play tutorial, change password and log out.
+- **Account and ranking:** the first launch opens a tutorial followed by a one-time Veloce GT demo. Its result offers an optional account action; Settings and the ranking also provide login/signup. Guests play the full game offline with no sign-up. Only signed-in players publish to the online ranking (five drivers per page), sync progress and buy coins. Settings also offer km/mi units, the how-to-play tutorial, change password and log out.
 - **Sound:** it starts on, but the browser only unlocks audio on the first tap or key press. A single button in Options turns music, engine and effects on/off, and the preference is remembered. The music is procedural (Web Audio, no files): a calm loop for menu/pause (74 bpm) and seven race tracks (Neon Highway 132 bpm, Turbo Rush 150, Sunset Drive 118, Nitro Circuit 142, Midnight Run 124, Checkered Flag 138 and Redline 160), one picked at random when the race starts, never the same as the previously picked one (when resuming after a pause, the race music restarts with a different track).
 - **Languages:** fifteen, picked in Options: Portuguese (Brazil, the source), English, Portuguese (Portugal), French, Italian, Japanese, German, Spanish, Hindi, Simplified Chinese, Indonesian, Urdu (right-to-left), Bengali, Russian and Amharic. The default comes from `navigator.languages`; an unknown language falls back to English. The translations have not yet been reviewed by native speakers.
 
-**Garage:** 18 vehicles with distinct performance, size, braking and audio, listed by price. All are bought with coins, from the free Fusca 76 up to the Raio 1000 (20,000) and the Veloce GT (30,000, 350 km/h). Motorcycles have a smaller collision area but lose more grip in the rain. All vehicles use authored sprites with straight and turning frames. There are 17 paint options (factory plus 16 bought with coins).
+**Garage:** 19 vehicles with distinct performance, size, braking and audio, listed by price. All are bought with coins, from the free Fusca 76 up to the Raio 1000 (20,000) and the Veloce GT (30,000, 350 km/h). Motorcycles have a smaller collision area but lose more grip in the rain. All vehicles use authored sprites with straight and turning frames. There are 17 paint options (factory plus 16 bought with coins).
 
 **Progress:** the save lives in the browser and works offline; export and import it from the garage. Signed-in players also keep a cloud account save (MongoDB) that is merged with the device save at login. The save (v2) stores coins, distance and score records, vehicles, paints, sound, language, units, pilot name and sync identity.
 
@@ -143,7 +143,7 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (166 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (167 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.
@@ -190,3 +190,5 @@ npm run test:browser
 - [Pending work (contracts, dependencies and completion tests)](docs/PENDING.md)
 
 `docs/SPECS.md` and `docs/PENDING.md` are navigation pointers (the latter has a summary of what is still missing); the specifications in `specs/` are the source of truth and must be updated together with the code.
+
+`npm run docs:check` validates catalog/tuning/audio tables, version/cache baselines, translation counts, source references and local links. It also runs before `npm test`; prose and behavior still need the maintenance skill audit.

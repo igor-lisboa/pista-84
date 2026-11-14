@@ -1,3 +1,4 @@
+import { finishFirstDemo } from './support/harness.ts';
 import { expect, test } from '@playwright/test';
 import { accountBackend } from './support/account-backend.ts';
 
@@ -5,9 +6,11 @@ test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' }
 
 const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
 
-test('first launch offers an optional sign-up, validates it, creates the account and keeps the same GUID across reloads', async ({ page, context }) => {
+test('the demo result offers an optional sign-up, validates it, creates the account and keeps the same GUID across reloads', async ({ page, context }) => {
   await accountBackend(context);
   await page.goto('/');
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   const modal = page.locator('#modal');
   await expect(modal).toBeVisible();
   await expect(page.locator('#closeModal')).toBeVisible();
@@ -29,9 +32,7 @@ test('first launch offers an optional sign-up, validates it, creates the account
 
   await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
-  // A brand-new player gets the tutorial next; skipping it closes the dialog.
-  await expect(page.locator('#tutNext')).toBeVisible();
-  await page.locator('#tutSkip').click();
+  // The tutorial already ran before the demo; signing in closes the form.
   await expect(modal).toBeHidden();
   const first = await save(page);
   expect(first.username).toBe('igor_84');
@@ -51,12 +52,12 @@ test('first launch can play as a guest without an account, offline, without uplo
     return route.abort();
   });
   await page.goto('/');
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   await expect(page.locator('#usernameGuest')).toBeVisible();
   await context.setOffline(true);
 
   await page.locator('#usernameGuest').click();
-  await expect(page.locator('#tutNext')).toBeVisible();
-  await page.locator('#tutSkip').click();
   await expect(page.locator('#modal')).toBeHidden();
   expect((await save(page)).username).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
@@ -67,26 +68,31 @@ test('first launch can play as a guest without an account, offline, without uplo
 test('a wrong password shows the error and the player can still play as a guest', async ({ page, context }) => {
   await accountBackend(context);
   await page.goto('/');
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   await page.locator('#usernameInput').fill('Someone');
   await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
-  await expect(page.locator('#tutNext')).toBeVisible();
-  await page.locator('#tutSkip').click();
+  await expect(page.locator('#modal')).toBeHidden();
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   await page.locator('#usernameTab-login').click();
   await page.locator('#usernameInput').fill('Someone');
   await page.locator('#usernamePassword').fill('wrong-pass');
   await page.locator('#usernameForm button[type=submit]').click();
   await expect(page.locator('#usernameStatus')).not.toBeEmpty();
   await page.locator('#usernameGuest').click();
-  await expect(page.locator('#tutNext')).toBeVisible();
+  await expect(page.locator('#modal')).toBeHidden();
 });
 
-test('first launch explains that a username is already taken and lets the player pick another', async ({ page, context }) => {
+test('post-demo signup explains that a username is already taken and lets the player pick another', async ({ page, context }) => {
   const store = await accountBackend(context);
   await store.accounts.create({ id: crypto.randomUUID(), username: 'Driver', usernameKey: 'driver', passwordHash: 'unused', createdAt: Date.now() });
   await page.goto('/');
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   await page.locator('#usernameInput').fill('DRIVER');
   await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
@@ -100,5 +106,5 @@ test('first launch explains that a username is already taken and lets the player
   await expect(page.locator('#usernameStatus')).toBeEmpty();
   await page.locator('#usernamePassword').fill('abcde');
   await page.locator('#usernameForm button[type=submit]').click();
-  await expect(page.locator('#tutNext')).toBeVisible();
+  await expect(page.locator('#modal')).toBeHidden();
 });

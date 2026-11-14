@@ -63,3 +63,13 @@ finished until the documents say what the product does and the code agrees.
 - Preserve roadmap IDs, requirement IDs and acceptance criteria until implemented and verified.
 - Do not edit generated output (`www/`, `dist/`, `worker/generated-assets.ts`).
 - Report which documents changed and which checks ran.
+
+## Completion gate
+
+Before reporting completion, inspect the entire diff and map every changed behavior, string, catalog value, setting and test to its owning spec and evidence. Update specs first when requirements change, then code, then measured records; resolve discrepancies instead of deferring documentation. Verify relative links, counts, exported defaults and service-worker cache/assets. Classify historical provenance as historical rather than rewriting it into current claims. Keep an audit report with checked areas, discrepancies, fixes, commands and remaining limits. A scan is not evidence that all behavior has been executed.
+
+Vehicle additions/tuning also use `pista-vehicles`; player wording also uses `pista-localization`. Neither workflow replaces this completion gate.
+
+Run `npm run docs:check` for the executable consistency gate; it also runs before `npm test`. It checks structured catalog/tuning/audio values, translation counts, baseline and file references, and does not replace the behavior/prose audit above.
+
+Use `pista-quality` for build/test, interaction coverage, TypeScript/design and module-size review. Record new maintenance requirements in specs 06/08 and track existing implementation debt honestly in TECH-DEBT.md and the roadmap.

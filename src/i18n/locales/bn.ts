@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const bn = {
+  "account.optional": "অ্যাকাউন্ট ঐচ্ছিক: ক্লাউডে সেভ করুন ও র‍্যাঙ্কিংয়ে অংশ নিন।",
+  "tag.uno-normal": "প্রতিদিনের চিরচেনা গাড়ি",
   'auth.secure': "লগ ইন বা অ্যাকাউন্ট তৈরি করতে HTTPS সংযোগ ব্যবহার করুন।",
   'auth.account': "অ্যাকাউন্ট",
   'auth.login': "লগ ইন করুন",
@@ -35,7 +37,7 @@ export const bn = {
 
   'shop.guest': "কয়েন কিনতে অ্যাকাউন্ট লাগবে। অপশনে অ্যাকাউন্ট তৈরি করুন।",
 
-  'demo.start': "ডেমো রান: এই রানে Veloce GT আপনার। ক্র্যাশ করলে আপনার নিজের গাড়িতে ফিরবেন।",
+  "demo.start": "ডেমো: এক রেসের জন্য Veloce GT।",
   'shop.soon': 'শীঘ্রই আসছে',
   'coins.amount': 'কয়েন: {n}',
   'paint.scarlet': 'টকটকে লাল',

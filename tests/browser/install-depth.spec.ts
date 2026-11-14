@@ -61,10 +61,11 @@ test('install stays available and accepts a late native prompt only once', async
 test('iPhone has home-screen instructions and detects an installed launch', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'pt-BR',
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1',
-    isMobile: true, hasTouch: true });
+    isMobile: true, hasTouch: true, storageState: {cookies: [], origins: []} });
   try {
     const page = await context.newPage();
     await page.goto('/');
+    await page.locator('#tutSkip').tap();
     await page.locator('#settingsNav').tap();
     await page.locator('#install').tap();
     await expect(page.locator('#installHelp')).toContainText('No Safari, abra Compartilhar');

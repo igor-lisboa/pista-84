@@ -33,7 +33,7 @@ test('all twelve new atlas cells have complete transparent borders and distinct 
     });
     canvas.width = 280;
     canvas.height = 200;
-    const cars = Object.fromEntries(['fiat147', 'marea', 'passat', 'puma'].map((id) => {
+    const cars = Object.fromEntries(['fiat147', 'marea', 'passat', 'puma', 'uno-normal'].map((id) => {
       const car = CARS.find((car) => car.id === id)!;
       const frames = [0, 0.45, 1, -1].map((turn) => {
         ctx.clearRect(0, 0, 280, 200);
@@ -70,7 +70,7 @@ test('engine audio switches between geared models and legacy vehicles without er
     const { AudioEngine, CARS } = window.Pista;
     const audio = new AudioEngine();
     await audio.toggle();
-    for (const id of ['fiat147', 'marea', 'passat', 'puma', 'gt', 'fusca', 'marea']) {
+    for (const id of ['fiat147', 'marea', 'passat', 'puma', 'gt', 'fusca', 'uno-normal', 'uno']) {
       const car = CARS.find((car) => car.id === id)!;
       for (const speed of [0, 35, 80, car.max]) {
         audio.update({ status: 'running', speed, car }, false, true);
@@ -82,4 +82,34 @@ test('engine audio switches between geared models and legacy vehicles without er
   });
   expect(enabled).toBe(false);
   expect(errors).toEqual([]);
+});
+
+test('normal Uno atlas preserves transparent cell borders and complete silhouettes', async ({page}) => {
+  await page.goto('/');
+  const cells = await page.evaluate(async () => {
+    const image = new Image();
+    image.src = '/assets/vehicle-uno-v1.png';
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(image, 0, 0);
+    const pixels = ctx.getImageData(0, 0, image.width, image.height).data;
+    const width = image.width / 3;
+    return [0, 1, 2].map(col => {
+      let opaque = 0;
+      let edge = 0;
+      for (let y = 0; y < image.height; y++) for (let x = col * width; x < (col + 1) * width; x++) {
+        if (pixels[(y * image.width + x) * 4 + 3]! <= 80) continue;
+        opaque++;
+        if (y === 0 || y === image.height - 1 || x === col * width || x === (col + 1) * width - 1) edge++;
+      }
+      return {opaque, edge};
+    });
+  });
+  for (const cell of cells) {
+    expect(cell.edge).toBe(0);
+    expect(cell.opaque).toBeGreaterThan(50000);
+  }
 });

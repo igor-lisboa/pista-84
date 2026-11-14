@@ -15,7 +15,7 @@ async function signedInDevice(page: import('@playwright/test').Page) {
   }, accountId);
 }
 
-test('a guest sees why the ranking is unavailable instead of the ranking or a login button', async ({ page }) => {
+test('a guest sees why the ranking is unavailable and can choose to log in without loading the ranking', async ({ page }) => {
   let rankingRequests = 0;
   await page.route('**/api/leaderboard**', (route) => {
     rankingRequests += 1;
@@ -25,7 +25,7 @@ test('a guest sees why the ranking is unavailable instead of the ranking or a lo
   await page.locator('#leaderboardNav').click();
   await expect(page.locator('#modalBody .warning')).toContainText('logado');
   await expect(page.locator('.lb-list')).toHaveCount(0);
-  await expect(page.locator('#modalBody button')).toHaveCount(0);
+  await expect(page.locator('#lbLogin')).toBeVisible();
   expect(rankingRequests).toBe(0);
   await page.locator('#closeModal').click();
   await expect(page.locator('#start')).toBeEnabled();

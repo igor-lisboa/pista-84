@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const fr: Messages = {
+  "account.optional": "Compte facultatif : sauvegarde en ligne et classement.",
+  "tag.uno-normal": "Un classique du quotidien",
   'auth.secure': "Utilisez une connexion HTTPS pour vous connecter ou créer un compte.",
   'auth.account': "Compte",
   'auth.login': "Se connecter",
@@ -35,7 +37,7 @@ export const fr: Messages = {
 
   'shop.guest': "Les packs de pièces nécessitent un compte. Créez-en un dans les Options.",
 
-  'demo.start': "Course démo : la Veloce GT est à vous pour cette course seulement. Si vous percutez, vous reprenez votre voiture.",
+  "demo.start": "Démo : Veloce GT pour une course.",
   'shop.soon': 'BIENTÔT',
   'coins.amount': 'Pièces : {n}',
   'paint.scarlet': 'Rouge écarlate',

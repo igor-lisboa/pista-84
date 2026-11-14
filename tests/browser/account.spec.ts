@@ -1,3 +1,4 @@
+import { finishFirstDemo } from './support/harness.ts';
 import {test, expect} from '@playwright/test';
 import type {Page} from '@playwright/test';
 import {playerApi} from '../../src/server/player-api.ts';
@@ -51,7 +52,7 @@ test('account forms keep typed credentials when a delayed guest session check fi
   await expect(page.locator('#accountPassword')).toHaveAttribute('autocomplete', 'new-password');
 });
 
-test('a fresh device can sign up directly from the guest name screen', async ({page, context}) => {
+test('a fresh device can sign up from the optional demo result action', async ({page, context}) => {
   await context.clearCookies();
   await context.addInitScript(() => {
     if (localStorage.getItem('fresh-device-fixture')) return;
@@ -60,6 +61,8 @@ test('a fresh device can sign up directly from the guest name screen', async ({p
   });
   await backend(context);
   await page.goto('/');
+  await finishFirstDemo(page);
+  await page.locator('#enter').click();
   await expect(page.locator('#usernameForm')).toBeVisible();
   await expect(page.locator('#closeModal')).toBeVisible();
   await page.locator('#usernameTab-login').click();
@@ -71,8 +74,6 @@ test('a fresh device can sign up directly from the guest name screen', async ({p
   await page.locator('#usernameInput').fill('driver');
   await page.locator('#usernamePassword').fill(password);
   await page.locator('#usernameForm button[type=submit]').click();
-  await expect(page.locator('#tutNext')).toBeVisible();
-  await page.locator('#tutSkip').click();
   await expect(page.locator('#modal')).toBeHidden();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!).username)).toBe('driver');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pista84.account')!).username)).toBe('driver');
@@ -167,9 +168,9 @@ test('signup merges guest progress, persists a session and logout clears this de
   await page.locator('#account').click();
   await expect(page.locator('#accountName')).toHaveText('driver');
   await page.locator('#accountLogout').click();
-  // Logout reloads the page: wait for the reloaded first-launch form before reading storage.
-  await expect(page.locator('#usernameForm')).toBeVisible();
-  await expect(otherTab.locator('#usernameForm')).toBeVisible();
+  // Logout reloads the page: wait for the reloaded tutorial before reading storage.
+  await expect(page.locator('#tutNext')).toBeVisible();
+  await expect(otherTab.locator('#tutNext')).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
   const fresh = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
   expect(fresh.playerId).not.toBe(account.id);

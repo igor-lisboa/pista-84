@@ -6,12 +6,10 @@ const save = (page: import('@playwright/test').Page) => page.evaluate(() => JSON
 test.describe('first play', () => {
   test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' });
 
-  test('a brand-new player gets the five-step tutorial once, right after choosing a name', async ({ page, context }) => {
+  test('a brand-new player gets the five-step tutorial once, without an account prompt', async ({ page, context }) => {
     await accountBackend(context);
     await page.goto('/');
-    await page.locator('#usernameInput').fill('Newbie_1');
-    await page.locator('#usernamePassword').fill('abcde');
-    await page.locator('#usernameForm button[type=submit]').click();
+    await expect(page.locator('#usernameForm')).toHaveCount(0);
 
     const count = page.locator('.tutorial-count');
     await expect(count).toContainText('1');

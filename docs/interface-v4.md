@@ -4,7 +4,7 @@ Player-facing strings no longer embed emoji or decorative icon characters. A sma
 
 HUD columns and card dimensions are fixed per responsive layout. Score lines and checkpoint labels cannot resize their parent cards; numeric text uses tabular figures and values stay right-aligned. Phone landscape retains its left/right arrangement.
 
-Pause/results use a flex overlay with automatic vertical margins: cards are centred when they fit and scroll from the top on short screens. Dialogs are explicitly centred, with bounded widths and scrolling content. Feedback and toast messages have bounded, centred text blocks.
+Desktop pause/results use centered cards. Phone overlays fill the viewport; result cards use two columns on short landscape screens. Phone dialogs fill the viewport in both orientations, and settings/About open at scroll position zero with internal scrolling for long content. Desktop dialogs keep bounded widths. Feedback and toast messages have bounded, centred text blocks.
 
 Garage grids use zero-minimum tracks, uniform image/title/description areas and fixed-height purchase buttons. Stats use aligned label/value columns with unbroken numeric units. Paint options share equal-width columns. Disabled paint choices retain full swatch opacity so players can see the available colors even before earning their price.
 

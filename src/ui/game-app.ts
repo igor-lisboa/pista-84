@@ -86,7 +86,7 @@ export class GameApp implements RemoteHost {
   private readonly accountDialog: AccountDialog;
   private readonly remoteDialog: RemoteDialog;
   private readonly usernameDialog: UsernameDialog;
-  private readonly leaderboardDialog = new LeaderboardDialog({ signedIn: () => this.signedIn() });
+  private readonly leaderboardDialog = new LeaderboardDialog({ signedIn: () => this.signedIn(), openAccount: () => this.openAccount() });
   private readonly tutorialDialog = new TutorialDialog();
   /** The tutorial owns the modal; closing it by any route finishes it. */
   private tutorialActive = false;
@@ -201,7 +201,7 @@ export class GameApp implements RemoteHost {
     this.input.bindButtons();
     // First entry: a signed-in device uploads whatever it kept offline, without any button.
     void this.syncAtRest();
-    if (this.needsWelcome()) this.openWelcome();
+    if (!this.save.tutorialDone) this.openTutorial(false);
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
       this.checkRotation();
@@ -269,6 +269,7 @@ export class GameApp implements RemoteHost {
     byId('closeModal').hidden = false;
     const modal = byId<HTMLDialogElement>('modal');
     if (!modal.open) modal.showModal();
+    modal.scrollTop = 0;
   }
 
   // ---- race flow ----
@@ -608,14 +609,6 @@ export class GameApp implements RemoteHost {
   private finishDemo(): void {
     this.demoRun = false;
     this.save.demoUsed = true;
-  }
-
-  /**
-   * Whether the optional sign-up screen should greet a new player: no name yet, no account and no tutorial.
-   * A device that already has a name (an account, or a name kept from before) is never asked again.
-   */
-  private needsWelcome(): boolean {
-    return this.save.username === null && !this.save.tutorialDone && !this.accountOwner;
   }
 
   private openWelcome(): void {

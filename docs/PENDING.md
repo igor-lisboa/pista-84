@@ -8,7 +8,7 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 - Full TypeScript codebase (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`, `api`, `worker`); no JavaScript source is left. Typecheck with `npm run typecheck`.
 - Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h with a fuel and score-multiplier penalty, heavier and smarter traffic (120 s ramp plus 240 s of late-game pressure, lane changes, speed matching, no overlap).
-- Pace-based score and coins earned from score (1 coin per 25 points); eighteen vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.
+- Pace-based score and coins earned from score (1 coin per 25 points); nineteen vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.
 - Fifteen interface languages, seven procedural race tracks plus a menu loop, per-car engine voices, sunset-arcade interface, top-bar HUD, tutorial, distance units (km/mi) and About dialog.
 - MongoDB persistence for scores, accounts, sessions and progress; Redis pairing rooms; WebSocket phone controller with Pub/Sub across instances; offline-first progress outbox with automatic uploads at pause, game end and exit.
 - Username/password accounts with salted scrypt hashes, hashed sessions, password change, offline-to-account progress reconciliation and an account-only leaderboard.
@@ -16,6 +16,8 @@ See the [specification index](../specs/README.md) for all game definitions and t
 - Heroku deployment path (`Procfile`, `heroku-postbuild`) next to the Vercel and optional edge Worker adapters.
 
 ## Still pending
+
+- Focused implementation modules below 300 lines; seven existing TypeScript overages remain, with the quality review workflow implemented (QLT-01).
 
 - **Real-money coin packs, payments, ads and entitlements.** The main-menu coin shop is a disabled "coming soon" placeholder. A billing integration (web checkout, Google Play, App Store), server-authoritative economy, receipt validation and rewarded ads remain to be built (ECO-01, COM-01, ADS-01).
 - **Native-speaker review of every non-source translation**, and a complete pt-PT table (I18N-01).

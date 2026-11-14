@@ -11,7 +11,7 @@ test('a new device plays offline as a guest: no sign-up, the tutorial follows, t
   await expect(modal).toBeVisible();
   await expect(page.locator('#closeModal')).toBeVisible();
 
-  await page.locator('#usernameGuest').click();
+  await expect(page.locator('#usernameForm')).toHaveCount(0);
   await expect(page.locator('.tutorial-count')).toContainText('1');
   for (let step = 2; step <= 5; step += 1) await page.locator('#tutNext').click();
   await page.locator('#tutNext').click();
@@ -39,6 +39,9 @@ test('a new device plays offline as a guest: no sign-up, the tutorial follows, t
 
   await page.locator('#leaderboardNav').click();
   await expect(page.locator('#modalBody .warning')).toBeVisible();
+  await expect(page.locator('#lbLogin')).toBeVisible();
+  await page.locator('#lbLogin').click();
+  await expect(page.locator('#accountForm')).toBeVisible();
   await page.locator('#closeModal').click();
   await context.setOffline(false);
 });
@@ -51,7 +54,7 @@ test('the first run after the tutorial uses the Veloce GT once; after its crash 
   });
   await page.goto('/');
   await page.locator('#start').click();
-  await expect(page.getByText(/Corrida demo|Demo run/)).toBeVisible();
+  await expect(page.getByText(/Demo:/)).toBeVisible();
   await page.keyboard.down('ArrowUp');
   await page.keyboard.down('ArrowRight');
   await expect(page.locator('#overlay h2')).toHaveText('VOCÊ BATEU!', { timeout: 20000 });
@@ -64,5 +67,5 @@ test('the first run after the tutorial uses the Veloce GT once; after its crash 
 
   await page.locator('#restart').click();
   await expect(page.locator('#raceUI')).toBeVisible();
-  await expect(page.getByText(/Corrida demo|Demo run/)).toHaveCount(0);
+  await expect(page.getByText(/Demo:/)).toHaveCount(0);
 });

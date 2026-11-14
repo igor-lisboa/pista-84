@@ -1,5 +1,7 @@
 // Source language: every key is defined here, and the other locales fall back to it.
 export const ptBR = {
+  "account.optional": "Conta opcional: salve na nuvem e participe do ranking.",
+  "tag.uno-normal": "Um clássico do dia a dia",
   'auth.secure': "Use uma conexão HTTPS para entrar ou criar uma conta.",
   'auth.account': "Conta",
   'auth.login': "Entrar",
@@ -34,7 +36,7 @@ export const ptBR = {
 
   'shop.guest': "Para comprar moedas é preciso ter uma conta. Crie uma em Opções.",
 
-  'demo.start': "Corrida demo: o Veloce GT é seu só nesta corrida. Se bater, volta para o seu carro.",
+  "demo.start": "Demo: Veloce GT por uma corrida.",
   'shop.soon': 'EM BREVE',
   'coins.amount': 'Moedas: {n}',
   'paint.scarlet': 'Vermelho escarlate',

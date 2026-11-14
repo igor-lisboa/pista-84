@@ -216,7 +216,7 @@ function paintKombi(b: Brush, body: string, brake: boolean): void {
 }
 
 /** Fiat Uno Mille with the roof ladder that decorates half the handymen of Brazil. */
-function paintUno(b: Brush, body: string, brake: boolean): void {
+function paintUno(b: Brush, body: string, brake: boolean, ladder = true): void {
   b.tyre(27, 60, 12, 18);
   b.tyre(89, 60, 12, 18);
   b.mirror(14, 20, 7, 8, body);
@@ -237,6 +237,7 @@ function paintUno(b: Brush, body: string, brake: boolean): void {
   b.rect(46, 40, 36, 4, shade(body, 0.7));
   b.rect(61, 38, 6, 3, '#c9d2d8');
   b.pipe(88, 68);
+  if (!ladder) return;
   // The ladder: two rails with rungs lying along the roof, sticking out past the tailgate.
   b.rect(41, 2, 3, 22, '#cdd6db');
   b.rect(84, 2, 3, 22, '#cdd6db');
@@ -439,6 +440,7 @@ const PAINTERS: Readonly<Record<string, (brush: Brush, body: string, brake: bool
   puma: paintPuma,
   kombi: paintKombi,
   uno: paintUno,
+  'uno-normal': (b, body, brake) => paintUno(b, body, brake, false),
   chevette: paintChevette,
   opala: paintOpala,
   maverick: paintMaverick,

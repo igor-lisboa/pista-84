@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const de: Messages = {
+  "account.optional": "Freiwilliges Konto: Cloud-Spielstände und Rangliste.",
+  "tag.uno-normal": "Ein Klassiker für jeden Tag",
   'auth.secure': "Verwende eine HTTPS-Verbindung, um dich anzumelden oder ein Konto zu erstellen.",
   'auth.account': "Konto",
   'auth.login': "Anmelden",
@@ -35,7 +37,7 @@ export const de: Messages = {
 
   'shop.guest': "Für Münzpakete brauchst du ein Konto. Erstelle eins in den Optionen.",
 
-  'demo.start': "Demo-Fahrt: Der Veloce GT gehört dir nur für diese Fahrt. Bei einem Crash geht es mit deinem Auto weiter.",
+  "demo.start": "Demo: Veloce GT für ein Rennen.",
   'shop.soon': 'DEMNÄCHST',
   'coins.amount': 'Münzen: {n}',
   'paint.scarlet': 'Scharlachrot',

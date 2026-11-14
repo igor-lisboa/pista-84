@@ -27,12 +27,14 @@ test('every full locale translates every key and keeps the same placeholders', (
 test('no locale defines keys that the source language lacks', () => {
   for (const [lang, table] of Object.entries(LOCALES)) {
     for (const key of Object.keys(table)) assert.ok(SOURCE_KEYS.includes(key), `${lang} has unknown key ${key}`);
+    for (const key of ['demo.start', 'tag.uno-normal', 'account.optional']) assert.ok((table as Record<string, string>)[key], `${lang} must explicitly translate ${key}`);
   }
 });
 
 test('player-facing text does not contain emoji or decorative icon glyphs', () => {
   for (const [lang, messages] of Object.entries(LOCALES)) {
     for (const [key, value] of Object.entries(messages)) {
+      assert.equal(/\?{2,}/.test(value), false, `${lang}:${key} has damaged text`);
       assert.equal(/[\p{Extended_Pictographic}◈♪⌁⛶◎]/u.test(value), false, `${lang}:${key}`);
     }
   }

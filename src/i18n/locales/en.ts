@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  "account.optional": "Optional account: cloud saves and online ranking.",
+  "tag.uno-normal": "An everyday classic",
   'auth.secure': "Use an HTTPS connection to log in or create an account.",
   'auth.account': "Account",
   'auth.login': "Log in",
@@ -35,7 +37,7 @@ export const en: Messages = {
 
   'shop.guest': "Coin packs need an account. Create one in Settings to buy coins.",
 
-  'demo.start': "Demo run: the Veloce GT is yours for this run only. Crash and you go back to your own car.",
+  "demo.start": "Demo: Veloce GT for one run.",
   'shop.soon': 'COMING SOON',
   'coins.amount': 'Coins: {n}',
   'paint.scarlet': 'Scarlet red',

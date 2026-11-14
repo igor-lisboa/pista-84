@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const ru = {
+  "account.optional": "Аккаунт по желанию: облачные сохранения и рейтинг.",
+  "tag.uno-normal": "Классика на каждый день",
   'auth.secure': "Используйте HTTPS для входа или создания аккаунта.",
   'auth.account': "Аккаунт",
   'auth.login': "Войти",
@@ -35,7 +37,7 @@ export const ru = {
 
   'shop.guest': "Для покупки монет нужен аккаунт. Создай его в настройках.",
 
-  'demo.start': "Демо-заезд: Veloce GT доступен только в этом заезде. Если разобьёшься, вернёшься к своей машине.",
+  "demo.start": "Демо: Veloce GT на один заезд.",
   'shop.soon': 'СКОРО',
   'coins.amount': 'Монеты: {n}',
   'paint.scarlet': 'Алый',

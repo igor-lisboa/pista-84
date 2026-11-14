@@ -2,6 +2,8 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  "account.optional": "Conta opcional: guarde na nuvem e participe na classificação.",
+  "tag.uno-normal": "Um clássico do dia a dia",
   'auth.secure': "Use uma ligação HTTPS para entrar ou criar uma conta.",
   'auth.account': "Conta",
   'auth.login': "Entrar",
@@ -36,7 +38,7 @@ export const ptPT: Messages = {
 
   'shop.guest': "Para comprar moedas é preciso ter uma conta. Crie uma nas Opções.",
 
-  'demo.start': "Corrida demo: o Veloce GT é seu só nesta corrida. Se bater, volta ao seu carro.",
+  "demo.start": "Demo: Veloce GT por uma corrida.",
   'shop.soon': 'EM BREVE',
   'coins.amount': 'Moedas: {n}',
   'garage.unlock': 'DESBLOQUEAR · {price} moedas',

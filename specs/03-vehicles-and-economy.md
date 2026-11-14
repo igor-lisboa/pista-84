@@ -17,7 +17,8 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 260 coins |
 | `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 850 coins |
 | `kombi` | Kombi 78 | van | 130 | 15 | 1.00 | 0.70 | 220 coins |
-| `uno` | Uno com Escada | box | 150 | 30 | 0.70 | 1.05 | 120 coins |
+| `uno` | Uno com Escada | box | 400 | 90 | 0.70 | 1.05 | 120 coins |
+| `uno-normal` | Uno | box | 150 | 30 | 0.70 | 1.05 | 120 coins |
 | `chevette` | Chevette 82 | box | 160 | 32 | 0.78 | 1.05 | 240 coins |
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
 | `opala` | Opala SS | sedan | 215 | 40 | 1.30 | 0.95 | 900 coins |
@@ -26,10 +27,10 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `marea` | Marea Turbo | sedan | 220 | 52 | 1.35 | 1.08 | 2400 coins |
 | `passat` | Passat 85 | box | 170 | 34 | 0.88 | 1.04 | 480 coins |
 | `puma` | Puma GT | sport | 160 | 31 | 0.83 | 1.18 | 1200 coins |
-| `gt` | Veloce GT | sport | 350 | 84 | 1.20 | 1.15 | 30,000 coins |
+| `gt` | Veloce GT | sport | 350 | 110 | 1.20 | 1.15 | 30,000 coins |
 | `superbike` | Raio 1000 | bike | 300 | 68 | 1.05 | 1.50 | 20,000 coins |
 
-The Veloce GT was tuned for a stronger launch: 0–100 km/h takes about 3.4 s (was 4.1 s), and its 70 % / 95 % times are 10.0 s / 23.0 s. Its one-time demo run is described in [gameplay](02-gameplay.md#states-and-run-lifecycle).
+The Veloce GT uses acceleration 110 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID, price and ownership are preserved. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
 
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
@@ -46,7 +47,8 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 | `moto` | 0.27 | 1.35 | 0.56 | 48 |
 | `suv` | 0.26 | 1.5 | 1.10 | 39 |
 | `kombi` | 0.23 | 2.4 | 1.30 | 29 |
-| `uno` | 0.26 | 1.4 | 0.94 | 38 |
+| `uno` | 0.36 | 0.5 | 0.94 | 38 |
+| `uno-normal` | 0.26 | 1.4 | 0.94 | 38 |
 | `chevette` | 0.245 | 1.5 | 1.03 | 35 |
 | `cg125` | 0.28 | 2.0 | 0.52 | 42 |
 | `opala` | 0.27 | 1.0 | 1.16 | 41 |
@@ -60,7 +62,7 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 
 ### Art
 
-All eighteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
+All nineteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Normal Uno uses `vehicle-uno-v1.png`, with provenance and a pose contact sheet in [Uno notes](../docs/uno-v1.md). Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 
@@ -105,3 +107,7 @@ The local save is editable and importable. These coins have no cash value and ar
 ## Paid continuation and coin shop
 
 A second chance costs **1,000 coins**, available at most once per run. The balance is checked and debited before continuation; a failed or repeated request costs nothing. Main-menu **Buy coins** is available only to signed-in players; a guest sees a notice that an account is needed and no packs. For a signed-in player it is an unavailable placeholder: a dialog lists packs of 1,000, 3,000 and 7,500 coins at R$ 9.90, R$ 24.90 and R$ 49.90 with disabled "coming soon" buttons. Real-money purchases remain pending a provider and verified server-side credit delivery (ECO-01, COM-01). See [balance tuning](../docs/vehicle-balance-v3.md).
+
+## Vehicle maintenance contract
+
+Use [pista-vehicles](../.agents/skills/pista-vehicles/SKILL.md) for additions and existing-car tuning. Identify the exact model/year/engine before researching manufacturer specifications and engine references. Record source URLs, measured game acceleration, and deliberate arcade exceptions separately. New artwork must match the established fleet and include straight, mild and strong turn poses, mirrored left views, paint and brake support, plus a contact sheet for review. Preserve saved IDs when tuning existing cars.

@@ -1,3 +1,4 @@
+import { finishFirstDemo } from './support/harness.ts';
 import { accountBackend } from './support/account-backend.ts';
 import { expect, test } from '@playwright/test';
 import { loadHarness } from './support/harness.ts';
@@ -41,12 +42,12 @@ test.describe('a device with no saved name', () => {
   test('a signed-in player opens coin packs, clearly marked as unavailable purchases', async ({ page, context }) => {
     await accountBackend(context);
     await page.goto('/');
+    await finishFirstDemo(page);
+    await page.locator('#enter').click();
     await expect(page.locator('#usernameInput')).toBeVisible();
     await page.locator('#usernameInput').fill('shopper_1');
     await page.locator('#usernamePassword').fill('abcde');
     await page.locator('#usernameForm button[type=submit]').click();
-    await expect(page.locator('#tutNext')).toBeVisible();
-    await page.locator('#tutSkip').click();
     await expect(page.locator('#modal')).toBeHidden();
 
     const before = await page.locator('#wallet').textContent();

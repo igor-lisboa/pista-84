@@ -166,15 +166,7 @@ Settings > Account shows the signed-in pilot with a change-password form and log
 `POST /api/auth` with `action: "password"` needs a session and the current password, shares the
 per-account login attempt budget, replaces the hash, revokes every session of the account and
 issues a fresh one for the calling device.
-The first-launch screen asks for a driver name and password: that creates the account,
-so the same progress can be used on other devices. Players with an account switch to login
-on the same screen. Progress is merged with the device's offline save at that moment.
-Guests (no signed-in session) never contact the online API: no score, progress, backup or
-health requests, and no leaderboard publication. The leaderboard is only for signed-in players: guests see a short message instead of the ranking and no request is made.
-The server rejects `/api/score` and `/api/progress` writes without a session (HTTP 401).
-Account creation is optional on first launch: "Play without an account" keeps the player a guest with no
-name and no upload, and the account can be created later from Settings. Guest play works without an
-account or network, and the first-launch screen never blocks on the account service. Legacy guest GUID records stay in
+First launch opens the tutorial without an account form. The demo result offers optional signup/login, and Settings and the guest ranking provide explicit entry points. Progress merges with the device's offline save when the player signs in. Guests never contact the online API for scores, progress, backups, health or ranking. The server rejects score/progress writes without a session (HTTP 401). Account creation is optional indefinitely; closing the form keeps guest progress and never blocks on the account service. Legacy guest GUID records stay in
 MongoDB, but a GUID header never authorizes a score or progress write without a session and
 does not establish ownership of an account. New account GUIDs are
 server-issued, and existing guest GUIDs/names never become account credentials.
@@ -357,8 +349,8 @@ live in `.agents/skills/`; `.claude/skills/` and `.github/skills/` provide disco
 entrypoints without duplicating the workflows. Claude/Copilot maintenance roles
 live in `.claude/agents/` and `.github/agents/`. Update canonical guidance first.
 
-The skills are `pista-game`, `pista-storage` and `pista-docs`; the agents are
-`pista-maintainer` and `pista-docs`. `specs/` and `docs/` are the source of truth:
+The skills are `pista-game`, `pista-storage`, `pista-docs`, `pista-vehicles`, `pista-localization` and `pista-quality`; the agents are
+`pista-maintainer`, `pista-docs` and `pista-quality`. `specs/` and `docs/` are the source of truth:
 `pista-docs` requires every behavior, data, API, text, catalog or test change to
 update the affected pages, the requirements matrix and the baseline in
 `specs/README.md` in the same change, and describes the audit procedure.
@@ -368,3 +360,5 @@ Formats follow [Codex instructions](https://developers.openai.com/codex/guides/a
 [Claude skills](https://code.claude.com/docs/en/skills),
 [Claude subagents](https://code.claude.com/docs/en/sub-agents), and
 [Copilot customizations](https://docs.github.com/en/copilot/concepts/customizations/comparing-customizations).
+
+The quality skill is the shared review procedure for build/tests, interaction evidence, strict TypeScript, practical SOLID and modules below 300 lines. Existing size overages are documented in TECH-DEBT.md and QLT-01; the review does not claim all tests or interactions passed without executed evidence.

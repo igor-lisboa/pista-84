@@ -44,8 +44,9 @@ npm run test:browser
 
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
-- `npm test` runs `node --test tests/*.test.ts`: 166 isolated Node tests in 24 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
-- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning, signed-in player); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
+- `npm run docs:check` checks catalog, tuning and engine tables, application/save/cache baseline, translation counts, source references and local Markdown links. It runs automatically as `pretest`; behavior and prose still require manual review.
+- `npm test` runs `node --test tests/*.test.ts`: 167 isolated Node tests in 24 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning guest with tutorial/demo complete; account tests explicitly seed or establish sessions); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
 
@@ -56,7 +57,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race.test.ts`, `world.test.ts`) |
 | State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
 | Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
-| Vehicles and audio | 18 distinct coin cars, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
+| Vehicles and audio | 19 distinct coin cars, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
 | Environment | Road bounds/direction changes by seed; local-clock start, per-run weather, continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, GUID/username/units/timestamps, import rules, past players (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
 | Accounts | Password rules, scrypt parameters, atomic unique usernames, session rotation/expiry/revocation, HTTPS requirement, shared attempt budgets, forged-GUID rejection, password change, MongoDB account adapters and indexes (`auth.test.ts`, `mongo-accounts.test.ts`, `mongo-store.test.ts`) |
@@ -66,10 +67,10 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Room services | Room protocol, token/role checks, atomic answer, expiration/deletion, cross-origin/oversized/invalid JSON rejection, no implicit memory fallback, socket auth/relay/reconnect/expiry (`signaling.test.ts`, `rooms-api.test.ts`, `redis-config.test.ts`, `room-sockets.test.ts`) |
 | Deployment | Production configuration validation, Heroku origin handling and launch, Vercel layout and entrypoint naming, edge proxy fail-closed/cookies/WebSocket upgrade (`node-config.test.ts`, `node-deployment.test.ts`, `vercel-config.test.ts`, `proxy.test.ts`) |
 | Browser game flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; balance override; reload offline; cross-tab save safety (`game.spec.ts`, `results.spec.ts`, `save-conflict.spec.ts`, `timestamps.spec.ts`) |
-| Browser account flows | First-launch sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
+| Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
 | Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
 | Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
-| Graphics | All 18 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
+| Graphics | All 19 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
 | Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
 | Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
 | Local stack | Compose pins private MongoDB/Redis URLs and publishes only the game port; the Dockerfile ignores secrets; `scripts/local.sh` rewrites every `.env.example` key it depends on with LF endings; the smoke check refuses non-local services and cleans up (`local-stack.test.ts`). Live: health, assets, guest 401s, account signup/login/logout, score and leaderboard, progress revisions and device snapshots, account reconciliation, room claim and WebSocket input through Redis (`scripts/check-local.ts`, run by `local.sh check`) |
@@ -77,7 +78,16 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
-## Hosted verification
+## Verification evidence
+
+### Maintenance, vehicles, accounts and small screens (2026-11-14)
+
+- Node 24.22.2: `npm ci`, `npm run build`, `npm run typecheck`, `npm run docs:check` and `npm test` passed; 167 Node tests in 24 files. The documentation gate covers all 19 car/tuning/audio rows, 17 paints, version/cache/save baseline, locale counts, local links and source references.
+- The broad Chromium/WebKit scope exercised account/signup/logout/merge, demo/guest play, results, tutorial/units, installation/depth, ranking, settings/garage layout, HUD layout, vehicle poses and audio. It passed 103 cases and skipped one unsupported WebKit Web Audio case. Eight stale expectations/first-launch fixtures were corrected, then included in the focused recheck.
+- The focused scope (`phone-dialogs`, `languages`, `install-depth`, `leaderboard`, `phone-screens`) exercised 48 Chromium/WebKit cases: 47 passed in one run; the eight-language switching loop hit its 45-second total budget in WebKit after its final language. Its budget was raised to 90 seconds for the repeated transitions and the separate recheck passed in 20.7 seconds. All fifteen locales pass result visibility/no-scroll checks at both iPhone SE sizes, including large score/distance values. Urdu retains physical control directions.
+- Geometry checks include 320x568, 568x320, 375x667, 667x375, 768x1024, 1024x768, 900x1440 and 1440x900. Settings/About headings begin at the top after reopening a scrolled modal. Crash and fuel results retain visible actions without scrolling.
+- [Portrait result](../docs/screenshots/maintenance-2026-11-14/result-portrait.png), [landscape result](../docs/screenshots/maintenance-2026-11-14/result-landscape.png), [vehicle poses](../docs/screenshots/uno-v1/vehicle-poses.png) and [audit findings](../docs/audit-2026-11-14.md) are retained. The three normal-Uno atlas cells have transparent opaque-pixel borders, complete silhouettes, distinct poses, paint and braking support.
+- All five canonical skills passed the skill-creator validator. No deployment, live storage probe, real-engine recording, physical-device test or native-speaker sign-off is claimed. QA-01 and I18N-01 remain pending.
 
 ### Optional accounts, demo run, phone layout and tilt (2026-11-13)
 
@@ -189,3 +199,17 @@ npm run native:ios
 ```
 
 Android compilation requires JDK/Android SDK. iOS compilation/signing requires macOS/Xcode and an Apple team. Generated projects and successful Capacitor copy/sync are not equivalent to an installed, tested, signed APK/AAB/IPA. Required physical-device and store checks are defined in [NAT-01, NAT-02 and QA-01](09-roadmap.md).
+
+## Quality review contract
+
+The canonical [pista-quality skill](../.agents/skills/pista-quality/SKILL.md) defines the completion review. Claude/Copilot expose a `pista-quality` agent pointing to that same procedure; Codex uses the canonical skill through AGENTS.md.
+
+A full quality audit verifies Node 24+, dependency installation, build before strict typecheck, documentation consistency, all Node tests and the entire configured Chromium/WebKit suite with isolated services. It inventories controls and event routes against specs and executed tests/manual scenarios, including keyboard/touch, close/back paths, disabled/error states, offline progress, accounts, purchases and remote controls. A missing interaction test is a coverage gap, not proof of working behavior. Routine code changes use the affected scope and disclose its limits.
+
+Review runtime boundary validation and strict types, practical SOLID responsibilities and module size. Handwritten implementation modules must be below 300 physical lines; existing overages are tracked under QLT-01 and [technical debt](../docs/TECH-DEBT.md#module-size-debt). Refactor touched responsibilities where feasible without an unrelated wholesale rewrite. Do not shrink text or suppress checks to satisfy a metric. Report data-heavy/test files separately rather than silently excluding them.
+
+Quality results list blockers, commands and pass/fail/skip outcomes, tested interactions, uncovered paths, oversized files and physical/native limitations. No all-clear is issued while required checks are missing or failing. Preserve previous evidence as dated history rather than implying the full suite ran for a documentation-only edit.
+
+### Quality workflow addition (2026-11-14)
+
+Added the quality skill, Claude/Copilot entrypoints and review agents; documented typing/design and module-size rules. This change modifies guidance only. Skill validation, documentation consistency and diff checks are the applicable checks; runtime build/tests are not rerun for these instructions. The seven existing oversized production TypeScript modules are recorded as debt, not reported as resolved.

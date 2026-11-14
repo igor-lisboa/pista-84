@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const am = {
+  "account.optional": "መለያ መፍጠር አማራጭ ነው፦ በደመና ለማስቀመጥና የደረጃ ዝርዝሩን ለማየት።",
+  "tag.uno-normal": "የዕለት ተዕለት ክላሲክ መኪና",
   'auth.secure': "ለመግባት ወይም መለያ ለመፍጠር የHTTPS ግንኙነት ይጠቀሙ።",
   'auth.account': "መለያ",
   'auth.login': "ግባ",
@@ -35,7 +37,7 @@ export const am = {
 
   'shop.guest': "ሳንቲም ለመግዛት መለያ ያስፈልጋል። በአማራጮች ይፍጠሩ።",
 
-  'demo.start': "የማሳያ ውድድር፡ Veloce GT ለዚህ ውድድር ብቻ የእርስዎ ነው። ከተጋጩ ወደ የራስዎ መኪና ይመለሳሉ።",
+  "demo.start": "ማሳያ፦ Veloce GT ለአንድ ውድድር።",
   'shop.soon': 'በቅርቡ',
   'coins.amount': 'ሳንቲሞች፦ {n}',
   'paint.scarlet': 'ደማቅ ቀይ',

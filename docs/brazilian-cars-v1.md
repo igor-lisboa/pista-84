@@ -12,11 +12,13 @@ These are arcade approximations of period road cars, not homologation measuremen
 | Marea Turbo | 220 | 7.2 | 1.35 | 1.08 | 1.02 |
 | Passat 85 | 170 | 12.3 | 0.88 | 1.04 | 0.94 |
 | Puma GT | 160 | 13.3 | 0.83 | 1.18 | 0.95 |
-| Veloce GT | 350 | 4.1 | 1.20 | 1.15 | 1.18 |
+| Veloce GT | 350 | 2.6 | 1.20 | 1.15 | 1.18 |
 
-The GT acceleration rating rises from 64 to 70 (9.375% stronger pull), retaining its 350 km/h ceiling. Its previous 0–100 time was approximately 5.35 seconds. It later rose again from 70 to 84 (20% stronger pull), cutting 0–100 from about 4.9 to 4.1 seconds.
+Historical tuning: the GT acceleration rating rose from 64 to 70 (9.375% stronger pull), retaining its 350 km/h ceiling. Its previous 0–100 time was approximately 5.35 seconds. It later rose again from 70 to 84 (20% stronger pull), cutting 0–100 from about 4.9 to 4.1 seconds.
 
-The four new cars and GT now have model-specific exhaust harmonics, firing rates derived from cylinder count and simulated RPM, automatic gear pitch drops, a low exhaust layer and smooth pitch/filter envelopes. Marea uses a five-cylinder voice plus quiet load-dependent filtered turbo air noise. Puma uses a deeper flat-four spectrum. These remain synthesized game sounds, not recordings of the real vehicles. Existing legacy voices retain their profiles. Non-running states mute engine layers; braking removes turbo load.
+Current GT acceleration is 110 with gain 0.36; see [measured times](acceleration-v6.md).
+
+The four new cars and GT now have model-specific exhaust harmonics, firing rates derived from cylinder count and simulated RPM, automatic gear pitch drops, a low exhaust layer and smooth pitch/filter envelopes. Marea uses a five-cylinder voice plus quiet load-dependent filtered turbo air noise. Puma uses a deeper flat-four spectrum. These remain synthesized game sounds, not recordings of the real vehicles. Other current profiles are cataloged in spec 05; later Uno changes are documented in [Uno notes](uno-v1.md). Non-running states mute engine layers; braking removes turbo load.
 
 Historical references used as context: [Fiat's 147 history](https://www.media.stellantis.com/br-pt/fiat/press/fiat-147-50-anos-do-modelo-que-transformou-a-industria-automotiva-brasileira) and [Fiat's Marea Turbo report](https://www.media.stellantis.com/br-pt/fiat/press/fiat-marea-weekend-turbo-e-destaque). Numerical values above describe the game tuning.
 

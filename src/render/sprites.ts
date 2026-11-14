@@ -19,8 +19,8 @@ const SPRITE_CACHE_LIMIT = 150;
 const PAINT_CACHE_LIMIT = 80;
 const ALPHA_THRESHOLD = 80;
 const DEFAULT_BODY_COLOR = '#efce5e';
-const ATLAS_TILE_COUNT = 18;
-const TURN_TILE_COUNT = 36;
+const ATLAS_TILE_COUNT = 19;
+const TURN_TILE_COUNT = 38;
 const TURN_SHEET_SIZE = 1254;
 
 const DEFAULT_ATLAS_URL = './assets/vehicle-atlas-v1.png';
@@ -51,6 +51,7 @@ const BASE_PAINTS: Readonly<Record<string, string>> = {
   superbike: '#af94ec',
   kombi: '#7ad0c8',
   uno: '#f1efe6',
+  'uno-normal': '#f1efe6',
   chevette: '#d9573b',
   cg125: '#d33a3a',
   opala: '#2f6fb8',
@@ -73,6 +74,7 @@ const BASE_HUES: Readonly<Record<string, number>> = {
   superbike: 0.76,
   kombi: 0.51,
   uno: 0.12,
+  'uno-normal': 0.12,
   chevette: 0.055,
   cg125: 0,
   opala: 0.61,
@@ -325,13 +327,19 @@ export async function loadSprites(
 ): Promise<boolean> {
   const classics = new Map<string, HTMLCanvasElement>();
   const brazilian = new Map<string, HTMLCanvasElement>();
+  const uno = new Map<string, HTMLCanvasElement>();
   await Promise.all([
+    loadAtlas('./assets/vehicle-uno-v1.png', {
+      'uno-normal:0': [0, 0, 1 / 3, 1],
+      'uno-normal:1': [1 / 3, 0, 1 / 3, 1],
+      'uno-normal:2': [2 / 3, 0, 1 / 3, 1],
+    }, uno),
     loadAtlas(url, ATLAS_REGIONS, atlasTiles),
     loadAtlas(turnUrl, TURN_REGIONS, turnTiles),
     loadAtlas(classicsUrl, CLASSIC_REGIONS, classics),
     loadAtlas(brazilianUrl, BRAZILIAN_REGIONS, brazilian),
   ]);
-  for (const [key, tile] of [...classics, ...brazilian]) {
+  for (const [key, tile] of [...classics, ...brazilian, ...uno]) {
     const [id, pose] = key.split(':');
     if (pose === '0') atlasTiles.set(id!, tile);
     else turnTiles.set(key, tile);
@@ -360,12 +368,15 @@ function recolorTile(original: HTMLCanvasElement, car: CarLook): HTMLCanvasEleme
     const x = ((i / 4) % canvas.width) / canvas.width;
     const y = Math.floor(i / 4 / canvas.width) / canvas.height;
     // The Uno's white body needs a neutral mask; keep its ladder, plate and bumpers intact.
-    const whiteBody = car.id === 'uno' && s < 0.15 && l > 0.55 && y > 0.25 && y < 0.72
-      && !(y > 0.59 && x > 0.28 && x < 0.72);
+    const whiteBody = s < (car.id === 'uno-normal' ? 0.26 : 0.15) && l > 0.55 && (
+      (car.id === 'uno' && y > 0.25 && y < 0.72 && !(y > 0.59 && x > 0.28 && x < 0.72))
+      || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.53 && y < 0.70 && x > 0.28 && x < 0.68))
+    );
     const paintable = whiteBody || (diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
     if (!paintable) continue;
     // Dark and neutral paints must change brightness too, while retaining panel shading.
-    const lightness = target[2] < 0.35 ? l * target[2] / 0.5
+    const lightness = whiteBody && car.id === 'uno-normal' ? Math.min(0.96, l * target[2] / 0.8)
+      : target[2] < 0.35 ? l * target[2] / 0.5
       : target[2] > 0.75 ? l + (target[2] - 0.5) * (1 - l)
       : l * (0.7 + target[2] * 0.6);
     const saturation = target[1] < 0.08 ? target[1] : target[1] * 0.85 + 0.1;
@@ -675,6 +686,7 @@ const TURNING_BRAKE_LAMPS = [0.1, 0.58] as const;
 
 // Positions on the cropped authored images. These cars' lights sit higher than the bumper.
 const MODEL_BRAKE_LAMPS: Readonly<Record<string, { y: number; centers: readonly (readonly number[])[] }>> = {
+  'uno-normal': { y: 0.37, centers: [[0.1, 0.88], [0.06, 0.65], [0.07, 0.57]] },
   fiat147: { y: 0.42, centers: [[0.09, 0.9], [0.08, 0.65], [0.09, 0.57]] },
   marea: { y: 0.46, centers: [[0.11, 0.86], [0.09, 0.62], [0.1, 0.56]] },
   passat: { y: 0.39, centers: [[0.1, 0.9], [0.09, 0.65], [0.1, 0.58]] },

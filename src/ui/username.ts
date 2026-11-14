@@ -16,7 +16,7 @@ const PASSWORD_MIN = 5;
 const PASSWORD_MAX = 128;
 
 /**
- * Optional first-launch screen. Signing up or logging in creates the online
+ * Optional post-race account screen. Signing up or logging in creates the online
  * account, so progress can be published and used on other devices. Everyone else
  * plays as a guest: the screen can always be closed or skipped with "Play without
  * an account", and guests keep all local progress without any cloud access.
@@ -60,7 +60,7 @@ export class UsernameDialog {
       this.mode = mode;
       this.render();
     });
-    // Closing the modal by any route is the guest path; the game opens the tutorial then.
+    // Closing the modal by any route is the guest path; the player can keep racing without an account.
     byId('usernameGuest').onclick = () => byId<HTMLDialogElement>('modal').close();
     input.oninput = () => {
       input.value = sanitizeUsernameInput(input.value);

@@ -18,9 +18,11 @@ Real-money coin packs, payments and ads stay pending work in `specs/09-roadmap.m
 
 ## Commands and conventions
 
-- Use Node 24 or newer. Run `npm ci`, `npm run build`, `npm run typecheck`, and `npm test` for code changes. Build generates the Worker asset module required by type checking.
+- Use Node 24 or newer. Run `npm ci`, `npm run build`, `npm run typecheck`, `npm run docs:check`, and `npm test` for code changes. Build generates the Worker asset module required by type checking.
 - Run the relevant Playwright specs for changes to browser flows, rendering or controls. `playwright.config.ts` disables live databases; do not reuse a server connected to real services for browser tests.
 - TypeScript uses erasable syntax, strict checks and explicit `.ts` relative imports. Keep `src/game/` independent of the DOM.
+- Keep new handwritten implementation modules below 300 physical lines (299 maximum, including comments and blanks). Split by responsibility, never by minifying or arbitrary chunks. When touching an existing oversized module, extract the affected responsibility where feasible and report remaining overages under QLT-01; do not imply the entire repository already meets this rule.
+- Review strict typing and practical SOLID boundaries: validate unknown external data, avoid new `any`/unsafe assertions/error suppressions, keep interfaces narrow and avoid unnecessary abstractions.
 - Keep modules focused on one responsibility and use descriptive names and explicit control flow. Prefer small functions and existing interfaces over new abstraction layers. Put test-only storage in `tests/support/`. A junior maintainer should be able to follow connection setup, persistence and business rules separately.
 - Code, comments and API errors are English. Put player-facing strings in `src/i18n/locales/` and preserve keys/placeholders across all locales.
 - Edit source in `src/`, `web/`, `api/`, `worker/` or `scripts/`. Never hand-edit `www/`, `dist/`, `worker/generated-assets.ts` or `node_modules/`.
@@ -43,3 +45,7 @@ and `.agents/skills/pista-docs/SKILL.md` (documentation sync, required for every
 Claude and Copilot entrypoints point to these workflows; update the canonical files first.
 Update relevant specs/docs when behavior, environment settings or storage changes.
 Report what changed, which checks ran, and any unresolved limitation. Preserve unrelated user edits.
+
+Vehicle additions and existing-car tuning follow `.agents/skills/pista-vehicles/SKILL.md` (real reference evidence, deliberate arcade exceptions, complete turn-pose review). Every player-text change follows `.agents/skills/pista-localization/SKILL.md` across all fifteen locales. Documentation completion uses the diff-to-spec audit gate in `pista-docs`; code, current specs and docs must agree before completion.
+
+Use `.agents/skills/pista-quality/SKILL.md` as the completion quality review for code changes and explicit quality audits. Full quality audits run all Node and configured Chromium/WebKit tests, inventory user interactions and report missing coverage, failures and skips separately. Claude/Copilot expose the `pista-quality` review agent; Codex follows the same canonical skill. Passing typecheck alone does not establish runtime correctness.

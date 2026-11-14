@@ -1,6 +1,8 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  "account.optional": "アカウントは任意です。クラウド保存とランキングが使えます。",
+  "tag.uno-normal": "日常を走る定番車",
   'auth.secure': "ログインやアカウント作成にはHTTPS接続を使用してください。",
   'auth.account': "アカウント",
   'auth.login': "ログイン",
@@ -35,7 +37,7 @@ export const ja: Messages = {
 
   'shop.guest': "コインパックの購入にはアカウントが必要です。オプションから作成してください。",
 
-  'demo.start': "デモ走行：このレースだけ Veloce GT が使えます。クラッシュすると自分の車に戻ります。",
+  "demo.start": "体験走行：この1回はVeloce GT。",
   'shop.soon': '近日公開',
   'coins.amount': 'コイン: {n}',
   'paint.scarlet': 'スカーレットレッド',

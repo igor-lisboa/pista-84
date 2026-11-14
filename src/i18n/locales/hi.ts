@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const hi = {
+  "account.optional": "खाता वैकल्पिक है: क्लाउड सेव और ऑनलाइन रैंकिंग के लिए।",
+  "tag.uno-normal": "रोज़मर्रा की क्लासिक कार",
   'auth.secure': "लॉग इन करने या खाता बनाने के लिए HTTPS कनेक्शन का उपयोग करें।",
   'auth.account': "खाता",
   'auth.login': "लॉग इन करें",
@@ -35,7 +37,7 @@ export const hi = {
 
   'shop.guest': "सिक्के खरीदने के लिए खाता चाहिए। विकल्पों में खाता बनाएं।",
 
-  'demo.start': "डेमो दौड़: यह दौड़ आपको Veloce GT मिलेगी। टक्कर होने पर आप अपनी कार पर लौट आएंगे।",
+  "demo.start": "डेमो: एक रेस के लिए Veloce GT।",
   'shop.soon': 'जल्द आ रहा है',
   'coins.amount': 'सिक्के: {n}',
   'paint.scarlet': 'सुर्ख लाल',

@@ -1,0 +1,13 @@
+# Normal Uno and ladder meme - 2026-11-14
+
+`uno-normal` retains the former ladder Uno game specifications: 150 km/h, acceleration 30, gain 0.26, falloff 1.4, consumption 0.70, handling 1.05, width 0.94, braking 38 and price 120 coins. These inherited arcade values are not sourced real-model specifications. `uno` remains the saved identity of Uno com Escada, now intentionally exaggerated to 400 km/h and acceleration 90/gain 0.36. GT acceleration is 110/gain 0.36, preserving its 0.5 high-speed falloff. The meme reflects Brazilian jokes about company Uno drivers carrying roof ladders.
+
+The [normal Uno sheet](../web/assets/vehicle-uno-v1.png) was made with the built-in imagegen tool, using `vehicle-classics-v2.png` as reference. Three equal horizontal cells contain straight, mild and strong right turns. Left turns mirror those authored poses. Factory white body recoloring preserves glass, lamps and bumper; brake feedback uses the shared renderer. The procedural fallback shares the Uno body with the ladder omitted.
+
+Generation prompt:
+
+> Use case: precise-object-edit. Create a game sprite sheet for ONLY the white Fiat Uno in the SECOND ROW of the reference. Remove the ladder and roof rack entirely, restore a clean factory white roof. Match the reference vehicle's detailed illustrated arcade rendering, bold dark outlines, proportions, rear lights, black bumper, wheels, windows and lighting. Output exactly THREE sprites in one horizontal row, evenly spaced in three equal-width cells: straight rear view, gentle right turn rear three-quarter view, strong right turn rear three-quarter view (more visible side than gentle). All three are the same normal white Fiat Uno WITHOUT any ladder or rack. Camera slightly above from behind, matching reference. No other vehicles, no text, no labels, no badges, no scene, no shadows outside the car, transparent RGBA background with clear transparent gutters and margins; each car completely inside its cell. Landscape sheet.
+
+Audio is synthesized rather than recorded. The normal Uno retains the previous four-cylinder, 900-6200 RPM voice and 30/55/88/122/150 km/h shift limits. Ladder Uno uses a slightly brighter voice and 60/120/200/300/400 km/h limits as a deliberate fantasy adaptation. No hardware listening or real-engine fidelity certification is claimed.
+
+Review captures: [turn-pose contact sheet](screenshots/uno-v1/vehicle-poses.png), [normal Uno driving](screenshots/uno-v1/uno-normal-driving.png), [ladder Uno driving](screenshots/uno-v1/uno-driving.png). Reproduce against the isolated local browser-test server with `node scripts/review-uno.ts`.

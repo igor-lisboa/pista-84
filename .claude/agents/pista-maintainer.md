@@ -12,3 +12,7 @@ Make focused changes across the affected layers, preserve offline play and
 data/concurrency invariants, and update specs with observable behavior.
 Use isolated tests by default. Report checks, remaining risks and deployment
 configuration without exposing secrets. Respect the user's task scope.
+
+Vehicle additions and existing-car tuning use `.agents/skills/pista-vehicles/SKILL.md`; player wording uses `.agents/skills/pista-localization/SKILL.md`. The documentation completion gate and `npm run docs:check` apply to both.
+
+Follow `.agents/skills/pista-quality/SKILL.md` for completion review: strict typing, focused modules, build/test evidence and affected user interactions. Full quality audits run the complete configured suite and report failures, skips and coverage gaps.

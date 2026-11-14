@@ -32,3 +32,5 @@ before changing a contract and follow `.agents/skills/pista-docs/SKILL.md`. Upda
 `docs/TECH-DEBT.md` in the same change when the data contract, endpoints, error
 codes, keys, TTLs or limitations change. Deployment must configure MongoDB/Redis on Node and
 `API_ORIGIN` on an edge Worker. Report validation and any migration/deployment steps.
+
+Follow `.agents/skills/pista-quality/SKILL.md` for completion review: strict typing, focused modules, build/test evidence and affected user interactions. Full quality audits run the complete configured suite and report failures, skips and coverage gaps.

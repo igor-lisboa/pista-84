@@ -26,3 +26,17 @@ See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency, an
 - **Old provider data** is not imported or deleted. Retain or import needed records before switching traffic.
 - **Vercel backend auto-detection** treats root, `src/` or browser bundles named `app`, `index`, `server` or `main` as server
   entrypoints. Preserve `client.ts`, `game.js` and `dev-server.ts` naming and the tests guarding them (`tests/vercel-config.test.ts`).
+
+## Module-size debt
+
+The quality workflow targets handwritten implementation modules below 300 physical lines (299 maximum). A 2026-11-14 scan of `src/`, `api/`, `worker/` and `scripts/` found seven TypeScript files at or above 300 lines, excluding generated Worker assets:
+
+- `src/ui/game-app.ts`: application orchestration and race/account lifecycle.
+- `src/render/renderer.ts`: scene and road rendering.
+- `src/render/sprites.ts`: atlas loading, recoloring, fallback sprites and drawing.
+- `src/render/procedural-cars.ts`: procedural vehicle painters.
+- `src/game/race.ts`: simulation and run lifecycle.
+- `src/render/scenery.ts`: scenery artwork and caches.
+- `src/ui/input.ts`: input sources, permissions and bindings.
+
+These are existing overages, not new compliance claims. QLT-01 tracks decomposition along responsibility boundaries. Extract touched responsibilities when feasible, preserve public behavior and dependency direction, and validate with simulation/browser tests. Do not minify, remove useful comments or create arbitrary numbered chunks merely to meet the limit. Report oversized data-only and test files separately during quality review.

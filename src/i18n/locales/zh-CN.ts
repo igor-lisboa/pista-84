@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const zhCN = {
+  "account.optional": "账号可选：支持云存档和在线排行榜。",
+  "tag.uno-normal": "日常出行的经典车型",
   'auth.secure': "请使用HTTPS连接登录或创建账户。",
   'auth.account': "账户",
   'auth.login': "登录",
@@ -35,7 +37,7 @@ export const zhCN = {
 
   'shop.guest': "购买金币需要账号。请在选项中注册。",
 
-  'demo.start': "体验赛：本局可使用 Veloce GT。撞车后将换回你自己的车。",
+  "demo.start": "试玩：驾驶Veloce GT跑一局。",
   'shop.soon': '敬请期待',
   'coins.amount': '金币：{n}',
   'paint.scarlet': '猩红',

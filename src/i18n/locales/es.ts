@@ -1,6 +1,8 @@
 import type { MessageKey } from '../types.ts';
 
 export const es = {
+  "account.optional": "Cuenta opcional: guarda en la nube y participa en la clasificación.",
+  "tag.uno-normal": "Un clásico del día a día",
   'auth.secure': "Usa una conexión HTTPS para iniciar sesión o crear una cuenta.",
   'auth.account': "Cuenta",
   'auth.login': "Iniciar sesión",
@@ -35,7 +37,7 @@ export const es = {
 
   'shop.guest': "Para comprar monedas necesitas una cuenta. Crea una en Opciones.",
 
-  'demo.start': "Carrera demo: el Veloce GT es tuyo solo en esta carrera. Si chocas, vuelves a tu coche.",
+  "demo.start": "Demo: Veloce GT por una carrera.",
   'shop.soon': 'PRÓXIMAMENTE',
   'coins.amount': 'Monedas: {n}',
   'paint.scarlet': 'Rojo escarlata',

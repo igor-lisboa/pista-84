@@ -2,15 +2,15 @@
 
 **Start here. This folder is the canonical specification for the game.**
 
-Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v26**. Reconciled with the code on **2026-11-13**. Game source is in [`../`](../).
+Baseline: application **1.4.0**, save format **2**, offline cache **pista84-v27**. Reconciled with the code on **2026-11-14**. Game source is in [`../`](../).
 
-These specifications are the **source of truth** for the game. They were reconciled with the implementation on 2026-11-13; from then on a behavior change starts here and the code follows (see the maintenance rules below). Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
+These specifications are the **source of truth** for the game. They were reconciled with the implementation on 2026-11-14; from then on a behavior change starts here and the code follows (see the maintenance rules below). Unless marked **pending**, a rule describes existing behavior. The interface is available in fifteen languages (Brazilian Portuguese is the source language); these specifications, all code, comments, identifiers, test names and server error messages are in English.
 
 | Document | Definitions |
 | --- | --- |
 | [01 — Product and scope](01-product-and-scope.md) | Concept, platforms, design decisions, delivery boundaries |
 | [02 — Gameplay](02-gameplay.md) | States, movement, fuel, fatal crashes, off-road, traffic, score, environment |
-| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 18-vehicle catalog, statistics, coin prices, paints, score-based rewards, paid second chance |
+| [03 — Vehicles and economy](03-vehicles-and-economy.md) | Complete 19-vehicle catalog, statistics, coin prices, paints, score-based rewards, paid second chance |
 | [04 — Interface and controls](04-interface-and-controls.md) | Initial menu, top-bar race HUD, accounts, leaderboard, tutorial, keyboard, touch, tilt, fifteen languages, Safari |
 | [05 — Art and audio](05-art-and-audio.md) | Reference direction, sunset-arcade look, camera, sprites, scenery, procedural music and sounds |
 | [06 — Architecture and data](06-architecture-and-data.md) | TypeScript modules, save schema, runtime config, accounts, MongoDB/Redis, offline sync, offline and native packaging |
@@ -36,3 +36,7 @@ These specifications are the **source of truth** for the game. They were reconci
 - [Known limitations](../docs/TECH-DEBT.md)
 
 `docs/SPECS.md` and `docs/PENDING.md` are navigation pointers to this folder (the latter carries a short status summary of the backlog). They are not a second specification to maintain. The other files in `docs/` are provenance, tuning records and operations guides referenced from the specs.
+
+Maintenance audit and evidence: [2026-11-14 audit](../docs/audit-2026-11-14.md). Run `npm run docs:check` to validate catalog, tuning, audio tables, baseline and local links.
+
+Maintenance baseline (2026-11-14): the [quality review contract](08-validation-and-release.md#quality-review-contract) adds strict typing/SOLID review, interaction evidence and a below-300-line implementation target; existing module-size debt is QLT-01. Application/save/cache versions above are unchanged by this guidance-only addition.

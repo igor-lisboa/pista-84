@@ -31,3 +31,16 @@ export async function loadHarness(page: Page): Promise<void> {
 
 /** Reads the HUD speed as a number. */
 export const hudSpeed = async (page: Page): Promise<number> => Number.parseInt(await page.locator('#speed').innerText(), 10);
+
+/** Completes the first demo through real input; leaves its optional account action visible. */
+export async function finishFirstDemo(page: Page): Promise<void> {
+  await page.locator('#tutSkip').waitFor({state: 'visible'});
+  await page.locator('#tutSkip').click();
+  await page.locator('#modal').waitFor({state: 'hidden'});
+  await page.locator('#start').click();
+  await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('ArrowRight');
+  await page.locator('#enter').waitFor({ state: 'visible', timeout: 25000 });
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.up('ArrowUp');
+}

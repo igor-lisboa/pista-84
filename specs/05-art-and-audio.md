@@ -51,7 +51,7 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **18** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
+Each of the **19** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
 
 The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while accelerating). Engine gain is 0.28 × 0.8 coasting or × 1.5 accelerating. Braking combines broad, lower-pitched friction noise (bandpass at `brake + speed × 1.5`) with a quiet per-model tonal squeal scaled by `squeal` in `vehicle-tuning.ts`; the Veloce GT has `squeal: 0` (friction only) and a 680 Hz brake filter base. Full braking peaks at friction level **0.42** and squeal **0.09** (scaled by the car's brake rate and squeal mix), so braking reads clearly over the engine. Envelopes respond in about 60 ms and fade as the car stops. **Tyre squeal** while cornering: bandpass noise at `1200 + speed × 4` Hz, rising with the steering load (`|steer|`) and with speed above 20 km/h (full at 100 km/h), scaled by `0.5 + squeal` from [vehicle-tuning](../src/game/vehicle-tuning.ts) and silent while braking. Wind noise rises with speed (40–350 km/h). Effects gain is 0.20; music bus gain is 0.07 in menus and 0.0455 (× 0.65) in races. The sound toggle controls the full mix.
 
@@ -64,7 +64,8 @@ The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while a
 | moto | 95 | 1.40 | square | 1100 | 1500 | 1 | 1400 / 9500 |
 | suv | 22 | 0.50 | sawtooth | 320 | 520 | 4 | 750 / 4200 |
 | kombi | 33 | 0.55 | triangle | 420 | 600 | 4 | 800 / 4600 |
-| uno | 58 | 0.85 | sawtooth | 760 | 1050 | 4 | 900 / 6200 |
+| uno | 62 | 0.90 | sawtooth | 760 | 1050 | 4 | 900 / 6200 |
+| uno-normal | 58 | 0.85 | sawtooth | 760 | 1050 | 4 | 900 / 6200 |
 | chevette | 48 | 0.78 | sawtooth | 700 | 950 | 4 | 850 / 5800 |
 | cg125 | 105 | 1.50 | square | 1000 | 1400 | 1 | 1400 / 8500 |
 | opala | 30 | 0.90 | sawtooth | 560 | 800 | 6 | 700 / 4800 |
@@ -96,3 +97,5 @@ The menu loop plays whenever the race is not running; each time race music start
 The current soundtrack is a synthesized procedural loop set, not a catalog of composed/licensed songs. Audio hardware behavior and subjective mixing still require physical-device review.
 
 Model sizes, common-scale garage previews, skyline fog and the earlier audio mix: [vehicle-balance-v3.md](../docs/vehicle-balance-v3.md); per-vehicle widths, braking rates and squeal levels live in `src/game/vehicle-tuning.ts`.
+
+Normal Uno uses `vehicle-uno-v1.png`: three transparent authored poses derived from the ladder Uno reference, with a clean roof. See [provenance and poses](../docs/uno-v1.md). Its audio retains the former Uno profile; the meme ladder version keeps four cylinders but stretches its five gear limits to 60/120/200/300/400 km/h. Both are synthesized approximations.
