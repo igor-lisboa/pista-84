@@ -1,6 +1,9 @@
 import type { Messages } from '../types.ts';
 
 export const de: Messages = {
+  "demo.transition": "Der GT war für die Demo geliehen. Deine PISTA 84-Reise beginnt mit {car}: Fahre Rennen, sammle Münzen und erweitere deine Garage!",
+  "tag.biz125": "Deine Begleiterin im Alltag",
+  "tag.hayabusa": "Kraftreserven auf der Autobahn",
   "account.optional": "Freiwilliges Konto: Cloud-Spielstände und Rangliste.",
   "tag.uno-normal": "Ein Klassiker für jeden Tag",
   'auth.secure': "Verwende eine HTTPS-Verbindung, um dich anzumelden oder ein Konto zu erstellen.",

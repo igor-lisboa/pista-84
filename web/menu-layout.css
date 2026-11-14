@@ -1,0 +1,113 @@
+/* Keep menu composition independent of the racing HUD and dialog content. */
+body .main-menu {
+  padding: max(28px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  touch-action: pan-y;
+  gap: 20px;
+}
+body .menu-top, body .menu-bottom {
+  flex: none;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+body .menu-top { gap: 16px; padding: 0; }
+body .menu-content {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 360px;
+  margin: auto;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vh, 36px);
+  padding-block: 16px;
+}
+body .title-block { text-align: center; min-width: 0; }
+body .logo { margin-top: 16px; font-size: clamp(64px, 10vw, 104px); }
+body .logo > span { margin-left: .65em; }
+body .menu-actions { width: 100%; max-width: 340px; gap: 12px; }
+body .menu-actions button { min-width: 0; }
+body .menu-actions button > span { overflow-wrap: anywhere; }
+body .selected-car { justify-content: center; }
+body .menu-bottom { justify-content: center; flex-wrap: wrap; gap: 8px 24px; text-align: center; }
+body .menu-bottom #wallet { margin-right: 0; }
+
+@media (orientation: landscape) {
+  body .menu-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-width: 920px;
+    column-gap: clamp(28px, 6vw, 90px);
+    row-gap: 28px;
+    align-content: center;
+    justify-items: center;
+  }
+  body .title-block { grid-column: 1; grid-row: 1; }
+  body .selected-car { grid-column: 1; grid-row: 2; }
+  body .menu-actions { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+@media (max-height: 570px) and (orientation: landscape) {
+  body .main-menu { gap: 12px; padding-top: max(22px, env(safe-area-inset-top)); padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  body .menu-content { flex: 1 0 auto; padding-block: 0; row-gap: 16px; max-width: 780px; }
+  body .logo { font-size: clamp(44px, 10vh, 60px); margin-top: 10px; }
+  body .tagline { margin-top: 12px; font-size: 12px; }
+  body .kicker { font-size: 9px; letter-spacing: 1px; }
+  body .menu-actions { gap: 10px; }
+  body .menu-actions .primary { min-height: 44px; padding: 8px 14px; font-size: 18px; }
+  body .menu-actions .menu-button { min-height: 40px; padding: 8px 12px; font-size: 11px; letter-spacing: .5px; gap: 8px; }
+  body .menu-tools { gap: 12px; }
+  body .menu-tools .icon-button { width: 40px; height: 40px; }
+  body .selected-car canvas { width: 72px; height: 44px; }
+  body .selected-car strong { font-size: 13px; }
+  body .menu-bottom { font-size: 10px; }
+  body .keyboard-hint { display: none; }
+}
+
+@media (max-height: 690px) and (orientation: portrait) {
+  body .main-menu { gap: 12px; }
+  body .menu-content { gap: 18px; padding-block: 12px; max-width: 320px; }
+  body .logo { font-size: 48px; margin-top: 12px; }
+  body .logo > span { display: inline; margin-left: .15em; }
+  body .tagline { margin-top: 12px; }
+  body .menu-actions { gap: 8px; }
+  body .menu-actions .primary { min-height: 48px; padding: 10px 16px; }
+  body .menu-actions .menu-button { min-height: 42px; padding: 8px 14px; line-height: 1.25; }
+  body .selected-car canvas { height: 45px; }
+  body .keyboard-hint { display: none; }
+}
+
+@media (max-height: 380px) and (orientation: landscape) {
+  body .main-menu { gap: 12px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  body .menu-tools .icon-button { width: 36px; height: 36px; }
+  body .menu-actions { gap: 8px; }
+  body .menu-actions .primary { min-height: 40px; padding: 4px 12px; line-height: 1.2; }
+  body .menu-actions .menu-button { min-height: 36px; padding: 5px 10px; font-size: 10px; line-height: 1.2; }
+  body .menu-actions .ui-icon { width: 20px; height: 20px; }
+  body .edition { letter-spacing: 1px; }
+}
+
+@media (max-height: 600px) and (orientation: portrait) {
+  body .main-menu { gap: 10px; padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  body .menu-tools .icon-button { width: 38px; height: 38px; }
+  body .menu-content { gap: 16px; padding-block: 4px; }
+  body .logo { font-size: 40px; }
+  body .kicker { font-size: 8px; letter-spacing: 1px; }
+  body .tagline { font-size: 12px; margin-top: 10px; }
+  body .menu-actions .primary { min-height: 46px; line-height: 1.2; padding-block: 8px; }
+  body .menu-actions .ui-icon { width: 20px; height: 20px; }
+  body .selected-car { gap: 8px; }
+  body .selected-car > div { gap: 1px; }
+  body .selected-car strong { font-size: 14px; }
+  body .menu-bottom { gap: 6px 14px; letter-spacing: .5px; }
+}
+
+@media (orientation: portrait) {
+  body dialog[open] { display: flex; flex-direction: column; }
+  body dialog .close { flex: none; }
+  body #modalBody { flex: none; width: 100%; margin-block: auto; }
+  body .overlay-card:not(.result-card) { display: flex; flex-direction: column; justify-content: center; }
+}

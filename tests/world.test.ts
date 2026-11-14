@@ -26,8 +26,8 @@ import {
 } from '../src/game/index.ts';
 import { blendColor } from '../src/render/renderer.ts';
 
-test('the garage has nineteen distinct coin vehicles with accessible sports car prices', () => {
-  assert.equal(CARS.length, 19);
+test('the garage has twenty-one distinct coin vehicles with accessible sports car prices', () => {
+  assert.equal(CARS.length, 21);
   assert.equal(new Set(CARS.map((c) => c.id)).size, CARS.length);
   assert.equal(coinPrice(CARS.find((c) => c.id === 'gt')!), 30_000);
   assert.equal(coinPrice(CARS.find((c) => c.id === 'superbike')!), 20_000);

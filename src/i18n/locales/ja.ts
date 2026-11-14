@@ -1,6 +1,9 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  "demo.transition": "GTはデモ専用の貸出車でした。ここからは{car}でPISTA 84の旅へ！走ってコインを集め、ガレージを充実させよう！",
+  "tag.biz125": "毎日の頼れる相棒",
+  "tag.hayabusa": "高速道路でも余裕のパワー",
   "account.optional": "アカウントは任意です。クラウド保存とランキングが使えます。",
   "tag.uno-normal": "日常を走る定番車",
   'auth.secure': "ログインやアカウント作成にはHTTPS接続を使用してください。",

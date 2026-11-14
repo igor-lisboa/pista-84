@@ -18,6 +18,8 @@ Playing never requires an account. Every control, the race, the tutorial, the de
 
 ### First launch and tutorial
 
+The first completed demo result includes a localized transition note: the GT was a demo loan, and the player's PISTA 84 journey now begins with the selected owned vehicle (Fusca 76 for a new player), racing to earn coins and grow the garage. It appears with the results rather than opening another modal, does not repeat on a continued demo or later races, and never changes the player's saved vehicle choice. Restart/menu/account/second-chance actions remain available.
+
 On a new device, first launch opens only the five-step tutorial, with Back/Next and Skip. Closing or finishing it sets `tutorialDone`. No account form opens automatically at launch. The first run after the tutorial is the one-time Veloce GT demo. Its result offers an optional Log in / sign up action alongside restart and menu; it does not interrupt the result with a form. Players can ignore accounts indefinitely. Settings and the guest leaderboard provide explicit login/signup entry points. Later results retain the optional login action. If a new player has not moved after 5 seconds, the tutorial opens again and the run restarts when it closes. The demo announcement is one short line.
 
 
@@ -48,9 +50,11 @@ The result displays the failure reason, score in points, distance, run coins, th
 
 ## Garage
 
-Nineteen cards, in ascending coin-price order, show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. All cars show their coin price, with purchase buttons disabled until the wallet can afford them. Paints have their own section (seventeen choices including factory paint). Two controls, **export** and **import** of a progress file, are available here when `PISTA84_PROGRESS_TOOLS=true` (the default). Setting it to `false` hides both controls and their disclaimer; automatic local saving and sync continue. There is no manual cloud backup or restore button. Changing vehicle returns to the initial menu; changing paint affects appearance only.
+Twenty-one cards, in ascending coin-price order, show model sprite, tagline, maximum speed, acceleration, consumption and purchase/selection state. All cars show their coin price, with purchase buttons disabled until the wallet can afford them. Paints have their own section (seventeen choices including factory paint). Two controls, **export** and **import** of a progress file, are available here when `PISTA84_PROGRESS_TOOLS=true` (the default). Setting it to `false` hides both controls and their disclaimer; automatic local saving and sync continue. There is no manual cloud backup or restore button. Changing vehicle returns to the initial menu; changing paint affects appearance only.
 
 ## Settings (Options)
+
+The optional-account note is shown only to guests. Signed-in players see their account row without that note.
 
 The options dialog has four groups. **Player:** a single Account row (there is no separate "new player"
 action). **Game:** language picker, units, sound and tutorial. **Controls:** tilt, calibration, sensor status and keyboard help. **Device:** fullscreen and install. The dialog ends with a version label. The Account screen offers sign up / log in; for a signed-in player it shows the
@@ -86,7 +90,7 @@ Game group: the language picker is a wrapping grid of fifteen SVG flag buttons (
 
 ## Languages
 
-Fifteen interface languages: **pt-BR** (source), **en**, **pt-PT**, **fr**, **it**, **ja**, **de**, **es**, **hi**, **zh-CN**, **id**, **ur**, **bn**, **ru** and **am**. The choice is made in Options, applied immediately without reload and saved as `lang` in the save. With no saved choice the language comes from `navigator.languages` (`pt` maps to pt-BR unless it is pt-PT; other tags match by base language); an unknown language falls back to English. Message keys (249 today) are typed from the pt-BR table; a locale may omit keys and then falls back to pt-BR per key (only pt-PT does this: it overrides 182 keys). Tests require every locale except pt-PT to translate every key with the same `{placeholders}`, forbid unknown keys and forbid emoji. Static HTML is translated through `data-i18n` and `data-i18n-aria` attributes. The phone controller page also follows the browser language. Translations still need native-speaker review (I18N-01 in the [roadmap](09-roadmap.md)).
+Fifteen interface languages: **pt-BR** (source), **en**, **pt-PT**, **fr**, **it**, **ja**, **de**, **es**, **hi**, **zh-CN**, **id**, **ur**, **bn**, **ru** and **am**. The choice is made in Options, applied immediately without reload and saved as `lang` in the save. With no saved choice the language comes from `navigator.languages` (`pt` maps to pt-BR unless it is pt-PT; other tags match by base language); an unknown language falls back to English. Message keys (252 today) are typed from the pt-BR table; a locale may omit keys and then falls back to pt-BR per key (only pt-PT does this: it overrides 185 keys). Tests require every locale except pt-PT to translate every key with the same `{placeholders}`, forbid unknown keys and forbid emoji. Static HTML is translated through `data-i18n` and `data-i18n-aria` attributes. The phone controller page also follows the browser language. Translations still need native-speaker review (I18N-01 in the [roadmap](09-roadmap.md)).
 
 ## Input mapping
 
@@ -118,6 +122,8 @@ Steering reads the phone's **roll in its own screen plane from gravity** (`devic
 Permission rejection, missing sensors and unsupported audio/fullscreen must leave solo touch play available. Every browser, including Safari, uses the WebSocket controller transport; see [remote control](07-remote-control-api.md).
 
 ## Responsive layout and focus
+
+The initial menu centers its identity, action stack and selected vehicle in portrait, with flexible breathing room above and below. Landscape uses a centered, fluid two-column composition: identity and vehicle on one side, actions on the other. Header tools and footer records remain separate from the content; all five actions stay reachable at 320x568 and 568x320 without horizontal overflow. Compact portrait dialogs and pause content center vertically when they fit; long dialogs keep their top-first internal scrolling.
 
 Use actual `visualViewport.height` when available and safe-area insets for notches/home indicators. The fixed 960 x 720 camera is uniformly contained in every viewport without stretching or cropping. On short landscape screens, speed and trip information stack at the upper left while fuel and pause sit at the upper right; the bend warning sits below the left stack. HUD panels stay above the steering buttons and pedals, with horizontal safe-area insets respected.
 

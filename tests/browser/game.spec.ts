@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { hudSpeed, loadHarness } from './support/harness.ts';
 
-const CAR_COUNT = 18;
+const CAR_COUNT = 21;
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -96,7 +96,7 @@ test('the barrier ends the race with the crash screen', async ({ page }) => {
 
 test('leaving the road drags the speed down to about 40 km/h', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', owned: ['fusca', 'gt'], selected: 'gt' }));
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, owned: ['fusca', 'gt'], selected: 'gt' }));
     Math.random = () => 0.3;
   });
   await page.goto('/');
@@ -186,7 +186,7 @@ test('new models and high-price vehicles can be purchased and stay owned after r
   await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
   await page.addInitScript(() => {
     if (localStorage.getItem('garage-fixture')) return;
-    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 60_000, owned: ['fusca'], selected: 'fusca' }));
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, coins: 60_000, owned: ['fusca'], selected: 'fusca' }));
     localStorage.setItem('garage-fixture', 'yes');
   });
   await page.goto('/');
@@ -410,14 +410,14 @@ test('an environment balance overrides stored and cloud balances while purchases
   });
   await page.addInitScript(() => {
     if (localStorage.getItem('env-balance-fixture')) return;
-    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 3, owned: ['fusca'], selected: 'fusca' }));
+    localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, coins: 3, owned: ['fusca'], selected: 'fusca' }));
     localStorage.setItem('env-balance-fixture', 'yes');
   });
   await page.goto('/');
   await expect(page.locator('#wallet')).toContainText('10.000');
   await page.locator('#garageNav').click();
   await page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Uno com Escada' }) }).getByRole('button').click();
-  await expect(page.locator('#wallet')).toContainText('9.880');
+  await expect(page.locator('#wallet')).toContainText('6.800');
   expect(cloudReads).toBe(0);
   await page.reload();
   await expect(page.locator('#wallet')).toContainText('10.000');

@@ -14,7 +14,7 @@ Implement authenticated server-issued race sessions, bounded/plausible progress 
 
 ## COM-01 — Payments, premium currency and paid vehicles
 
-**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** Real-money coin purchases are **pending work**: no payment provider is connected and the shop is a placeholder. All nineteen cars are priced in coins with no premium distinction, so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
+**P1; depends on ECO-01, catalog/prices/countries, provider accounts and credentials.** Real-money coin purchases are **pending work**: no payment provider is connected and the shop is a placeholder. All twenty-one cars are priced in coins with no premium distinction, so real-money flows only concern coin packs; a billing integration (web checkout, Google Play or App Store) still has to be built.
 
 Add MongoDB collections for `orders`, `payment_events`, `wallet_entries` and `entitlements` (documented in [storage](../docs/STORAGE.md) when created). The main-menu **Buy coins** dialog is currently a disabled "coming soon" placeholder listing the planned 1,000 / 3,000 / 7,500 coin packs (R$ 9.90 / 24.90 / 49.90); it must become the checkout entry point. Implement:
 
@@ -68,7 +68,7 @@ Open `ios/App/App.xcodeproj`, set the final application identity/team, resolve S
 
 ## ART-01 — Authored atlas art for the six newer vehicles
 
-**Implemented.** All nineteen vehicles have authored straight, gentle-turn and hard-turn sprites, mirrored left turns and runtime paint remapping. The eight original models use vehicle-atlas-v1.png and vehicle-turns-v2.png, the six classics vehicle-classics-v2.png and the four Brazilian additions vehicle-brazilian-v1.png and normal Uno vehicle-uno-v1.png; procedural art remains an asset-loading fallback. Atlas cells have transparent borders, and browser checks compare cropped poses to reject sideways translations. See [provenance, prompts and review captures](../docs/vehicle-classics-v2.md).
+**Implemented.** All twenty-one vehicles have authored straight, gentle-turn and hard-turn sprites, mirrored left turns and runtime paint remapping. The eight original models use vehicle-atlas-v1.png and vehicle-turns-v2.png, the six classics vehicle-classics-v2.png and the four Brazilian additions vehicle-brazilian-v1.png and normal Uno vehicle-uno-v1.png; procedural art remains an asset-loading fallback. Atlas cells have transparent borders, and browser checks compare cropped poses to reject sideways translations. See [provenance, prompts and review captures](../docs/vehicle-classics-v2.md).
 
 ## I18N-01 — Translation review
 
@@ -90,7 +90,7 @@ Test Android Chrome/native and iPhone Safari/native in portrait/landscape. Exerc
 
 **P2 before commercial release.** Complete human playtests and broader browser/update checks.
 
-Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category (19 vehicles); fuel availability, coin prices against score-based earnings, the pace multiplier, the 120 s traffic ramp and 240 s late-game pressure, grass penalties, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
+Test Chromium, Firefox and WebKit; PWA install/update; at least ten runs per vehicle category (21 vehicles); fuel availability, coin prices against score-based earnings, the pace multiplier, the 120 s traffic ramp and 240 s late-game pressure, grass penalties, survival time and avoidable traffic layouts. Validate save migration, offline/online transitions, service-worker upgrades, keyboard focus and touch target sizes.
 
 **Accept:** recorded metrics drive balance changes; all vehicle categories remain viable; no update loses legitimate progress; no unsupported global browser/device claim.
 
@@ -107,6 +107,12 @@ Define a recovery channel without storing plaintext secrets, add account deletio
 Run physical/balance QA alongside native tool provisioning. ART-01 is implemented; I18N-01 and ACC-01 remain independent work. Address ECO-01 before COM-01. Configure providers before ADS-01. NET-01 is optimization; NET-02 is a separate functional lifetime limitation. Do not mark purchases, ads or store releases delivered merely because their future API contracts are documented here.
 
 ## Maintenance delivery - 2026-11-14
+
+The first completed demo result explains the temporary GT loan and the transition to Fusca 76 (or the player's saved selection), with fifteen-language text and no extra modal. Later/continued results do not repeat the explanation; smaller-screen demo summaries keep their actions reachable.
+
+Guest-only optional-account note; ladder Uno price of 3,200 coins with its tuning and ownership preserved; Biz 125 and Hayabusa with authored poses, paint/brake support, distinct geared sounds and fifteen-language taglines. Road drawing batches, reusable projection buffers, bounded section caching and incremental sprite-cache eviction reduce repeated work while retaining the same camera and rules. Physical performance and speaker mixing remain QA-01 work; [motorcycle provenance](../docs/motorcycles-v1.md) distinguishes source evidence from arcade settings.
+
+Menu spacing refinement: centered portrait content, fluid landscape columns, separated header/footer and vertically centered compact portrait dialogs/pause menus. Automated viewport coverage includes 320x568 and 568x320; physical-device review stays in QA-01.
 
 Normal Uno and its three authored poses added; ladder Uno intentionally tuned to 400 km/h below GT initial pull; GT launch strengthened with the existing taper. Launch account form removed; optional post-demo result and ranking/settings entry points retained. Phone results fill both orientations; long dialogs start at the top. Reusable vehicle/localization workflows and executable documentation checks added. Browser and Node evidence is recorded in [validation](08-validation-and-release.md) and the [audit](../docs/audit-2026-11-14.md). QA-01, I18N-01 and real-money work remain pending.
 

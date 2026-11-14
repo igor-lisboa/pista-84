@@ -1,7 +1,4 @@
 import {
-  LANES,
-  LANE_DIVIDERS,
-  LANE_WIDTH,
   PATH_UNIT,
   PLAYER_T,
   VEHICLE_SCALE,
@@ -14,6 +11,7 @@ import {
 } from '../game/index.ts';
 import type { CarLook, Entity, Environment, FuelEntity, LightName, Race } from '../game/index.ts';
 import { hash } from './noise.ts';
+import { RoadSurface } from './road-surface.ts';
 import { drawBillboard, drawBush, drawClouds, drawLamp, drawMountains, drawSkyline, drawSun, drawTree } from './scenery.ts';
 import { drawCar } from './sprites.ts';
 
@@ -118,12 +116,7 @@ const FRAME_HEIGHT = 720;
 /** Half road width (as a fraction of canvas width) at the horizon and its growth towards the camera. */
 const ROAD_HALF_MIN = 0.018;
 const ROAD_HALF_SLOPE = 0.67;
-const ROW_HEIGHT = 2;
 const SCREEN_BLEED = 20;
-/** Screen depth below which road rows are treated as distant (no stripes). */
-const FAR_ROW_LIMIT = 0.07;
-/** Metres per lane-dash cycle (3 m paint, 3 m gap). Half the earlier 12 m cycle, so markings pass twice as often at any speed. */
-const LANE_DASH_PERIOD = 6;
 
 /** Half road width, as a fraction of canvas width, at screen depth `t`. */
 const roadHalfFraction = (t: number): number => ROAD_HALF_MIN + ROAD_HALF_SLOPE * t;
@@ -217,6 +210,9 @@ export class Renderer {
   private readonly ctx: Ctx;
   private cameraOffset = 0;
   private readonly offsets = new Float32Array(SAMPLES + 1);
+  private readonly rawOffsets = new Float32Array(SAMPLES + 1);
+  private readonly depths = Float64Array.from({length: SAMPLES + 1}, (_, i) => screenToDepth(i / SAMPLES));
+  private readonly surface = new RoadSurface(FRAME_WIDTH, FRAME_HEIGHT, Math.round(FRAME_HEIGHT * HORIZON_RATIO));
   private heading = 0;
   private lastClock = 0;
   private hitShake = 0;
@@ -338,7 +334,7 @@ export class Renderer {
    */
   private profile(path: number, seed = 0): void {
     const w = this.canvas.width;
-    const raw = new Float32Array(SAMPLES + 1);
+    const raw = this.rawOffsets;
     const playerSample = Math.round(PLAYER_T * SAMPLES);
     const playerDepth = screenToDepth(PLAYER_T);
     for (const dir of [-1, 1]) {
@@ -346,7 +342,7 @@ export class Renderer {
       let slope = 0;
       let prev = playerDepth;
       for (let i = playerSample + dir; i >= 0 && i <= SAMPLES; i += dir) {
-        const u = screenToDepth(i / SAMPLES);
+        const u = this.depths[i]!;
         const du = u - prev;
         const change = roadBend(path + ((u + prev) / 2) * PATH_UNIT, seed) * du;
         offset += (slope + change * 0.5) * du;
@@ -460,38 +456,8 @@ export class Renderer {
   private paintRoadRows(f: FrameContext): void {
     const wet = f.env.rain;
     const asphalt: readonly [string, string] = [blendColor('#50545f', '#4f6176', wet), blendColor('#484c57', '#475a70', wet)];
-    for (let y = f.horizon + 2; y < f.h; y += ROW_HEIGHT) this.paintRoadRow(f, y, asphalt);
-  }
-
-  private paintRoadRow(f: FrameContext, y: number, asphalt: readonly [string, string]): void {
-    const { w, h, horizon, roadH, path, palette } = f;
-    const t = (y - horizon) / roadH;
-    const center = this.road(t);
-    const half = w * roadHalfFraction(t);
-    const world = path + screenToDepth(t) * PATH_UNIT;
-    const far = t < FAR_ROW_LIMIT;
-    const band = far ? 0 : Math.floor(world / 7) % 2;
-    const kerb = Math.floor(world / 4) % 2;
-    this.rect(-SCREEN_BLEED, y, w + 40, y > h - 3 ? 22 : ROW_HEIGHT, band ? palette.grassA : palette.grassB);
-    const edge = 1 + w * 0.022 * t;
-    this.rect(center - half - edge, y, (half + edge) * 2, ROW_HEIGHT, far ? '#c9d0d9' : kerb ? '#e8ecef' : '#d9473f');
-    this.rect(center - half, y, half * 2, ROW_HEIGHT, asphalt[band]!);
-    const line = Math.max(1, w * 0.0045 * t);
-    this.rect(center - half * 0.93, y, line, ROW_HEIGHT, '#dfe3ea');
-    this.rect(center + half * 0.93 - line, y, line, ROW_HEIGHT, '#dfe3ea');
-    if (!far && world % LANE_DASH_PERIOD < LANE_DASH_PERIOD / 2) {
-      for (const divider of LANE_DIVIDERS) this.rect(center + divider * half - line * 0.5, y, line, ROW_HEIGHT, '#f0f0e2');
-    }
-    if (t > 0.18) this.paintWheelTracks(center, half, y, line);
-  }
-
-  /** Darker wheel tracks in each lane add depth to the otherwise flat asphalt. */
-  private paintWheelTracks(center: number, half: number, y: number, line: number): void {
-    for (const lane of LANES) {
-      const laneX = center + laneCenter(lane) * half;
-      this.rect(laneX - half * LANE_WIDTH * 0.24, y, line, ROW_HEIGHT, '#00000014');
-      this.rect(laneX + half * LANE_WIDTH * 0.24, y, line, ROW_HEIGHT, '#00000014');
-    }
+    this.surface.paint(this.ctx, {path: f.path, grassA: f.palette.grassA, grassB: f.palette.grassB,
+      asphalt, centerAt: t => this.road(t)});
   }
 
   private paintGuardRail(f: FrameContext): void {

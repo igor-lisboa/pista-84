@@ -1,6 +1,9 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  "demo.transition": "The GT was a demo loan. Your PISTA 84 journey begins with {car}: race, earn coins and grow your garage!",
+  "tag.biz125": "Your everyday companion",
+  "tag.hayabusa": "Highway power to spare",
   "account.optional": "Optional account: cloud saves and online ranking.",
   "tag.uno-normal": "An everyday classic",
   'auth.secure': "Use an HTTPS connection to log in or create an account.",

@@ -19,6 +19,8 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 - Red/white shoulder strips, white road edges and dashed lane separators.
 - Layered pixel city with windows, rooftops, antennae and landmark towers; pixel-cluster clouds and shaded conifers.
 - City/tree caches avoid rebuilding complex static details each frame.
+- Road surface rectangles are batched by paint layer to reduce Canvas submissions while preserving the same row geometry, lane markings and wheel tracks. Curvature integration reuses its sample buffers and precomputed projection depths; bounded section caching avoids recomputing seeded road parameters without changing the track or physics.
+- Full paint/fallback sprite caches evict one oldest entry instead of clearing every warmed sprite at once, keeping their existing memory bounds without periodic mass repaint work.
 - Camera offset keeps lateral driving readable near the edges. A fixed 960 x 720 camera is uniformly fitted with object-fit: contain, preserving the complete gameplay frame in portrait, landscape and square windows.
 - Rain, fog and night remain dynamic rather than fixed into the artwork.
 - Lane dashes are 3 m on and 3 m off (a 6 m cycle), so markings pass twice as often as the earlier 12 m cycle at every speed. This is paint cadence only; physics, curves and traffic keep their metre positions.
@@ -26,6 +28,8 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 - Speed effects use fast = clamp((speed - 35) / 115, 0, 2.75), reaching the previous flat-out intensity at 150 km/h and building through 350 km/h. Streak count/length, bounded vignette opacity, car bob, rumble above 85 km/h and filtered wind noise reinforce speed; impact and off-road feedback remain.
 
 ## Vehicle artwork
+
+Biz 125 and Hayabusa add six straight/mild/strong right sprites in `vehicle-motorcycles-v1.png`, mirrored for left turns. Model references, prompt, paint/brake support and review evidence: [motorcycle notes](../docs/motorcycles-v1.md).
 
 Authored asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the original catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 
@@ -51,7 +55,7 @@ All audio is synthesized with Web Audio; there are no audio files. The audio con
 
 ### Engines
 
-Each of the **19** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
+Each of the **21** vehicles has its own engine profile in `AUDIO_PROFILES` (`src/audio/engine-voices.ts`, re-exported by `src/audio/audio.ts`). Every profile models an automatic gearbox: a list of gear redline speeds, cylinder count, idle and redline RPM, and a set of exhaust harmonic amplitudes that builds a model-specific periodic waveform. The firing frequency is `rpm / 60 × cylinders / 2`, where RPM follows the road speed within the current gear (never below idle), so pitch drops at each gear change. A quieter triangle oscillator one octave below adds a low exhaust layer. Only the Marea Turbo has `turbo: true`, adding quiet bandpass-filtered turbo air noise that grows with load. If a profile had no gear data it would fall back to `base + speed × ratio` with the listed waveform, which no catalog car uses today.
 
 The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while accelerating). Engine gain is 0.28 × 0.8 coasting or × 1.5 accelerating. Braking combines broad, lower-pitched friction noise (bandpass at `brake + speed × 1.5`) with a quiet per-model tonal squeal scaled by `squeal` in `vehicle-tuning.ts`; the Veloce GT has `squeal: 0` (friction only) and a 680 Hz brake filter base. Full braking peaks at friction level **0.42** and squeal **0.09** (scaled by the car's brake rate and squeal mix), so braking reads clearly over the engine. Envelopes respond in about 60 ms and fade as the car stops. **Tyre squeal** while cornering: bandpass noise at `1200 + speed × 4` Hz, rising with the steering load (`|steer|`) and with speed above 20 km/h (full at 100 km/h), scaled by `0.5 + squeal` from [vehicle-tuning](../src/game/vehicle-tuning.ts) and silent while braking. Wind noise rises with speed (40–350 km/h). Effects gain is 0.20; music bus gain is 0.07 in menus and 0.0455 (× 0.65) in races. The sound toggle controls the full mix.
 
@@ -76,6 +80,8 @@ The low-pass engine filter opens with `filter + speed × 2` (plus 350 Hz while a
 | puma | 36 | 0.88 | triangle | 880 | 1080 | 4 | 850 / 5500 |
 | gt | 27 | 1.10 | sawtooth | 1300 | 680 | 8 | 950 / 8500 |
 | superbike | 125 | 1.80 | square | 1800 | 1000 | 4 | 1300 / 13000 |
+| biz125 | 85 | 1.15 | triangle | 900 | 1250 | 1 | 1400 / 7500 |
+| hayabusa | 100 | 1.65 | sawtooth | 1650 | 950 | 4 | 1050 / 11000 |
 
 ### Music
 

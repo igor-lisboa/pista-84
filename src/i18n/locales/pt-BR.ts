@@ -1,5 +1,8 @@
 // Source language: every key is defined here, and the other locales fall back to it.
 export const ptBR = {
+  "demo.transition": "O GT foi só uma demonstração. Sua jornada no PISTA 84 começa com o {car}: corra, ganhe moedas e monte sua garagem!",
+  "tag.biz125": "A parceira de todo dia",
+  "tag.hayabusa": "Potência de sobra na estrada",
   "account.optional": "Conta opcional: salve na nuvem e participe do ranking.",
   "tag.uno-normal": "Um clássico do dia a dia",
   'auth.secure': "Use uma conexão HTTPS para entrar ou criar uma conta.",

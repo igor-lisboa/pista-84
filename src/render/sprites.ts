@@ -1,4 +1,5 @@
 import { shade } from './color.ts';
+import {BASE_PAINTS, recolorTile} from './sprite-paint.ts';
 import { paintProceduralCar } from './procedural-cars.ts';
 import type { CarLook } from '../game/index.ts';
 import { vehicleTuning } from '../game/vehicle-tuning.ts';
@@ -10,7 +11,6 @@ type Ctx = CanvasRenderingContext2D;
 type Point = readonly [number, number];
 /** Left, top, width and height of an atlas region as fractions of the image size. */
 type Region = readonly [number, number, number, number];
-type Hsl = readonly [number, number, number];
 type SteeringPose = 0 | 1 | 2;
 
 const SPRITE_WIDTH = 128;
@@ -19,8 +19,8 @@ const SPRITE_CACHE_LIMIT = 150;
 const PAINT_CACHE_LIMIT = 80;
 const ALPHA_THRESHOLD = 80;
 const DEFAULT_BODY_COLOR = '#efce5e';
-const ATLAS_TILE_COUNT = 19;
-const TURN_TILE_COUNT = 38;
+const ATLAS_TILE_COUNT = 21;
+const TURN_TILE_COUNT = 42;
 const TURN_SHEET_SIZE = 1254;
 
 const DEFAULT_ATLAS_URL = './assets/vehicle-atlas-v1.png';
@@ -38,57 +38,6 @@ const ATLAS_REGIONS: Readonly<Record<string, Region>> = {
   suv: [0.515, 0.54, 0.245, 0.36],
   superbike: [0.79, 0.54, 0.21, 0.36],
 };
-
-/** Paint colour baked into each atlas tile; recolouring is skipped when a car uses it. */
-const BASE_PAINTS: Readonly<Record<string, string>> = {
-  fusca: '#f5c542',
-  brasilia: '#6ed4a0',
-  gol: '#669df4',
-  palio: '#f08364',
-  moto: '#ddd8cf',
-  gt: '#e76368',
-  suv: '#c2a177',
-  superbike: '#af94ec',
-  kombi: '#7ad0c8',
-  uno: '#f1efe6',
-  'uno-normal': '#f1efe6',
-  chevette: '#d9573b',
-  cg125: '#d33a3a',
-  opala: '#2f6fb8',
-  maverick: '#f08a24',
-  fiat147: '#e6b45b',
-  marea: '#527a68',
-  passat: '#9b4840',
-  puma: '#e8d7a6',
-};
-
-/** Hue (0..1) of the paintable body area of each atlas tile. */
-const BASE_HUES: Readonly<Record<string, number>> = {
-  fusca: 0.115,
-  brasilia: 0.25,
-  gol: 0.62,
-  palio: 0.065,
-  moto: 0.6,
-  gt: 0,
-  suv: 0.14,
-  superbike: 0.76,
-  kombi: 0.51,
-  uno: 0.12,
-  'uno-normal': 0.12,
-  chevette: 0.055,
-  cg125: 0,
-  opala: 0.61,
-  maverick: 0.065,
-  fiat147: 0.12,
-  marea: 0.44,
-  passat: 0.98,
-  puma: 0.13,
-};
-
-const HUE_TOLERANCE = 0.13;
-const MIN_PAINT_SATURATION = 0.16;
-const MIN_PAINT_LIGHTNESS = 0.14;
-const MAX_PAINT_LIGHTNESS = 0.93;
 
 /** Turn sheet layout: [ids, top, bottom, column cuts]; each row holds two cars with two poses. */
 const TURN_ROWS: readonly (readonly [readonly [string, string], number, number, readonly number[]])[] = [
@@ -117,44 +66,6 @@ function context2d(canvas: HTMLCanvasElement, readback = false): Ctx {
   if (!ctx) throw new Error('2D canvas unavailable');
   return ctx;
 }
-
-function parseHex(hex: string): [number, number, number] {
-  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
-}
-
-// ---------------------------------------------------------------------------
-// Colour helpers
-// ---------------------------------------------------------------------------
-
-function rgbToHsl(red: number, green: number, blue: number): Hsl {
-  const r = red / 255;
-  const g = green / 255;
-  const b = blue / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  const l = (max + min) / 2;
-  let h = 0;
-  let s = 0;
-  if (d) {
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
-    h /= 6;
-  }
-  return [h, s, l];
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const channel = (n: number): number => {
-    const k = (n + h * 12) % 12;
-    const a = s * Math.min(l, 1 - l);
-    return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
-  };
-  return [channel(0), channel(8), channel(4)];
-}
-
 
 // ---------------------------------------------------------------------------
 // Public queries
@@ -328,7 +239,12 @@ export async function loadSprites(
   const classics = new Map<string, HTMLCanvasElement>();
   const brazilian = new Map<string, HTMLCanvasElement>();
   const uno = new Map<string, HTMLCanvasElement>();
+  const motorcycles = new Map<string, HTMLCanvasElement>();
   await Promise.all([
+    loadAtlas('./assets/vehicle-motorcycles-v1.png', {
+      'biz125:0': [0, 0, 1 / 3, 0.5], 'biz125:1': [1 / 3, 0, 1 / 3, 0.5], 'biz125:2': [2 / 3, 0, 1 / 3, 0.5],
+      'hayabusa:0': [0, 0.5, 1 / 3, 0.5], 'hayabusa:1': [1 / 3, 0.5, 1 / 3, 0.5], 'hayabusa:2': [2 / 3, 0.5, 1 / 3, 0.5],
+    }, motorcycles),
     loadAtlas('./assets/vehicle-uno-v1.png', {
       'uno-normal:0': [0, 0, 1 / 3, 1],
       'uno-normal:1': [1 / 3, 0, 1 / 3, 1],
@@ -339,7 +255,7 @@ export async function loadSprites(
     loadAtlas(classicsUrl, CLASSIC_REGIONS, classics),
     loadAtlas(brazilianUrl, BRAZILIAN_REGIONS, brazilian),
   ]);
-  for (const [key, tile] of [...classics, ...brazilian, ...uno]) {
+  for (const [key, tile] of [...classics, ...brazilian, ...uno, ...motorcycles]) {
     const [id, pose] = key.split(':');
     if (pose === '0') atlasTiles.set(id!, tile);
     else turnTiles.set(key, tile);
@@ -352,43 +268,6 @@ export async function loadSprites(
 // Atlas tiles with custom paint
 // ---------------------------------------------------------------------------
 
-/** Shifts the body-coloured pixels of a tile towards the requested paint, keeping their lightness. */
-function recolorTile(original: HTMLCanvasElement, car: CarLook): HTMLCanvasElement {
-  const canvas = createCanvas(original.width, original.height);
-  const ctx = context2d(canvas, true);
-  ctx.drawImage(original, 0, 0);
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const p = data.data;
-  const target = rgbToHsl(...parseHex(car.color));
-  const baseHue = BASE_HUES[car.id] ?? 0;
-  for (let i = 0; i < p.length; i += 4) {
-    if (p[i + 3]! < ALPHA_THRESHOLD) continue;
-    const [h, s, l] = rgbToHsl(p[i]!, p[i + 1]!, p[i + 2]!);
-    const diff = Math.min(Math.abs(h - baseHue), 1 - Math.abs(h - baseHue));
-    const x = ((i / 4) % canvas.width) / canvas.width;
-    const y = Math.floor(i / 4 / canvas.width) / canvas.height;
-    // The Uno's white body needs a neutral mask; keep its ladder, plate and bumpers intact.
-    const whiteBody = s < (car.id === 'uno-normal' ? 0.26 : 0.15) && l > 0.55 && (
-      (car.id === 'uno' && y > 0.25 && y < 0.72 && !(y > 0.59 && x > 0.28 && x < 0.72))
-      || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.53 && y < 0.70 && x > 0.28 && x < 0.68))
-    );
-    const paintable = whiteBody || (diff < HUE_TOLERANCE && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
-    if (!paintable) continue;
-    // Dark and neutral paints must change brightness too, while retaining panel shading.
-    const lightness = whiteBody && car.id === 'uno-normal' ? Math.min(0.96, l * target[2] / 0.8)
-      : target[2] < 0.35 ? l * target[2] / 0.5
-      : target[2] > 0.75 ? l + (target[2] - 0.5) * (1 - l)
-      : l * (0.7 + target[2] * 0.6);
-    const saturation = target[1] < 0.08 ? target[1] : target[1] * 0.85 + 0.1;
-    const rgb = hslToRgb(target[0], saturation, lightness);
-    p[i] = rgb[0];
-    p[i + 1] = rgb[1];
-    p[i + 2] = rgb[2];
-  }
-  ctx.putImageData(data, 0, 0);
-  return canvas;
-}
-
 /** The authored tile for a car and pose in the car's paint, or `null` when the atlas has none. */
 function paintedTile(car: CarLook, pose: SteeringPose = 0): HTMLCanvasElement | null {
   const tiles = pose ? turnTiles : atlasTiles;
@@ -399,8 +278,12 @@ function paintedTile(car: CarLook, pose: SteeringPose = 0): HTMLCanvasElement | 
   const key = `${car.id}:${car.color}:${pose}`;
   const cached = paints.get(key);
   if (cached) return cached;
-  const canvas = recolorTile(original, car);
-  if (paints.size > PAINT_CACHE_LIMIT) paints.clear();
+  const canvas = recolorTile(original, car, pose);
+  // Evict one old paint instead of dropping every warm sprite at once during a run.
+  if (paints.size >= PAINT_CACHE_LIMIT) {
+    const oldest = paints.keys().next().value;
+    if (oldest !== undefined) paints.delete(oldest);
+  }
   paints.set(key, canvas);
   return canvas;
 }
@@ -486,7 +369,7 @@ function createFrame(car: CarLook): Frame {
 
 function paintBike(p: Painter, car: CarLook, l: Livery): void {
   const { body, dark, mid, light, brake } = l;
-  const superbike = car.id === 'superbike';
+  const superbike = car.id === 'superbike' || car.id === 'hayabusa';
   p.rect(58, 43, 13, 34, '#10182d');
   p.rect(61, 51, 7, 25, '#273046');
   p.rect(60, 75, 9, 3, '#070f23');
@@ -671,7 +554,10 @@ function sprite(car: CarLook, brake: boolean, turn: number): HTMLCanvasElement {
     if (car.shape === 'bike') paintBike(painter, car, livery);
     else paintFourWheeler(painter, car, livery);
   }
-  if (spriteCache.size > SPRITE_CACHE_LIMIT) spriteCache.clear();
+  if (spriteCache.size >= SPRITE_CACHE_LIMIT) {
+    const oldest = spriteCache.keys().next().value;
+    if (oldest !== undefined) spriteCache.delete(oldest);
+  }
   spriteCache.set(key, canvas);
   return canvas;
 }
@@ -686,6 +572,8 @@ const TURNING_BRAKE_LAMPS = [0.1, 0.58] as const;
 
 // Positions on the cropped authored images. These cars' lights sit higher than the bumper.
 const MODEL_BRAKE_LAMPS: Readonly<Record<string, { y: number; centers: readonly (readonly number[])[] }>> = {
+  biz125: { y: 0.45, centers: [[0.5], [0.22], [0.25]] },
+  hayabusa: { y: 0.51, centers: [[0.5], [0.29], [0.26]] },
   'uno-normal': { y: 0.37, centers: [[0.1, 0.88], [0.06, 0.65], [0.07, 0.57]] },
   fiat147: { y: 0.42, centers: [[0.09, 0.9], [0.08, 0.65], [0.09, 0.57]] },
   marea: { y: 0.46, centers: [[0.11, 0.86], [0.09, 0.62], [0.1, 0.56]] },

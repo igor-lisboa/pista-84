@@ -1,6 +1,9 @@
 import type { MessageKey } from '../types.ts';
 
 export const es = {
+  "demo.transition": "El GT era un préstamo para la demo. Tu aventura en PISTA 84 empieza con {car}: ¡corre, gana monedas y amplía tu garaje!",
+  "tag.biz125": "Tu compañera de cada día",
+  "tag.hayabusa": "Potencia de sobra en carretera",
   "account.optional": "Cuenta opcional: guarda en la nube y participa en la clasificación.",
   "tag.uno-normal": "Un clásico del día a día",
   'auth.secure': "Usa una conexión HTTPS para iniciar sesión o crear una cuenta.",

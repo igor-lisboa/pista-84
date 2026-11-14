@@ -1,6 +1,9 @@
 import type { MessageKey } from '../types.ts';
 
 export const id = {
+  "demo.transition": "GT hanya dipinjamkan untuk demo. Perjalanan PISTA 84-mu dimulai dengan {car}: balapan, kumpulkan koin, dan isi garasimu!",
+  "tag.biz125": "Teman setia setiap hari",
+  "tag.hayabusa": "Tenaga berlimpah di jalan raya",
   "account.optional": "Akun opsional: simpan di cloud dan ikuti peringkat.",
   "tag.uno-normal": "Mobil klasik sehari-hari",
   'auth.secure': "Gunakan koneksi HTTPS untuk masuk atau membuat akun.",

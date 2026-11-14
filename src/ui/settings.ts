@@ -94,7 +94,7 @@ export class SettingsDialog {
         <section class="settings-group">
           <h3 class="group-title">${t('set.groupPlayer')}</h3>
           <div class="setting-card">
-            <p class="settings-note">${t('account.optional')}</p>
+            ${account ? '' : `<p class="settings-note">${t('account.optional')}</p>`}
             ${account
               ? row('account', 'user', `${t('auth.account')}: ${account.username}`, { end: 'arrow' })
               : row('account', 'user', `${t('auth.login')} / ${t('auth.signup')}`, { end: 'arrow' })}

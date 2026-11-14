@@ -1,6 +1,9 @@
 import type { Messages } from '../types.ts';
 
 export const it: Messages = {
+  "demo.transition": "La GT era in prestito per la demo. Il tuo viaggio in PISTA 84 inizia con {car}: corri, guadagna monete e amplia il garage!",
+  "tag.biz125": "La compagna di ogni giorno",
+  "tag.hayabusa": "Potenza da vendere in autostrada",
   "account.optional": "Account facoltativo: salvataggi nel cloud e classifica.",
   "tag.uno-normal": "Un classico di tutti i giorni",
   'auth.secure': "Usa una connessione HTTPS per accedere o creare un account.",

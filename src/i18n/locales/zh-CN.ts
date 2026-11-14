@@ -1,6 +1,9 @@
 import type { MessageKey } from '../types.ts';
 
 export const zhCN = {
+  "demo.transition": "GT只是演示赛的借用车辆。现在，驾驶{car}开启你的PISTA 84旅程：参加比赛、赚取金币，壮大你的车库！",
+  "tag.biz125": "每天可靠的伙伴",
+  "tag.hayabusa": "公路上的澎湃动力",
   "account.optional": "账号可选：支持云存档和在线排行榜。",
   "tag.uno-normal": "日常出行的经典车型",
   'auth.secure': "请使用HTTPS连接登录或创建账户。",

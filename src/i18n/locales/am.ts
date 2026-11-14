@@ -1,6 +1,9 @@
 import type { MessageKey } from '../types.ts';
 
 export const am = {
+  "demo.transition": "GT ለሙከራው ብቻ የተዋሰ መኪና ነበር። አሁን የPISTA 84 ጉዞዎ በ{car} ይጀምራል፤ ይወዳደሩ፣ ሳንቲሞችን ያግኙ እና ጋራዥዎን ያሳድጉ!",
+  "tag.biz125": "የዕለት ተዕለት ታማኝ ጓደኛ",
+  "tag.hayabusa": "በአውራ ጎዳና ላይ የተትረፈረፈ ኃይል",
   "account.optional": "መለያ መፍጠር አማራጭ ነው፦ በደመና ለማስቀመጥና የደረጃ ዝርዝሩን ለማየት።",
   "tag.uno-normal": "የዕለት ተዕለት ክላሲክ መኪና",
   'auth.secure': "ለመግባት ወይም መለያ ለመፍጠር የHTTPS ግንኙነት ይጠቀሙ።",

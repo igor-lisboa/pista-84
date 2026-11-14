@@ -8,7 +8,7 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 - Full TypeScript codebase (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`, `api`, `worker`); no JavaScript source is left. Typecheck with `npm run typecheck`.
 - Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h with a fuel and score-multiplier penalty, heavier and smarter traffic (120 s ramp plus 240 s of late-game pressure, lane changes, speed matching, no overlap).
-- Pace-based score and coins earned from score (1 coin per 25 points); nineteen vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.
+- Pace-based score and coins earned from score (1 coin per 25 points); twenty-one vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.
 - Fifteen interface languages, seven procedural race tracks plus a menu loop, per-car engine voices, sunset-arcade interface, top-bar HUD, tutorial, distance units (km/mi) and About dialog.
 - MongoDB persistence for scores, accounts, sessions and progress; Redis pairing rooms; WebSocket phone controller with Pub/Sub across instances; offline-first progress outbox with automatic uploads at pause, game end and exit.
 - Username/password accounts with salted scrypt hashes, hashed sessions, password change, offline-to-account progress reconciliation and an account-only leaderboard.

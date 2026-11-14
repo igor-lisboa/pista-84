@@ -1,6 +1,6 @@
 # Per-vehicle acceleration
 
-Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the nineteen models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.36, falloffs 0.5–2.4).
+Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the twenty-one models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.36, falloffs 0.5–2.4).
 
 Revision 2026-11-14: GT acceleration increases from 84 to **110**, with gain **0.36** and falloff **0.5** retained. Its 0-100 time is now **2.60 s**, down from 3.42 s. Uno com Escada is deliberately exaggerated to 400 km/h, acceleration 90, gain 0.36 and falloff 0.5: 0-100 takes **3.16 s**, below the GT's launch performance. Normal Uno keeps the former ladder Uno tuning and 15.48 s 0-100. These are arcade settings, not claims of real performance.
 
@@ -29,5 +29,7 @@ Reproduce with `node scripts/measure-acceleration.ts`. Measured with the real `R
 | Puma GT | 112 | 13.28 | 15.70 | 28.70 | 38.96 |
 | Veloce GT | 245 | 2.60 | 7.66 | 13.50 | 17.60 |
 | Raio 1000 | 210 | 4.94 | 12.34 | 22.06 | 29.24 |
+| Biz 125 | 77 | 22.48 | 11.04 | 21.32 | 30.66 |
+| Hayabusa | 209.3 | 2.84 | 7.06 | 12.56 | 16.58 |
 
 Regression tests cover monotonic pull, continuity at the threshold, distinct initial acceleration, stronger high-speed taper in classics than sports cars, and the actual race speed gains at 70%, 85% and 95%. Existing checks retain the Fusca's gradual 0–100 pace and the GT's ability to approach 350 km/h.

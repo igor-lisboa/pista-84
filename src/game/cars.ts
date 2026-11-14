@@ -43,7 +43,7 @@ export const CARS: readonly CarSpec[] = [
   { id: 'moto', name: 'Moto urbana', color: '#ddd8cf', max: 175, accel: 48, consumption: 0.6, handling: 1.4, purchase: { kind: 'coins', price: 260 }, shape: 'bike' },
   { id: 'suv', name: 'Bruto 4×4', color: '#c2a177', max: 195, accel: 22, consumption: 1.35, handling: 0.8, purchase: { kind: 'coins', price: 850 }, shape: 'suv' },
   { id: 'kombi', name: 'Kombi 78', color: '#7ad0c8', max: 130, accel: 15, consumption: 1, handling: 0.7, purchase: { kind: 'coins', price: 220 }, shape: 'van' },
-  { id: 'uno', name: 'Uno com Escada', color: '#f1efe6', max: 400, accel: 90, consumption: 0.7, handling: 1.05, purchase: { kind: 'coins', price: 120 }, shape: 'box' },
+  { id: 'uno', name: 'Uno com Escada', color: '#f1efe6', max: 400, accel: 90, consumption: 0.7, handling: 1.05, purchase: { kind: 'coins', price: 3200 }, shape: 'box' },
   { id: 'uno-normal', name: 'Uno', color: '#f1efe6', max: 150, accel: 30, consumption: 0.7, handling: 1.05, purchase: { kind: 'coins', price: 120 }, shape: 'box' },
   { id: 'chevette', name: 'Chevette 82', color: '#d9573b', max: 160, accel: 32, consumption: 0.78, handling: 1.05, purchase: { kind: 'coins', price: 240 }, shape: 'box' },
   { id: 'cg125', name: 'CG 125', color: '#d33a3a', max: 130, accel: 40, consumption: 0.4, handling: 1.45, purchase: { kind: 'coins', price: 140 }, shape: 'bike' },
@@ -55,6 +55,8 @@ export const CARS: readonly CarSpec[] = [
   { id: 'puma', name: 'Puma GT', color: '#e8d7a6', max: 160, accel: 31, consumption: 0.83, handling: 1.18, purchase: { kind: 'coins', price: 1200 }, shape: 'sport' },
   { id: 'gt', name: 'Veloce GT', color: '#e76368', max: 350, accel: 110, consumption: 1.2, handling: 1.15, purchase: { kind: 'coins', price: 30_000 }, shape: 'sport' },
   { id: 'superbike', name: 'Raio 1000', color: '#af94ec', max: 300, accel: 68, consumption: 1.05, handling: 1.5, purchase: { kind: 'coins', price: 20_000 }, shape: 'bike' },
+  { id: 'biz125', name: 'Biz 125', color: '#d33a3a', max: 110, accel: 32, consumption: 0.35, handling: 1.4, purchase: { kind: 'coins', price: 200 }, shape: 'bike' },
+  { id: 'hayabusa', name: 'Hayabusa', color: '#2852b8', max: 299, accel: 105, consumption: 1.1, handling: 1.35, purchase: { kind: 'coins', price: 24_000 }, shape: 'bike' },
 ];
 
 export const PAINTS: readonly Paint[] = [

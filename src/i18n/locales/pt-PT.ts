@@ -2,6 +2,9 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  "demo.transition": "O GT foi só uma demonstração. A tua jornada no PISTA 84 começa com o {car}: corre, ganha moedas e constrói a tua garagem!",
+  "tag.biz125": "A companheira do dia a dia",
+  "tag.hayabusa": "Potência de sobra na estrada",
   "account.optional": "Conta opcional: guarde na nuvem e participe na classificação.",
   "tag.uno-normal": "Um clássico do dia a dia",
   'auth.secure': "Use uma ligação HTTPS para entrar ou criar uma conta.",

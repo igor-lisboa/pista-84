@@ -48,16 +48,18 @@ export function showPause(actions: PauseActions): void {
   byId('toMenu').onclick = actions.toMenu;
 }
 
-export function showGameOver(race: Race, save: SaveData, actions: GameOverActions): void {
+export function showGameOver(race: Race, save: SaveData, actions: GameOverActions, demoNextCar?: string): void {
   const crashed = race.crashed;
   const reasonKey = REASON_KEYS[race.endReason ?? 'fuel'];
   const reason = t(reasonKey, { speed: speedValue(race.crashSpeed), unit: speedUnit() });
   showOverlay(
     `
-    <div class="overlay-card result-card">
+    <div class="overlay-card result-card${demoNextCar ? ' demo-result' : ''}">
+      ${demoNextCar ? '<div class="demo-summary">' : ''}
       <span class="kicker">${crashed ? t('over.crashKicker') : t('over.kicker')}</span>
       <h2>${crashed ? t('over.crashTitle') : t('over.title')}</h2>
       <p>${reason}</p>
+      ${demoNextCar ? `<p id="demoTransition" class="demo-transition">${t('demo.transition', {car: demoNextCar})}</p>` : ''}
       <div class="result-stats">
         <span>${formatInteger(race.score)} ${t('hud.pts')}</span>
         <span>${formatDistance(race.distance)} ${distanceUnit()}</span>
@@ -68,6 +70,7 @@ export function showGameOver(race: Race, save: SaveData, actions: GameOverAction
         <small>${t('over.coinRate', { points: POINTS_PER_COIN })}</small>
       </div>
       <p>${t('over.record', { n: formatInteger(save.bestScore) })}</p>
+      ${demoNextCar ? '</div>' : ''}
       <button id="restart" class="primary"><span>${t('over.again')}</span>${icon('play')}</button>
       ${race.continued ? '' : `<button id="continue" class="secondary" ${save.coins < SECOND_CHANCE_PRICE ? 'disabled' : ''}>${t('over.second', { price: formatInteger(SECOND_CHANCE_PRICE) })}</button>
         <p class="second-chance-balance">${t('over.secondBalance', { coins: formatInteger(save.coins) })}</p>`}

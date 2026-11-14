@@ -23,21 +23,44 @@ const smootherstep = (v: number): number => {
   return u * u * u * (u * (u * 6 - 15) + 10);
 };
 
+interface RoadSection {
+  readonly straight: number;
+  readonly entry: number;
+  readonly hold: number;
+  readonly exit: number;
+  readonly bend: number;
+}
+
+// Nearby renderer samples share a section. Bound the cache across runs and seeds.
+const sectionCache = new Map<string, RoadSection>();
+
+function sectionAt(section: number, seed: number): RoadSection {
+  const key = `${seed}:${section}`;
+  const cached = sectionCache.get(key);
+  if (cached) return cached;
+  const kind = roadRandom(section, seed, 1);
+  const value = {
+    straight: section === 0 ? FIRST_SECTION_STRAIGHT : 240 + roadRandom(section, seed, 2) * 260,
+    entry: 180 + roadRandom(section, seed, 3) * 60,
+    hold: 200 + roadRandom(section, seed, 4) * 160,
+    exit: 180 + roadRandom(section, seed, 5) * 60,
+    bend: kind < STRAIGHT_PROBABILITY ? 0
+      : (kind < LEFT_BEND_THRESHOLD ? -1 : 1) * (0.32 + roadRandom(section, seed, 6) * 0.32) * MAX_CURVE,
+  };
+  if (sectionCache.size >= 8) {
+    const oldest = sectionCache.keys().next().value;
+    if (oldest !== undefined) sectionCache.delete(oldest);
+  }
+  sectionCache.set(key, value);
+  return value;
+}
+
 export function roadCurve(distance: number, seed = 0): number {
   const d = Math.max(0, distance);
   const section = Math.floor(d / ROAD_SECTION);
   const at = d - section * ROAD_SECTION;
-  const random = (salt: number): number => roadRandom(section, seed, salt);
-
-  const kind = random(1);
-  if (kind < STRAIGHT_PROBABILITY) return 0;
-
-  const straight = section === 0 ? FIRST_SECTION_STRAIGHT : 240 + random(2) * 260;
-  const entry = 180 + random(3) * 60;
-  const hold = 200 + random(4) * 160;
-  const exit = 180 + random(5) * 60;
-  const direction = kind < LEFT_BEND_THRESHOLD ? -1 : 1;
-  const bend = direction * (0.32 + random(6) * 0.32) * MAX_CURVE;
+  const {straight, entry, hold, exit, bend} = sectionAt(section, seed);
+  if (bend === 0) return 0;
 
   const t = at - straight;
   if (t <= 0 || t >= entry + hold + exit) return 0;

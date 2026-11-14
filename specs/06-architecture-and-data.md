@@ -20,7 +20,7 @@ car-game/
     shared/              public runtime config
     client.ts, qr.ts     browser entry point, QR generation
   api/                   Vercel Node functions (one per public endpoint) plus _rooms.ts/_store.ts helpers
-  web/                   HTML, CSS, PWA files, sw.ts and artwork
+  web/                   HTML, shared CSS, menu-layout.css, PWA files, sw.ts and artwork
   worker/                optional edge Worker (generated-assets.ts is build output)
   tests/                 Node tests, test support, Playwright specs (tests/browser)
   scripts/               build, env, Node server, assets, screenshots, verification (TypeScript) and local.sh (Docker stack)
@@ -46,7 +46,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 
 | Module | Responsibility |
 | --- | --- |
-| `src/game/cars.ts` | 19-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
+| `src/game/cars.ts` | 21-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
 | `src/game/race.ts` | `Race`: states, driving, off-road penalties, crashes, score, coins, checkpoints, fuel, second chance, spawning |
 | `src/game/traffic.ts` | Traffic and fuel entities: ramp, late-game pressure, waves, lane changes, following, separation |
 | `src/game/road.ts` | Seeded stateless road curve plus lane/camera geometry constants |
@@ -60,7 +60,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/render/renderer.ts` | Responsive perspective, road, scene projection, environment effects, shake and overlays |
 | `src/render/scenery.ts`, `billboards.ts`, `noise.ts`, `color.ts` | Cached city, clouds, trees, lamps, billboards and their ad texts, deterministic hash, color helpers |
 | `src/render/sprites.ts`, `procedural-cars.ts` | Atlas loading/trimming, paints, turn frames; procedural sprites used as loading fallback |
-| `src/audio/audio.ts` | `AudioEngine`: 19 engine profiles, braking noise, effects, single toggle |
+| `src/audio/audio.ts`, `src/audio/engine-voices.ts` | `AudioEngine`, 21 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data (menu loop plus seven race tracks) |
 | `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
 | `src/ui/game-app.ts` | `GameApp`: owns save, race, renderer, audio and the menu/race/pause/over flow, autosave, sync triggers and platform plumbing |
@@ -180,7 +180,7 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v27** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v30** stores the listed same-origin app assets (`/`, HTML, CSS, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.
 
@@ -191,3 +191,5 @@ Maintenance tools: `scripts/audit-docs.ts` validates documentation facts and lin
 Keep strict, erasable typing and explicit `.ts` relative imports. Validate external values from `unknown`; assertions do not replace runtime validation. Use clear contracts, discriminated states, narrow interfaces and explicit errors. Apply SOLID by separating simulation, rendering/UI, transport, connection setup and business rules, using existing interfaces where useful rather than adding abstraction layers by default.
 
 New handwritten implementation modules stay below 300 physical lines (299 maximum, including comments/blanks). Review new and touched files; split along responsibility and dependency boundaries while preserving behavior. Track remaining existing overages in [module-size debt](../docs/TECH-DEBT.md#module-size-debt) and QLT-01. Data-only catalogs, locales and tests are included in size reports with their purpose identified. The [quality workflow](../.agents/skills/pista-quality/SKILL.md) defines review and evidence; the repository is not yet entirely below the limit.
+
+Road surface batching lives in `src/render/road-surface.ts`; body-color remapping lives in `src/render/sprite-paint.ts`. Both preserve the existing renderer and sprite contracts.

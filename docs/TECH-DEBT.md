@@ -40,3 +40,5 @@ The quality workflow targets handwritten implementation modules below 300 physic
 - `src/ui/input.ts`: input sources, permissions and bindings.
 
 These are existing overages, not new compliance claims. QLT-01 tracks decomposition along responsibility boundaries. Extract touched responsibilities when feasible, preserve public behavior and dependency direction, and validate with simulation/browser tests. Do not minify, remove useful comments or create arbitrary numbered chunks merely to meet the limit. Report oversized data-only and test files separately during quality review.
+
+The 2026-11-14 performance/motorcycle change extracts road surface painting and sprite recoloring into focused modules, plus engine profile data/voice synthesis out of the audio orchestrator. `renderer.ts` and `sprites.ts` still exceed 299 lines; further scene/atlas/fallback separation remains QLT-01. The extraction does not resolve repository-wide module-size debt.

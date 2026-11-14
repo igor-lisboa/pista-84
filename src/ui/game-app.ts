@@ -330,7 +330,8 @@ export class GameApp implements RemoteHost {
   }
 
   private gameOver(): void {
-    if (this.demoRun) this.finishDemo();
+    const finishedDemo = this.demoRun;
+    if (finishedDemo) this.finishDemo();
     this.settle();
     void this.syncAtRest();
     this.audio.tone(this.race.crashed ? 55 : 65, 0.5, 'sawtooth', 0.3);
@@ -347,7 +348,7 @@ export class GameApp implements RemoteHost {
         this.input.clear();
         this.setView('race');
       },
-    });
+    }, finishedDemo ? this.selectedCar().name : undefined);
   }
 
   private resetForCar(): void {

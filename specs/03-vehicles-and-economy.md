@@ -17,7 +17,7 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `moto` | Moto urbana | bike | 175 | 48 | 0.60 | 1.40 | 260 coins |
 | `suv` | Bruto 4×4 | suv | 195 | 22 | 1.35 | 0.80 | 850 coins |
 | `kombi` | Kombi 78 | van | 130 | 15 | 1.00 | 0.70 | 220 coins |
-| `uno` | Uno com Escada | box | 400 | 90 | 0.70 | 1.05 | 120 coins |
+| `uno` | Uno com Escada | box | 400 | 90 | 0.70 | 1.05 | 3200 coins |
 | `uno-normal` | Uno | box | 150 | 30 | 0.70 | 1.05 | 120 coins |
 | `chevette` | Chevette 82 | box | 160 | 32 | 0.78 | 1.05 | 240 coins |
 | `cg125` | CG 125 | bike | 130 | 40 | 0.40 | 1.45 | 140 coins |
@@ -29,10 +29,12 @@ The garage lists all cars in ascending coin price order, with no premium categor
 | `puma` | Puma GT | sport | 160 | 31 | 0.83 | 1.18 | 1200 coins |
 | `gt` | Veloce GT | sport | 350 | 110 | 1.20 | 1.15 | 30,000 coins |
 | `superbike` | Raio 1000 | bike | 300 | 68 | 1.05 | 1.50 | 20,000 coins |
+| `biz125` | Biz 125 | bike | 110 | 32 | 0.35 | 1.40 | 200 coins |
+| `hayabusa` | Hayabusa | bike | 299 | 105 | 1.10 | 1.35 | 24,000 coins |
 
-The Veloce GT uses acceleration 110 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID, price and ownership are preserved. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
+The Veloce GT uses acceleration 110 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID and ownership are preserved; its price is 3,200 coins, above the Maverick GT, without retuning its performance. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
 
-Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
+Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125, Biz 125, Hayabusa) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
 ### Per-vehicle tuning
 
@@ -59,10 +61,14 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 | `puma` | 0.285 | 1.0 | 0.95 | 43 |
 | `gt` | 0.36 | 0.5 | 1.18 | 70 |
 | `superbike` | 0.31 | 0.7 | 0.60 | 64 |
+| `biz125` | 0.27 | 1.8 | 0.50 | 40 |
+| `hayabusa` | 0.35 | 0.65 | 0.66 | 68 |
 
 ### Art
 
-All nineteen cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Normal Uno uses `vehicle-uno-v1.png`, with provenance and a pose contact sheet in [Uno notes](../docs/uno-v1.md). Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
+Biz 125 and Hayabusa use the six-pose transparent `vehicle-motorcycles-v1.png` sheet. Model/year/engine references, arcade choices, full generation prompt and review limits are in [motorcycle notes](../docs/motorcycles-v1.md).
+
+All twenty-one cars use authored straight, mild-turn and strong-turn sprites. Fiat 147, Marea Turbo, Passat 85 and Puma GT use vehicle-brazilian-v1.png with authored straight, gentle-turn and strong-turn views, paint and brake-light support; see [refinement notes](../docs/brazilian-cars-v1.md). The original eight use vehicle-atlas-v1.png and vehicle-turns-v2.png; Kombi 78, Uno com Escada, Chevette 82, CG 125, Opala SS and Maverick GT use vehicle-classics-v2.png. Normal Uno uses `vehicle-uno-v1.png`, with provenance and a pose contact sheet in [Uno notes](../docs/uno-v1.md). Their procedural art remains an asset-loading fallback; see [art and audio](05-art-and-audio.md).
 
 ## Paint catalog
 

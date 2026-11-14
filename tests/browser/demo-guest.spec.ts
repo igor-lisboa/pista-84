@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { hudSpeed } from './support/harness.ts';
+import {ptBR} from '../../src/i18n/locales/pt-BR.ts';
 
 test.use({ storageState: { cookies: [], origins: [] }, serviceWorkers: 'block' });
 
@@ -60,6 +61,7 @@ test('the first run after the tutorial uses the Veloce GT once; after its crash 
   await expect(page.locator('#overlay h2')).toHaveText('VOCÊ BATEU!', { timeout: 20000 });
   // A guest sees the enter option on the result screen.
   await expect(page.locator('#enter')).toBeVisible();
+  await expect(page.locator('#demoTransition')).toHaveText(ptBR['demo.transition'].replace('{car}', 'Fusca 76'));
   await page.keyboard.up('ArrowRight');
   await page.keyboard.up('ArrowUp');
   expect((await save(page)).demoUsed).toBe(true);
@@ -68,4 +70,12 @@ test('the first run after the tutorial uses the Veloce GT once; after its crash 
   await page.locator('#restart').click();
   await expect(page.locator('#raceUI')).toBeVisible();
   await expect(page.getByText(/Demo:/)).toHaveCount(0);
+  await expect(page.locator('#demoTransition')).not.toBeVisible();
+  await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('ArrowRight');
+  await expect(page.locator('#overlay')).toBeVisible({timeout: 20000});
+  await expect(page.locator('#overlay h2')).toHaveText(ptBR['over.crashTitle'], {timeout: 20000});
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.up('ArrowUp');
+  await expect(page.locator('#demoTransition')).toHaveCount(0);
 });

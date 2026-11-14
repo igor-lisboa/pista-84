@@ -45,7 +45,7 @@ npm run test:browser
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
 - `npm run docs:check` checks catalog, tuning and engine tables, application/save/cache baseline, translation counts, source references and local Markdown links. It runs automatically as `pretest`; behavior and prose still require manual review.
-- `npm test` runs `node --test tests/*.test.ts`: 167 isolated Node tests in 24 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm test` runs `node --test tests/*.test.ts`: 170 isolated Node tests in 25 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
 - `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning guest with tutorial/demo complete; account tests explicitly seed or establish sessions); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
@@ -57,7 +57,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race.test.ts`, `world.test.ts`) |
 | State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
 | Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
-| Vehicles and audio | 19 distinct coin cars, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
+| Vehicles and audio | 21 distinct coin vehicles, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
 | Environment | Road bounds/direction changes by seed; local-clock start, per-run weather, continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, GUID/username/units/timestamps, import rules, past players (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
 | Accounts | Password rules, scrypt parameters, atomic unique usernames, session rotation/expiry/revocation, HTTPS requirement, shared attempt budgets, forged-GUID rejection, password change, MongoDB account adapters and indexes (`auth.test.ts`, `mongo-accounts.test.ts`, `mongo-store.test.ts`) |
@@ -70,7 +70,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
 | Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
 | Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
-| Graphics | All 19 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
+| Graphics | All 21 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
 | Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
 | Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
 | Local stack | Compose pins private MongoDB/Redis URLs and publishes only the game port; the Dockerfile ignores secrets; `scripts/local.sh` rewrites every `.env.example` key it depends on with LF endings; the smoke check refuses non-local services and cleans up (`local-stack.test.ts`). Live: health, assets, guest 401s, account signup/login/logout, score and leaderboard, progress revisions and device snapshots, account reconciliation, room claim and WebSocket input through Redis (`scripts/check-local.ts`, run by `local.sh check`) |
@@ -79,6 +79,23 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 Chromium and WebKit projects run against the same local app. WebKit automation is evidence for that engine, **not a physical iPhone Safari certification**. The Windows WebKit test build lacks Web Audio; its graceful failure is checked without claiming audible output there.
 
 ## Verification evidence
+
+### Demo-to-journey explanation (2026-11-14)
+
+- Production build, strict typecheck, documentation checks and all 170 Node tests pass. The affected demo/guest/result/dialog/offline scope passes all 52 Chromium/WebKit cases without skips or failures.
+- All fifteen translations keep the note and actions visible in eight phone/tablet/desktop viewports. The real first-demo flow shows the Fusca 76 explanation and later races omit it. [Audit, exact command, corrections and captures](../docs/demo-transition-review-2026-11-14.md) record the scope and remaining physical/native/editorial limits.
+
+### Race rendering, account hint and motorcycles (2026-11-14)
+
+- Production build, strict typecheck, docs checks and 170 Node tests in 25 files pass. The expanded affected browser scope passes 67 cases and skips three unsupported Windows WebKit audio cases; the final game/sprite/cache scope passes all 28 cases with no skips or failures.
+- All fifteen new motorcycle taglines fit phone portrait/landscape, tablet portrait and desktop landscape. Both bikes drive/pause/return on iPhone SE sizes; guest/signed-in note behavior, purchases and saved ownership are covered. Road batching matches the reference pixels and reduces paint submissions to ten per frame; seeded curves survive cache eviction unchanged.
+- Exact commands, initial fixture failures/corrections, exploratory CPU timings, module-size debt, screenshots and physical-device limits are recorded in the [diff audit](../docs/performance-motorcycles-review-2026-11-14.md). This is affected-flow evidence, not full-suite or identical-hardware-FPS certification.
+
+### Centered menus and landscape spacing (2026-11-14)
+
+- Node 24.22.2: `npm ci`, `npm run build`, `npm run typecheck`, `npm run docs:check` and `npm test` pass; 167 Node tests, no failures or skips.
+- `playwright test tests/browser/menu-spacing.spec.ts tests/browser/phone-dialogs.spec.ts tests/browser/phone-screens.spec.ts tests/browser/layout.spec.ts tests/browser/client-loading.spec.ts --workers=4` passes all 56 Chromium/WebKit cases, with no failures or skips. It covers nine menu sizes from 320x568/568x320 to 1440x900, action/footer visibility, portrait centering, landscape separation, navigation, compact dialog centering, long-dialog scrolling, results, settings/garage, HUD and offline reload.
+- The initial run caught four clipping failures at the two smallest sizes; compact branding and spacing fixes pass the complete affected recheck. See the [diff audit and screenshots](../docs/menu-layout-review-2026-11-14.md). Shared CSS remains oversized; new menu composition is isolated in a 113-line stylesheet. This is emulated browser evidence, not physical-device or native validation.
 
 ### Maintenance, vehicles, accounts and small screens (2026-11-14)
 
