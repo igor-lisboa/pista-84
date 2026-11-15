@@ -199,7 +199,7 @@ export const fr: Messages = {
   'tilt.https': 'Ouvrez le lien HTTPS du jeu pour utiliser l’inclinaison.',
   'tilt.denied': 'Autorisation de mouvement refusée. Les boutons fonctionnent toujours.',
   'tilt.silent': 'Aucun signal du capteur. Continuez avec les boutons.',
-  "tilt.hold": "Tenez le téléphone à l’horizontale, écran face à vous. À niveau, vous allez droit ; tournez comme un volant.",
+  "tilt.hold": "Tenez le téléphone à l’horizontale, écran vers vous. Baissez son bord gauche et relevez le droit pour tourner à droite ; faites l’inverse pour tourner à gauche. Incliner le bord supérieur vers vous ou à l’opposé ne fait pas tourner.",
   'tilt.buttons': 'Direction par boutons activée.',
   'tilt.centered': 'Volant centré.',
 

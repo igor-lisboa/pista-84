@@ -187,7 +187,7 @@ export const es = {
   'tilt.https': 'Abre el enlace HTTPS del juego para usar la inclinación.',
   'tilt.denied': 'Permiso de movimiento denegado. Los botones siguen funcionando.',
   'tilt.silent': 'No hay señal del sensor. Sigue usando los botones.',
-  "tilt.hold": "Sujeta el móvil en horizontal, con la pantalla hacia ti. Nivelado vas recto; gíralo como un volante.",
+  "tilt.hold": "Sujeta el móvil en horizontal, con la pantalla hacia ti. Para girar a la derecha, baja el lado izquierdo y sube el derecho; para la izquierda, al revés. Inclinar el borde superior hacia ti o alejarlo no gira.",
   'tilt.buttons': 'Dirección con botones activada.',
   'tilt.centered': 'Volante centrado.',
   'garage.label': 'ELIGE TU COMPAÑERO',

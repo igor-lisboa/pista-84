@@ -163,7 +163,7 @@ export const ptPT: Messages = {
   'tilt.noSensor': 'Sensor indisponível. Use os botões de direção.',
   'tilt.denied': 'Permissão de movimento recusada. Os botões continuam a funcionar.',
   'tilt.silent': 'Sem sinal do sensor. Continue com os botões de direção.',
-  "tilt.hold": "Segura o telemóvel na horizontal, com o ecrã virado para ti. Nivelado segue em frente; roda como um volante.",
+  "tilt.hold": "Segura o telemóvel na horizontal, com o ecrã virado para ti. Para virar à direita, baixa o lado esquerdo e levanta o direito; para a esquerda, faz o inverso. Inclinar a parte de cima para ti ou para longe não muda a direção.",
 
   'garage.export': 'Exportar progresso',
   'garage.import': 'Importar progresso',

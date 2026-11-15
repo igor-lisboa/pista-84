@@ -199,7 +199,7 @@ export const de: Messages = {
   'tilt.https': 'Öffne den HTTPS-Link des Spiels, um die Neigung zu nutzen.',
   'tilt.denied': 'Bewegungszugriff verweigert. Die Tasten funktionieren weiter.',
   'tilt.silent': 'Kein Sensorsignal. Nutze weiter die Tasten.',
-  "tilt.hold": "Halte das Handy quer, mit dem Bildschirm zu dir. Waagerecht fährst du geradeaus; drehe es wie ein Lenkrad.",
+  "tilt.hold": "Halte das Handy quer mit dem Bildschirm zu dir. Für rechts senkst du die linke und hebst die rechte Seite; für links umgekehrt. Neigst du die Oberkante zu dir oder von dir weg, lenkt das nicht.",
   'tilt.buttons': 'Tastenlenkung aktiviert.',
   'tilt.centered': 'Lenkrad zentriert.',
 

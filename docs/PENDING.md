@@ -12,7 +12,7 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 - Refined account, result, garage, HUD and pairing composition with readable columns and consistent spacing; full-fleet common-scale visual review recorded in [interface review](interface-v6.md).
 
-- Modern iPhone safe areas, centered portrait results, consistent motorcycle rider scale and F1-wheel tilt direction are implemented; physical-device confirmation remains QA-01.
+- Modern iPhone safe areas, centered portrait results, consistent motorcycle rider scale and screen-plane tilt steering are implemented. Lowering the phone's left edge and raising its right steers right; front/back movement stays neutral. Physical-device confirmation remains QA-01.
 - Full TypeScript codebase (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`, `api`, `worker`); no JavaScript source is left. Typecheck with `npm run typecheck`.
 - Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h with a fuel and score-multiplier penalty, heavier and smarter traffic (120 s ramp plus 240 s of late-game pressure, lane changes, speed matching, no overlap).
 - Pace-based score and coins earned from score (1 coin per 25 points); twenty-two vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.

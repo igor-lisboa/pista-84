@@ -134,6 +134,8 @@ Normal Uno and its three authored poses added; ladder Uno intentionally tuned to
 
 ## QLT-01 — Focused implementation modules
 
+The 2026-11-15 tilt follow-up maps lowering the left phone edge and raising the right edge to right steering; front/back pitch and horizontal yaw remain neutral. Physical sensor behavior is still pending QA-01.
+
 **Implemented 2026-11-15; continuing maintenance rule.** The six oversized production modules are decomposed into application services, simulation responsibilities and scene/art layers. The shared atlas manifest and fallback registry include every vehicle. `npm run quality:modules` enforces the 299-line production limit and reports test overages separately. See the [maintenance audit](../docs/maintainability-2026-11-15.md) for validation and remaining interaction/hardware gaps.
 
 Preserve strict runtime boundaries, existing interfaces and offline/storage invariants as code grows. Avoid generic frameworks or arbitrary file fragments.

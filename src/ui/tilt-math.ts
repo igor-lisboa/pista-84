@@ -16,7 +16,7 @@ export function gravityOnScreen(gx: number, gy: number, angle: number): [number,
   }
 }
 
-/** Positive when the top leans right; sign accounts for accelerometer platform conventions. */
+/** Positive when the phone's right edge rises; sign accounts for accelerometer conventions. */
 export function screenLean(gx: number, gy: number, angle: number, sign: number): number {
   const [x, y] = gravityOnScreen(gx, gy, angle);
   return -Math.atan2(sign * x, sign * y) / TO_RADIANS;
@@ -40,13 +40,13 @@ export class WheelSteering {
     const [x, y] = gravityOnScreen(gx, gy, angle);
     if (this.sign === null && Math.abs(y) >= MIN_GRAVITY) this.sign = y > 0 ? 1 : -1;
     const degrees = this.sign === null || Math.hypot(x, y) < MIN_GRAVITY ? 0
-      : -screenLean(gx, gy, angle, this.sign);
+      : screenLean(gx, gy, angle, this.sign);
     return this.accept(degrees, now);
   }
 
   orientation(beta: number, gamma: number, angle: number, now: number): number {
     const [gx, gy] = orientationGravity(beta, gamma);
-    const degrees = Math.hypot(gx, gy) < MIN_GRAVITY ? 0 : -screenLean(gx, gy, angle, 1);
+    const degrees = Math.hypot(gx, gy) < MIN_GRAVITY ? 0 : screenLean(gx, gy, angle, 1);
     return this.accept(degrees, now);
   }
 

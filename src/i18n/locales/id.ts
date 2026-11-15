@@ -187,7 +187,7 @@ export const id = {
   'tilt.https': 'Buka tautan HTTPS game untuk memakai kemiringan.',
   'tilt.denied': 'Izin gerakan ditolak. Tombol tetap berfungsi.',
   'tilt.silent': 'Tidak ada sinyal sensor. Tetap gunakan tombol.',
-  "tilt.hold": "Pegang ponsel mendatar dengan layar menghadapmu. Posisi rata untuk lurus; putar seperti setir.",
+  "tilt.hold": "Pegang ponsel mendatar dengan layar menghadapmu. Untuk belok kanan, turunkan sisi kiri dan naikkan sisi kanan; untuk kiri, lakukan sebaliknya. Memiringkan sisi atas ke arah atau menjauh darimu tidak membelokkan.",
   'tilt.buttons': 'Kemudi tombol aktif.',
   'tilt.centered': 'Kemudi dipusatkan.',
   'garage.label': 'PILIH TEMAN PERJALANAN',

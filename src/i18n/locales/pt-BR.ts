@@ -198,7 +198,7 @@ export const ptBR = {
   'tilt.https': 'Abra o link HTTPS do jogo para usar a inclinação.',
   'tilt.denied': 'Permissão de movimento negada. Os botões continuam funcionando.',
   'tilt.silent': 'Nenhum sinal do sensor. Continue com os botões de direção.',
-  "tilt.hold": "Segure o celular na horizontal, com a tela de frente para você. Nivelado segue reto; gire como um volante.",
+  "tilt.hold": "Segure o celular na horizontal, com a tela voltada para você. Para virar à direita, abaixe o lado esquerdo e levante o direito; para a esquerda, faça o contrário. Inclinar a parte de cima para frente ou para trás não muda a direção.",
   'tilt.buttons': 'Direção pelos botões ativada.',
   'tilt.centered': 'Volante centralizado.',
 
