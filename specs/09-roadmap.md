@@ -28,7 +28,7 @@ Add MongoDB collections for `orders`, `payment_events`, `wallet_entries` and `en
 
 ## ADS-01 — Rewarded ads and ad removal
 
-**P1; depends on provider account, ad units/SDK and server-issued race/reward identity.** The existing second chance remains explicitly free.
+**P1; depends on provider account, ad units/SDK and server-issued race/reward identity.** The existing second chance costs 1,000 earned coins; no rewarded ad or real-money payment is involved.
 
 Provide an `isAvailable / showRewarded / removeAds` adapter. Support `continue` and `double_coins` rewards tied to a unique run/event, validated through the provider where supported. Opening/closing an ad is not proof of completion. Unavailable ads must not block restarting. Respect the paid remove-ads entitlement.
 
@@ -108,6 +108,8 @@ Run physical/balance QA alongside native tool provisioning. ART-01 is implemente
 
 ## Maintenance delivery - 2026-11-14
 
+Pose-specific material masks protect vehicle lamps, tires and riders across all garage and traffic colors. Cached brake tiles illuminate the authored lens shapes instead of generic rectangles. Main-menu and shared icon controls center explicitly. The new visual-quality skill and Claude/Copilot review agents make interface and all-vehicle/paint/pose/brake verification part of future maintenance.
+
 Content-sized account/guest surfaces, compact phone HUD, grouped result summaries/actions, two-column short-landscape garage and pairing composition improve spacing and readable text. The full fleet receives a common-scale visual review; performance, tuning and ownership remain intact. See [interface review](../docs/interface-v6.md).
 
 Modern phone safe areas now constrain menus, HUD, controls, dialogs and overlays on all four edges; portrait results center inside the usable rectangle. Authored motorcycles use shared logical rider heights so Harley luggage stays broad without making its rider a giant. Tilt maps both sensor paths to the reversed F1-wheel direction requested after hands-on feedback. Browser emulation covers recent iPhone portrait/landscape cutouts; physical iOS/Android validation remains QA-01.
@@ -132,8 +134,8 @@ Normal Uno and its three authored poses added; ladder Uno intentionally tuned to
 
 ## QLT-01 — Focused implementation modules
 
-**P2; existing maintainability debt.** The quality skill and review agents are implemented; six production TypeScript modules still exceed the new below-300-line target (see [technical debt](../docs/TECH-DEBT.md#module-size-debt)).
+**Implemented 2026-11-15; continuing maintenance rule.** The six oversized production modules are decomposed into application services, simulation responsibilities and scene/art layers. The shared atlas manifest and fallback registry include every vehicle. `npm run quality:modules` enforces the 299-line production limit and reports test overages separately. See the [maintenance audit](../docs/maintainability-2026-11-15.md) for validation and remaining interaction/hardware gaps.
 
-Decompose oversized implementation files by cohesive responsibilities as affected areas are maintained. Keep strict runtime boundaries, existing interfaces and offline/storage invariants. Avoid introducing generic frameworks or arbitrary file fragments. This workflow addition does not itself refactor those modules.
+Preserve strict runtime boundaries, existing interfaces and offline/storage invariants as code grows. Avoid generic frameworks or arbitrary file fragments.
 
 **Accept:** handwritten implementation modules are below 300 physical lines, existing overages are eliminated or explicitly documented with reasons and follow-up, dependency boundaries remain clear, and build/typecheck/Node plus affected browser checks pass. Full quality audits additionally cover the whole configured browser suite and identify gaps in user-interaction evidence.

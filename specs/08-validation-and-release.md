@@ -2,6 +2,10 @@
 
 [Specification index](README.md)
 
+The maintenance audit also runs `npm run quality:modules`, which enforces the 299-line limit for handwritten production TypeScript and reports oversized test modules separately. Vehicle-ground coverage exercises the complete fleet in straight/left/right poses, dry/wet night conditions and braking; factory lens masks, contact anchors and paint independence are checked alongside the all-paint material matrix. Test setup/build failures must be distinguished from failed behavior assertions.
+
+Browser cases are organized by interaction: `game.spec.ts`, `garage-purchases.spec.ts`, `controller-connection.spec.ts`, `scene-rendering.spec.ts` and `race-continuation.spec.ts`. Simulation cases separate driving (`race.test.ts`), fuel/rewards (`race-fuel-score.test.ts`), contacts (`race-contact.test.ts`) and shoulders (`race-offroad.test.ts`). Splits preserve test titles and all previous cases. Platform lifecycle coverage verifies Enter/modal ownership, desktop/touch blur and hidden-document input release with controlled browser events.
+
 ## Local execution
 
 Node.js **24** is the verified environment: it runs the TypeScript sources natively.
@@ -37,6 +41,7 @@ Heroku supplies `PORT`. See [Heroku configuration](../docs/STORAGE.md#heroku).
 ```powershell
 npm run build
 npm run typecheck
+npm run quality:modules
 npm test
 npx playwright install chromium webkit
 npm run test:browser
@@ -45,16 +50,16 @@ npm run test:browser
 - `npm run build` must run before type checking: it generates the Worker asset module that `tsc` needs.
 - `npm run typecheck` is `tsc --noEmit -p .` (strict, erasable syntax only, `.ts` import extensions) over `api`, `src`, `tests`, `scripts`, `worker`, `web/sw.ts`, `dev-server.ts`, `production-server.ts` and `playwright.config.ts`. It is clean on 1.4.0.
 - `npm run docs:check` checks catalog, tuning and engine tables, application/save/cache baseline, translation counts, source references and local Markdown links. It runs automatically as `pretest`; behavior and prose still require manual review.
-- `npm test` runs `node --test tests/*.test.ts`: 180 isolated Node tests in 26 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
+- `npm test` runs `node --test tests/*.test.ts`: 180 isolated Node tests in 29 files (the count changes as coverage grows). No normal test loads live storage credentials; storage doubles live in `tests/support/`.
 - `npm run test:browser` runs the Playwright specs in `tests/browser/` in Chromium and WebKit (the app server is started by `npm run dev`, with live databases disabled, `PISTA84_PROGRESS_TOOLS=true` and no existing server reused). Most specs start from `tests/browser/support/signed-in.json` (a returning guest with tutorial/demo complete; account tests explicitly seed or establish sessions); `username.spec.ts` opts out to see first launch, and `account.spec.ts` routes API calls to the production handlers over isolated fakes (`support/account-backend.ts`). `tests/browser/support/harness.ts` bundles `harness-entry.ts` with esbuild and injects it as `window.Pista` so cases can call the game, renderer and sprite modules from `page.evaluate`.
 
 Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Run `npm run online:check` when validating configured MongoDB/Redis, using removable probe records. `bash scripts/local.sh check` (or `npm run local:check` inside the app container) runs the same live diagnostics plus an end-to-end smoke test against the Docker stack's own disposable services; it is never part of `npm test`.
 
 | Coverage | Required evidence (test file) |
 | --- | --- |
-| Simulation | Acceleration, brake/throttle/coast, per-vehicle taper, fuel (rest, cans, checkpoints), distance, braking stop, 350 km/h Veloce GT, 120 km/h = 2 km per minute, lanes and contact plane (`race.test.ts`, `vehicle-refinement.test.ts`) |
-| Crashes and off-road | Any traffic contact is fatal, barrier crash except after the second chance, grass drag to about 40 km/h, 10% traction, single `offroad` event, braking on the shoulder, grass fuel and multiplier penalty with cooldown and floor (`race.test.ts`) |
-| Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race.test.ts`, `world.test.ts`) |
+| Simulation | Acceleration, brake/throttle/coast, per-vehicle taper, fuel (rest, cans, checkpoints), distance, braking stop, 350 km/h Veloce GT, 120 km/h = 2 km per minute, lanes and contact plane (`race.test.ts`, `race-contact.test.ts`, `race-fuel-score.test.ts`, `vehicle-refinement.test.ts`) |
+| Crashes and off-road | Any traffic contact is fatal, barrier crash except after the second chance, grass drag to about 40 km/h, 10% traction, single `offroad` event, braking on the shoulder, grass fuel and multiplier penalty with cooldown and floor (`race-offroad.test.ts`, `race-contact.test.ts`) |
+| Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race-fuel-score.test.ts`, `world.test.ts`) |
 | State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
 | Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
 | Vehicles and audio | 22 distinct coin vehicles, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
@@ -66,11 +71,11 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Languages | Fifteen languages offered; every full locale (all except pt-PT) covers every key with the same placeholders; no unknown keys; no emoji; browser language mapping (`i18n.test.ts`, `browser/languages.spec.ts`) |
 | Room services | Room protocol, token/role checks, atomic answer, expiration/deletion, cross-origin/oversized/invalid JSON rejection, no implicit memory fallback, socket auth/relay/reconnect/expiry (`signaling.test.ts`, `rooms-api.test.ts`, `redis-config.test.ts`, `room-sockets.test.ts`) |
 | Deployment | Production configuration validation, Heroku origin handling and launch, Vercel layout and entrypoint naming, edge proxy fail-closed/cookies/WebSocket upgrade (`node-config.test.ts`, `node-deployment.test.ts`, `vercel-config.test.ts`, `proxy.test.ts`) |
-| Browser game flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; balance override; reload offline; cross-tab save safety (`game.spec.ts`, `results.spec.ts`, `save-conflict.spec.ts`, `timestamps.spec.ts`) |
+| Browser game flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; balance override; reload offline; cross-tab save safety (`game.spec.ts`, `garage-purchases.spec.ts`, `race-continuation.spec.ts`, `results.spec.ts`, `save-conflict.spec.ts`, `timestamps.spec.ts`) |
 | Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
 | Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
 | Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
-| Graphics | All 22 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`game.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
+| Graphics | All 22 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`scene-rendering.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
 | Audio | A delayed unlock cannot override a sound-off choice; braking, throttle and effect levels (`audio.spec.ts`) |
 | Lazy loading and offline | Controller does not download the game renderer; the installed game reloads with its chunks offline (`client-loading.spec.ts`, `game.spec.ts`) |
 | Local stack | Compose pins private MongoDB/Redis URLs and publishes only the game port; the Dockerfile ignores secrets; `scripts/local.sh` rewrites every `.env.example` key it depends on with LF endings; the smoke check refuses non-local services and cleans up (`local-stack.test.ts`). Live: health, assets, guest 401s, account signup/login/logout, score and leaderboard, progress revisions and device snapshots, account reconciliation, room claim and WebSocket input through Redis (`scripts/check-local.ts`, run by `local.sh check`) |
@@ -191,6 +196,10 @@ The hosted verification helper (`node scripts/verify-hosted.ts`, configuration `
 No hosted run is recorded for 1.4. The helper does not verify signed native builds, actual iPhone sensors, paid transactions or ad delivery.
 
 ## Visual review artifacts
+
+### Vehicle materials and icon follow-up (2026-11-15)
+
+The [visual/material review](../docs/visual-materials-v7.md) records pose-aware lamp illumination, paint protection and desktop/phone icon centering. Build, strict typing and all 180 Node tests pass on Node 24.22.2; skill validators pass for the canonical visual, vehicle and quality workflows and the visual skill wrappers. The vehicle matrix covers 22 models, 17 garage choices, 10 traffic colors, three authored poses, mirrored left turns and both brake states in Chromium/WebKit. Complete affected-browser outcomes are recorded in the review; this is not a full repository browser rerun or physical/native certification.
 
 ### Interface composition follow-up (2026-11-14)
 

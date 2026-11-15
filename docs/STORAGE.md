@@ -349,8 +349,8 @@ live in `.agents/skills/`; `.claude/skills/` and `.github/skills/` provide disco
 entrypoints without duplicating the workflows. Claude/Copilot maintenance roles
 live in `.claude/agents/` and `.github/agents/`. Update canonical guidance first.
 
-The skills are `pista-game`, `pista-storage`, `pista-docs`, `pista-vehicles`, `pista-localization` and `pista-quality`; the agents are
-`pista-maintainer`, `pista-docs` and `pista-quality`. `specs/` and `docs/` are the source of truth:
+The skills are `pista-game`, `pista-storage`, `pista-docs`, `pista-vehicles`, `pista-localization`, `pista-quality` and `pista-visual-quality`; the agents are
+`pista-maintainer`, `pista-docs`, `pista-quality` and `pista-visual-quality`. The visual workflow checks UI composition/icons and every vehicle/paint/pose/brake combination. `specs/` and `docs/` are the source of truth:
 `pista-docs` requires every behavior, data, API, text, catalog or test change to
 update the affected pages, the requirements matrix and the baseline in
 `specs/README.md` in the same change, and describes the audit procedure.
@@ -361,4 +361,4 @@ Formats follow [Codex instructions](https://developers.openai.com/codex/guides/a
 [Claude subagents](https://code.claude.com/docs/en/sub-agents), and
 [Copilot customizations](https://docs.github.com/en/copilot/concepts/customizations/comparing-customizations).
 
-The quality skill is the shared review procedure for build/tests, interaction evidence, strict TypeScript, practical SOLID and modules below 300 lines. Existing size overages are documented in TECH-DEBT.md and QLT-01; the review does not claim all tests or interactions passed without executed evidence.
+The quality skill is the shared review procedure for build/tests, interaction evidence, strict TypeScript, practical SOLID and modules below 300 lines. `npm run quality:modules` enforces the production limit; the resolved size debt and continuing review rules are documented in TECH-DEBT.md and QLT-01. The visual workflow also checks source material masks, body/plate fixtures, tire contact, shadows and wet-road reflections. A review does not claim all tests or interactions passed without executed evidence.

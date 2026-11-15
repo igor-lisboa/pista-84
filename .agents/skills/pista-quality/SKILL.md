@@ -13,7 +13,7 @@ interaction paths, clearly identifying the narrower scope. Preserve unrelated ed
 
 - Verify Node 24+. Install with `npm ci` for a fresh environment or changed lockfile.
 - Run `npm run build` before `npm run typecheck` (the build generates Worker assets),
-  then `npm run docs:check` and `npm test`.
+  then `npm run docs:check`, `npm run quality:modules` and `npm test`.
 - A full quality check also runs `npm run test:browser` in both configured engines.
   Routine UI changes run the relevant Playwright specs and shared affected flows.
   Use `playwright.config.ts` with live databases disabled and no reused server.
@@ -28,6 +28,9 @@ interaction paths, clearly identifying the narrower scope. Preserve unrelated ed
   Live-service, physical-device and native-build validation require separate evidence.
 
 ## Interaction coverage
+
+For interface, sprite or paint changes, also apply `../pista-visual-quality/SKILL.md`
+for screenshot review, icon centering and all-vehicle/all-paint pose/brake checks.
 
 Inventory controls from HTML, dialogs and input/event bindings, then map each
 interaction to a spec and a browser test or an executed manual scenario. A visible

@@ -11,6 +11,7 @@
     "vercel-build": "npm run build",
     "heroku-postbuild": "npm run build",
     "docs:check": "node scripts/audit-docs.ts",
+    "quality:modules": "node scripts/check-modules.ts",
     "pretest": "npm run docs:check",
     "test": "node --test tests/*.test.ts",
     "typecheck": "tsc --noEmit -p .",

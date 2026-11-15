@@ -137,13 +137,16 @@ npm run native:ios
 ## Testing and publishing
 
 ```powershell
+npm run build
 npm run typecheck
+npm run quality:modules
 npm test
 npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (167 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (180 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run quality:modules` checks the 299-line production TypeScript limit and lists test overages separately. Responsibility/dependency review still accompanies the automated gate.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.
 - The Worker serves static assets and proxies online APIs to a Node/Vercel deployment configured with `API_ORIGIN`. MongoDB and Redis run behind the Node APIs; the Worker has no D1 binding. Preserve the project ID in `.openai/hosting.json`.

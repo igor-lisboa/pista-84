@@ -33,9 +33,19 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 
 ## Vehicle artwork
 
+Vehicle drawing uses one shared pose placement for the sprite, contact shadow and rear-light road reflections. Shadows follow the visible tire footprint; reflections originate at the authored red lenses, mirror with steering and remain subdued on dry asphalt. Brake brightening uses factory lens pixels so changing body paint cannot create additional brake lights. Pose changes preserve the vehicle's logical height and ground contact.
+
+Player headlights use a fading road beam aligned with the same pose and mirrored turn direction, with width proportional to the vehicle footprint instead of a fixed opaque trapezoid.
+
+Neutral body panels use one brightness mapping across models, including the two Unos and urban motorcycle. Bright neutral chrome highlights stay unpainted; dark body shadows are distinguished from gray trim by relative chroma so low absolute RGB values alone do not preserve factory-color bumper strips. Indicator protection stays inside reviewed lamp housings rather than preserving neighboring warm bodywork.
+
+Atlas registration is data-driven across all models, including the Harley. Loading/cropping, paint/material processing, procedural drawing primitives, fallback model painters and final scene placement have separate responsibilities; individual models do not introduce separate loading or rendering pipelines.
+
+Paint selection protects pose-specific lamp lenses, tires, plates, glass and rider/trim regions in every catalog model. Brake feedback brightens the existing red lens pixels inside the pose's rear-lamp regions, retaining their shape and perspective instead of drawing generic rectangles across the body. Vehicle/paint maintenance reviews all garage paints, traffic colors, three authored poses and mirrored left turns with brakes on/off; non-body regions retain factory colors.
+
 Biz 125 and Hayabusa add six straight/mild/strong right sprites in `vehicle-motorcycles-v1.png`, mirrored for left turns. Model references, prompt, paint/brake support and review evidence: [motorcycle notes](../docs/motorcycles-v1.md).
 
-Harley Electra Glide uses three authored touring-bike poses in `vehicle-harley-v2.png`, with a rider normalized to the fleet's human scale, mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters and the loading fallback live in `render/harley-art.ts`. References, full imagegen prompts and review limits: [Harley provenance](../docs/harley-v1.md).
+Harley Electra Glide uses three authored touring-bike poses in `vehicle-harley-v2.png`, with a rider normalized to the fleet's human scale, mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters live in the shared `render/vehicle-atlases.ts` manifest, and the touring-bike fallback uses `render/procedural-bikes.ts` through the common painter registry. References, full imagegen prompts and review limits: [Harley provenance](../docs/harley-v1.md).
 
 Authored asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the original catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 

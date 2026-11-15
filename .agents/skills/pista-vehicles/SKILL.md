@@ -14,3 +14,17 @@ For additions, match the existing authored atlas quality and elevated rear camer
 Register the ID in catalog, tuning, all locale taglines, audio profile, atlas loading/counts, paint masks, fallback renderer and service-worker assets/cache. For audio use documented cylinder/RPM/gear references and a model-specific harmonic profile; compare audible shifts and load at idle/launch/cruise/redline. Synthesized resemblance is not a real recording or certified fidelity. Record physical-speaker review as pending when unavailable.
 
 Run the checks in AGENTS.md and relevant sprite/browser specs. Update owning specs, roadmap, matrix, baseline, provenance and evidence in the same change.
+
+Every new/changed vehicle or paint also follows `../pista-visual-quality/SKILL.md`:
+verify all garage paints and traffic colors against every vehicle in all three
+authored poses, mirrored left turns and brakes off/on. Preserve lamp lenses,
+rubber, rims, glass, plates and riders; confirm that body panels still recolor.
+Run `tests/browser/vehicle-paint-integrity.spec.ts`, inspect its contact sheets and
+review gameplay-scale turning lamps. Add/update per-pose material regions when
+art changes; generic brake rectangles or hue-only paint checks are insufficient.
+
+Run `tests/browser/material-panels.spec.ts` and `vehicle-ground.spec.ts` too:
+independent body/plate fixtures supplement source lens masks. Review source tire
+contact anchors, proportional shadows and night/rain reflections for mirrored
+poses. Register new models in the shared atlas manifest and family painter
+registry; keep individual artwork data without a model-specific scene pipeline.

@@ -4,6 +4,10 @@
 
 ## Look
 
+Icon-only buttons center a fixed SVG box on both axes independently of text baselines. Menu action icons occupy a consistent centered trailing slot; the same review applies to settings rows, pause/close controls and dialog actions on desktop and phones.
+
+Dialog close controls retain block-level grid layout so auto margins keep them in the upper-right corner for LTR and upper-left for Urdu RTL, including landscape and after internal scrolling.
+
 The 1.4 interface is a sunset-arcade cabinet: deep purple background, sun-yellow, hot pink and cyan accents, **Bungee** (display) and **Chakra Petch** (text) loaded from Google Fonts with system fallbacks (Impact/Arial Black and Segoe UI/system-ui, plus Japanese system fonts), hard outlines, offset shadows with no blur, square corners and a checkered strip at the top of the menu. The fonts are optional; the page must remain usable offline without them.
 
 ## Initial menu

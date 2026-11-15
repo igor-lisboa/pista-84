@@ -1,4 +1,6 @@
 import type {CarLook} from '../game/cars.ts';
+import {protectedMaterial} from './sprite-materials.ts';
+import {lampMaterialMask, registerLampSource} from './sprite-lamps.ts';
 
 type Ctx = CanvasRenderingContext2D;
 type Hsl = readonly [number, number, number];
@@ -57,12 +59,12 @@ const BASE_HUES: Readonly<Record<string, number>> = {
 };
 
 const HUE_TOLERANCE = 0.13;
-const MIN_PAINT_SATURATION = 0.16;
-const MIN_PAINT_LIGHTNESS = 0.14;
+const MIN_PAINT_SATURATION = 0.07;
+const MIN_PAINT_LIGHTNESS = 0.025;
 const MAX_PAINT_LIGHTNESS = 0.93;
 
 function parseHex(hex: string): [number, number, number] {
-  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+  return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 }
 
 // ---------------------------------------------------------------------------
@@ -121,12 +123,16 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
   const p = data.data;
   const target = rgbToHsl(...parseHex(car.color));
   const baseHue = BASE_HUES[car.id] ?? 0;
+  const lamps = lampMaterialMask(original, car.id, pose);
   for (let i = 0; i < p.length; i += 4) {
     if (p[i + 3]! < ALPHA_THRESHOLD) continue;
     const [h, s, l] = rgbToHsl(p[i]!, p[i + 1]!, p[i + 2]!);
     const diff = Math.min(Math.abs(h - baseHue), 1 - Math.abs(h - baseHue));
     const x = ((i / 4) % canvas.width) / canvas.width;
     const y = Math.floor(i / 4 / canvas.width) / canvas.height;
+    if (lamps[i / 4]) continue;
+    if (car.id === 'moto' && y > .53 && y < .63 && Math.abs(x - (pose === 0 ? .5 : pose === 1 ? .27 : .25)) < .1) continue;
+    if (protectedMaterial(car.id, pose, x, y, p[i]!, p[i + 1]!, p[i + 2]!)) continue;
     if (car.id === 'harley' && (y < 0.32 || y > 0.91)) continue;
     // New bikes keep neutral helmets, reflected mirror glass and red brake lenses.
     if (car.id === 'biz125' || car.id === 'hayabusa') {
@@ -134,15 +140,22 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
       const lampY = car.id === 'biz125' ? 0.55 : 0.49;
       if (y < 0.35 || y > 0.8 || (Math.abs(y - lampY) < 0.035 && Math.abs(x - (lampX[pose] ?? 0.5)) < 0.12)) continue;
     }
-    // The Uno's white body needs a neutral mask; keep its ladder, plate and bumpers intact.
-    const whiteBody = s < (car.id === 'uno-normal' ? 0.26 : 0.15) && l > 0.55 && (
-      (car.id === 'uno' && y > 0.25 && y < 0.72 && !(y > 0.59 && x > 0.28 && x < 0.72))
-      || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.53 && y < 0.70 && x > 0.28 && x < 0.68))
+    // Neutral Uno panels and the urban bike tail need a body mask distinct from trim/rider hues.
+    const plateX = pose === 0 ? .5 : pose === 1 ? .36 : .32;
+    const plate = y > .65 && y < .75 && Math.abs(x - plateX) < .14;
+    const whiteBody = s < .28 && l > .35 && (
+      (car.id === 'uno' && y > .23 && y < .76 && !plate)
+      || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.60 && y < 0.76 && Math.abs(x - (pose === 0 ? 0.5 : pose === 1 ? 0.36 : 0.32)) < 0.15))
+      || (car.id === 'moto' && y > 0.4 && y < 0.62 && Math.abs(x - (pose === 0 ? 0.5 : 0.25)) < 0.25)
     );
+    // Near-white chrome can have high HSL saturation despite a tiny RGB spread.
+    // Explicit neutral body panels still accept paint through the same mapping.
+    if (!whiteBody && Math.min(p[i]!, p[i + 1]!, p[i + 2]!) > 160
+      && Math.max(p[i]!, p[i + 1]!, p[i + 2]!) - Math.min(p[i]!, p[i + 1]!, p[i + 2]!) < 12) continue;
     const paintable = whiteBody || (diff < (car.id === 'harley' ? 0.08 : HUE_TOLERANCE) && s > MIN_PAINT_SATURATION && l > MIN_PAINT_LIGHTNESS && l < MAX_PAINT_LIGHTNESS);
     if (!paintable) continue;
     // Dark and neutral paints must change brightness too, while retaining panel shading.
-    const lightness = whiteBody && car.id === 'uno-normal' ? Math.min(0.96, l * target[2] / 0.8)
+    const lightness = whiteBody ? Math.min(0.96, l * target[2] / 0.8)
       : target[2] < 0.35 ? l * target[2] / 0.5
       : target[2] > 0.75 ? l + (target[2] - 0.5) * (1 - l)
       : l * (0.7 + target[2] * 0.6);
@@ -153,6 +166,7 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
     p[i + 2] = rgb[2];
   }
   ctx.putImageData(data, 0, 0);
+  registerLampSource(canvas, original);
   return canvas;
 }
 

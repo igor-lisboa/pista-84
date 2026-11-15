@@ -4,6 +4,8 @@
 
 ## Complete vehicle catalog
 
+Vehicle and paint maintenance also uses the [visual-quality workflow](../.agents/skills/pista-visual-quality/SKILL.md): every garage/traffic color must preserve lamp lenses, tires, trim and riders across all authored and mirrored poses, with brakes off/on.
+
 Maximum speed is km/h; acceleration is the base coefficient of the automatic-acceleration curve, multiplied by the vehicle's own `accelerationGain` and tapered near top speed (see [Per-vehicle tuning](#per-vehicle-tuning) and [gameplay](02-gameplay.md)). Consumption and handling are dimensionless factors used by the rules in gameplay. The garage shows maximum speed, acceleration and consumption; handling affects steering and cornering drift only.
 
 The garage lists all cars in ascending coin price order, with no premium category. The catalog's internal order does not affect display order or saved ownership. Consumption ratings apply at idle too: a stopped running car slowly uses fuel, while pause freezes consumption.

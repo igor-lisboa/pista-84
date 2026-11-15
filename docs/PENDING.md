@@ -6,6 +6,10 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 ## Done in 1.4
 
+- Shared vehicle atlas/fallback architecture, corrected turning contact/shadows/lamp reflections and all-production module size enforcement; [maintenance audit](maintainability-2026-11-15.md).
+
+- Pose-aware brake lighting, paint material protection and explicit icon centering; reusable `pista-visual-quality` skill/agents cover UI and vehicle/color maintenance.
+
 - Refined account, result, garage, HUD and pairing composition with readable columns and consistent spacing; full-fleet common-scale visual review recorded in [interface review](interface-v6.md).
 
 - Modern iPhone safe areas, centered portrait results, consistent motorcycle rider scale and F1-wheel tilt direction are implemented; physical-device confirmation remains QA-01.
@@ -21,7 +25,7 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 ## Still pending
 
-- Focused implementation modules below 300 lines; six existing TypeScript overages remain, with the quality review workflow implemented (QLT-01).
+- Focused implementation modules and the enforced 299-line gate are implemented (QLT-01); interaction/hardware coverage limits remain recorded in the maintenance audit.
 
 - **Real-money coin packs, payments, ads and entitlements.** The main-menu coin shop is a disabled "coming soon" placeholder. A billing integration (web checkout, Google Play, App Store), server-authoritative economy, receipt validation and rewarded ads remain to be built (ECO-01, COM-01, ADS-01).
 - **Native-speaker review of every non-source translation**, and a complete pt-PT table (I18N-01).

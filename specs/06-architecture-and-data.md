@@ -44,10 +44,12 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 
 ## Module responsibilities
 
+`Race` remains the lifecycle/reward coordinator; `race-driving.ts` owns throttle, steering and shoulder physics, and `race-entities.ts` owns spawn timers, traffic updates and swept contacts. `GameApp` composes focused progress, dialog/onboarding, frame-feedback and platform adapters. Save identity/outbox guards stay in one progress owner and browser event binding stays outside simulation. These boundaries preserve public contracts and gameplay tuning.
+
 | Module | Responsibility |
 | --- | --- |
 | `src/game/cars.ts` | 22-vehicle catalog (`CarSpec`, `Purchase`), paints, defaults |
-| `src/game/race.ts` | `Race`: states, driving, off-road penalties, crashes, score, coins, checkpoints, fuel, second chance, spawning |
+| `src/game/race.ts`, `race-driving.ts`, `race-entities.ts` | Lifecycle/rewards/fuel/checkpoints, driving/shoulder physics and traffic spawn/update/contact respectively |
 | `src/game/traffic.ts` | Traffic and fuel entities: ramp, late-game pressure, waves, lane changes, following, separation |
 | `src/game/road.ts` | Seeded stateless road curve plus lane/camera geometry constants |
 | `src/game/scoring.ts` | `paceMultiplier` |
@@ -57,15 +59,23 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/game/merge-progress.ts` | `mergeProgress` (guest/account reconciliation) and `reconcileStoredSave` (newer local copy from another tab) |
 | `src/game/username.ts`, `units.ts` | Username rules and GUID helpers shared by browser and API; km/mi conversion |
 | `src/game/index.ts`, `math.ts` | Public barrel, `clamp` |
-| `src/render/renderer.ts` | Responsive perspective, road, scene projection, environment effects, shake and overlays |
-| `src/render/scenery.ts`, `billboards.ts`, `noise.ts`, `color.ts` | Cached city, clouds, trees, lamps, billboards and their ad texts, deterministic hash, color helpers |
-| `src/render/sprites.ts`, `procedural-cars.ts` | Atlas loading/trimming, paints, turn frames; procedural sprites used as loading fallback |
+| `src/render/renderer.ts`, `scene-frame.ts` | Frame orchestration, camera/impact state and shared scene inputs |
+| `src/render/road-camera.ts`, `scene-palette.ts`, `scene-sky.ts`, `scene-weather.ts` | Road geometry/surface, environment colors, sky and weather layers |
+| `src/render/scene-vehicles.ts`, `scene-roadside.ts` | Depth placement, vehicle effects and roadside composition |
+| `src/render/scenery.ts`, `scenery-city.ts`, `billboards.ts`, `noise.ts`, `color.ts` | Cached props/clouds/skyline, billboard texts, deterministic hash and colors |
+| `src/render/sprites.ts`, `sprite-atlas.ts`, `vehicle-atlases.ts` | Shared vehicle drawing, cached atlas loading/cropping and data-only sheet registration |
+| `src/render/procedural-cars.ts`, `procedural-brush.ts`, `fallback-vehicles.ts` | Fallback model painters, shared art primitives and original fleet fallback composition |
 | `src/render/vehicle-scale.ts` | Shared fleet/rider scale factors for game sprites and garage previews |
-| `src/render/harley-art.ts` | Harley atlas gutters, brake-lamp coordinates and touring-bike loading fallback |
+| `src/render/procedural-bikes.ts`, `sprite-geometry.ts`, `vehicle-ground.ts` | Shared motorcycle fallbacks, source-pose contact anchors and vehicle ground effects |
+| `src/render/sprite-reflections.ts`, `sprite-canvas.ts` | Cached source-space lamp spill and common Canvas creation/readback helpers |
+| `src/render/sprite-materials.ts`, `sprite-paint.ts`, `sprite-lamps.ts`, `sprite-brakes.ts` | Factory material/lens masks, custom paint and cached lens-shaped brake feedback |
 | `src/audio/audio.ts`, `src/audio/engine-voices.ts` | `AudioEngine`, 22 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data (menu loop plus seven race tracks) |
 | `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
-| `src/ui/game-app.ts` | `GameApp`: owns save, race, renderer, audio and the menu/race/pause/over flow, autosave, sync triggers and platform plumbing |
+| `src/ui/game-app.ts`, `race-feedback.ts` | Race lifecycle/frame coordinator and simulation event presentation |
+| `src/ui/game-progress.ts` | Save identity, reward banking, cross-tab reconciliation and optional score/device uploads |
+| `src/ui/game-screens.ts`, `game-onboarding.ts` | Dialog construction/navigation/settings and tutorial/welcome close routes |
+| `src/ui/game-platform.ts`, `platform-capabilities.ts` | Browser display/input/focus/install lifecycle and checked optional native-wrapper capability |
 | `src/ui/hud.ts`, `overlays.ts` | Top-bar HUD, pause/result screens |
 | `src/ui/settings.ts`, `garage.ts` | Options dialog, garage (cars, paints, file export/import, coin-pack preview) |
 | `src/ui/account.ts`, `auth-tabs.ts`, `username.ts` | Post-demo/account screen, sign up / log in switch, username field cleaning |
@@ -183,7 +193,7 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v36** stores the listed same-origin app assets (`/`, HTML, CSS including `interface-layout.css`, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v38** stores the listed same-origin app assets (`/`, HTML, CSS including `interface-layout.css`, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.
 
@@ -193,6 +203,6 @@ Maintenance tools: `scripts/audit-docs.ts` validates documentation facts and lin
 
 Keep strict, erasable typing and explicit `.ts` relative imports. Validate external values from `unknown`; assertions do not replace runtime validation. Use clear contracts, discriminated states, narrow interfaces and explicit errors. Apply SOLID by separating simulation, rendering/UI, transport, connection setup and business rules, using existing interfaces where useful rather than adding abstraction layers by default.
 
-New handwritten implementation modules stay below 300 physical lines (299 maximum, including comments/blanks). Review new and touched files; split along responsibility and dependency boundaries while preserving behavior. Track remaining existing overages in [module-size debt](../docs/TECH-DEBT.md#module-size-debt) and QLT-01. Data-only catalogs, locales and tests are included in size reports with their purpose identified. The [quality workflow](../.agents/skills/pista-quality/SKILL.md) defines review and evidence; the repository is not yet entirely below the limit.
+New handwritten implementation modules stay below 300 physical lines (299 maximum, including comments/blanks). Review new and touched files; split along responsibility and dependency boundaries while preserving behavior. Track remaining existing overages in [module-size debt](../docs/TECH-DEBT.md#module-size-debt) and QLT-01. Data-only catalogs, locales and tests are included in size reports with their purpose identified. The [quality workflow](../.agents/skills/pista-quality/SKILL.md) defines review and evidence; `npm run quality:modules` enforces the production TypeScript limit and lists oversized test modules separately.
 
 Road surface batching lives in `src/render/road-surface.ts`; body-color remapping lives in `src/render/sprite-paint.ts`. Both preserve the existing renderer and sprite contracts.

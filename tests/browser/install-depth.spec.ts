@@ -4,27 +4,33 @@ import { loadHarness } from './support/harness.ts';
 test('traffic passes behind and in front of the player according to road depth', async ({ page }) => {
   await page.goto('/');
   await loadHarness(page);
-  const orders = await page.evaluate(() => {
-    const { Renderer, Race, CARS, PLAYER_T, screenToDepth } = window.Pista;
+  const orders = await page.evaluate(async () => {
+    const { Renderer, Race, CARS, PLAYER_T, screenToDepth, loadSprites, paintedTile } = window.Pista;
+    await loadSprites();
     const canvas = document.createElement('canvas');
     canvas.style.cssText = 'width:960px;height:720px';
     document.body.append(canvas);
     const renderer = new Renderer(canvas);
     const race = new Race();
     race.start();
-    // Record the real renderer's paint calls while one car overtakes the player.
-    const painter = renderer as unknown as {
-      paintPlayer(...args: unknown[]): void;
-      paintTraffic(...args: unknown[]): void;
-    };
+    // Observe the actual sprite submissions, independent of renderer class internals.
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('2D canvas unavailable');
+    const poses = [0, 1, 2] as const;
+    const playerImages = new Set(poses.map(pose => paintedTile(CARS[0]!, pose)));
+    const trafficImages = new Set(poses.map(pose => paintedTile(CARS[1]!, pose)));
+    const drawImage = context.drawImage.bind(context);
     let order: string[] = [];
-    const player = painter.paintPlayer.bind(renderer);
-    const traffic = painter.paintTraffic.bind(renderer);
-    painter.paintPlayer = (...args) => { order.push('player'); player(...args); };
-    painter.paintTraffic = (...args) => { order.push('traffic'); traffic(...args); };
+    context.drawImage = (image: CanvasImageSource, ...coordinates: number[]): void => {
+      if (image instanceof HTMLCanvasElement) {
+        if (playerImages.has(image)) order.push('player');
+        if (trafficImages.has(image)) order.push('traffic');
+      }
+      Reflect.apply(drawImage, context, [image, ...coordinates]);
+    };
     return [PLAYER_T - 0.06, PLAYER_T + 0.06, PLAYER_T - 0.06].map((t) => {
       race.entities = [{ type: 'traffic', lane: 2, targetLane: 2, z: screenToDepth(t),
-        speed: 0, cruise: 0.5, car: CARS[0]!, timer: 1e9, cooldown: 0, passed: false }];
+        speed: 0, cruise: 0.5, car: CARS[1]!, timer: 1e9, cooldown: 0, passed: false }];
       order = [];
       renderer.draw(race, 0);
       return order;

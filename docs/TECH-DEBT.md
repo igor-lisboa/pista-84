@@ -29,21 +29,8 @@ See [STORAGE.md](STORAGE.md) for architecture, configuration and consistency, an
 
 ## Module-size debt
 
-The quality workflow targets handwritten implementation modules below 300 physical lines (299 maximum). The current 2026-11-14 scan of `src/`, `api/`, `worker/` and `scripts/` found six TypeScript files at or above 300 lines, excluding generated Worker assets:
+The 2026-11-15 maintenance refactor resolves the six existing production overages by separating application progress/platform/screens/onboarding, simulation driving/entities, and scene/atlas/fallback art responsibilities. All handwritten production TypeScript stays below 300 physical lines; `npm run quality:modules` enforces the 299-line limit and reports oversized tests separately. The shared atlas manifest and family painter registry replace the former Harley-specific pipeline.
 
-- `src/ui/game-app.ts`: application orchestration and race/account lifecycle.
-- `src/render/renderer.ts`: scene and road rendering.
-- `src/render/sprites.ts`: atlas loading, recoloring, fallback sprites and drawing.
-- `src/render/procedural-cars.ts`: procedural vehicle painters.
-- `src/game/race.ts`: simulation and run lifecycle.
-- `src/render/scenery.ts`: scenery artwork and caches.
+The [maintenance audit](maintainability-2026-11-15.md) records exact module counts, validation, visual fixes and interaction coverage gaps. Oversized browser/Node test modules remain test-organization debt rather than hidden production exceptions. The size gate does not establish good design by itself; responsibility and dependency review remains required.
 
-These are existing overages, not new compliance claims. QLT-01 tracks decomposition along responsibility boundaries. Extract touched responsibilities when feasible, preserve public behavior and dependency direction, and validate with simulation/browser tests. Do not minify, remove useful comments or create arbitrary numbered chunks merely to meet the limit. Report oversized data-only and test files separately during quality review.
-
-The 2026-11-14 performance/motorcycle change extracts road surface painting and sprite recoloring into focused modules, plus engine profile data/voice synthesis out of the audio orchestrator. `renderer.ts` and `sprites.ts` still exceed 299 lines; further scene/atlas/fallback separation remains QLT-01. The extraction does not resolve repository-wide module-size debt.
-
-Harley maintenance extracts its atlas regions, brake placement and loading fallback into `src/render/harley-art.ts`; the shared atlas orchestration in `sprites.ts` remains oversized under QLT-01.
-
-Tilt maintenance separates keyboard/touch merging (`src/ui/input.ts`) from sensor lifetime (`src/ui/tilt-control.ts`), wheel math (`src/ui/tilt-math.ts`) and orientation/fullscreen ownership (`src/ui/landscape-lock.ts`). The former oversized input module is now below 299 lines; six existing production overages remain.
-
-The mobile/vehicle-scale maintenance extracts authored motorcycle dimensions into `src/render/vehicle-scale.ts`; shared sprite loading/fallback orchestration remains oversized in `sprites.ts`. The 2026-11-14 locked-install audit reports no production dependency vulnerabilities and six moderate development/native-tool findings through Capacitor/Xcode and filesystem-glob tooling. Review the available dependency updates with native build verification rather than applying them implicitly during unrelated gameplay work.
+The locked-install audit reports no production dependency vulnerabilities and six moderate development/native-tool findings through Capacitor/Xcode and filesystem-glob tooling. Native dependency upgrades need their own build validation; no native build or real-device certificate is implied by browser checks.

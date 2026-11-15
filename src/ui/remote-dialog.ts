@@ -3,6 +3,7 @@ import { t } from '../i18n/index.ts';
 import { qrImage } from '../qr.ts';
 import { byId } from './dom.ts';
 import type { InputController } from './input.ts';
+import { isNativeApp } from './platform-capabilities.ts';
 
 /** What the remote-controller dialog needs from the running game. */
 export interface RemoteHost {
@@ -20,9 +21,6 @@ export interface RemoteHost {
 
 /** A silent phone is treated as disconnected after this long. */
 const INPUT_TIMEOUT_MS = 2000;
-
-const isNativeApp = (): boolean =>
-  (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() === true;
 
 /** "Phone as controller": shows a pairing QR code and feeds the paired phone's input to the game. */
 export class RemoteDialog {
