@@ -45,3 +45,5 @@ The 2026-11-14 performance/motorcycle change extracts road surface painting and 
 Harley maintenance extracts its atlas regions, brake placement and loading fallback into `src/render/harley-art.ts`; the shared atlas orchestration in `sprites.ts` remains oversized under QLT-01.
 
 Tilt maintenance separates keyboard/touch merging (`src/ui/input.ts`) from sensor lifetime (`src/ui/tilt-control.ts`), wheel math (`src/ui/tilt-math.ts`) and orientation/fullscreen ownership (`src/ui/landscape-lock.ts`). The former oversized input module is now below 299 lines; six existing production overages remain.
+
+The mobile/vehicle-scale maintenance extracts authored motorcycle dimensions into `src/render/vehicle-scale.ts`; shared sprite loading/fallback orchestration remains oversized in `sprites.ts`. The 2026-11-14 locked-install audit reports no production dependency vulnerabilities and six moderate development/native-tool findings through Capacitor/Xcode and filesystem-glob tooling. Review the available dependency updates with native build verification rather than applying them implicitly during unrelated gameplay work.

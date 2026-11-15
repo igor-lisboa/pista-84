@@ -4,7 +4,7 @@ import {HARLEY_REGIONS, HARLEY_BRAKE_LAMP, paintHarleyFallback} from './harley-a
 import {BASE_PAINTS, recolorTile} from './sprite-paint.ts';
 import { paintProceduralCar } from './procedural-cars.ts';
 import type { CarLook } from '../game/index.ts';
-import { vehicleTuning } from '../game/vehicle-tuning.ts';
+import {vehicleDimensions} from './vehicle-scale.ts';
 
 // Rear-view pixel sprites. Authored atlas tiles are used when loaded; every vehicle also has a
 // procedural fallback drawn once to a transparent 128 x 80 canvas and cached.
@@ -89,16 +89,10 @@ export interface SpriteDimensions {
   readonly height: number;
 }
 
-function sizeFactor(car: CarLook): number {
-  return vehicleTuning(car).width;
-}
-
 /** Logical size of a car sprite in sprite pixels; ids without an atlas tile use the procedural size. */
 export function spriteDimensions(car: CarLook): SpriteDimensions {
   const tile = atlasTiles.get(car.id);
-  const factor = sizeFactor(car);
-  if (!tile) return { width: 112 * factor, height: 112 * factor * SPRITE_HEIGHT / SPRITE_WIDTH };
-  return { width: 112 * factor, height: (112 * factor * tile.height) / tile.width };
+  return vehicleDimensions(car, tile ? tile.width / tile.height : SPRITE_WIDTH / SPRITE_HEIGHT, !!tile);
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +238,7 @@ export async function loadSprites(
   const motorcycles = new Map<string, HTMLCanvasElement>();
   const harley = new Map<string, HTMLCanvasElement>();
   await Promise.all([
-    loadAtlas('./assets/vehicle-harley-v1.png', HARLEY_REGIONS, harley),
+    loadAtlas('./assets/vehicle-harley-v2.png', HARLEY_REGIONS, harley),
     loadAtlas('./assets/vehicle-motorcycles-v1.png', {
       'biz125:0': [0, 0, 1 / 3, 0.5], 'biz125:1': [1 / 3, 0, 1 / 3, 0.5], 'biz125:2': [2 / 3, 0, 1 / 3, 0.5],
       'hayabusa:0': [0, 0.5, 1 / 3, 0.5], 'hayabusa:1': [1 / 3, 0.5, 1 / 3, 0.5], 'hayabusa:2': [2 / 3, 0.5, 1 / 3, 0.5],

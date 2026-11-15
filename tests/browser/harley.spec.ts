@@ -53,7 +53,7 @@ test('Harley authored poses keep complete bags, neutral trim and a larger common
   const reports = await page.evaluate(async () => {
     const {loadSprites, drawCar, CARS, spriteDimensions} = window.Pista;
     await loadSprites();
-    const image = new Image(); image.src = '/assets/vehicle-harley-v1.png'; await image.decode();
+    const image = new Image(); image.src = '/assets/vehicle-harley-v2.png'; await image.decode();
     const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
     const context = source.getContext('2d'); if (!context) throw new Error('Canvas unavailable');
     context.drawImage(image, 0, 0);

@@ -131,7 +131,7 @@ test.describe('garage', () => {
   test('new paint purchases debit coins once and persist the selected color', async ({ page }) => {
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.addInitScript(() => {
-      if (!JSON.parse(localStorage.getItem('pista84') ?? '{}').owned) localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, owned: ['fusca'], selected: 'fusca' }));
+      if (!JSON.parse(localStorage.getItem('pista84') ?? '{}').owned) localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, coins: 500, owned: ['fusca'], selected: 'fusca' }));
     });
     await page.goto('/');
     await page.locator('#garageNav').click();
@@ -152,16 +152,16 @@ test.describe('garage', () => {
     // Seed before the first load: rewriting storage on a live page would be overwritten on pagehide.
     await page.addInitScript(() => {
       if (localStorage.getItem('garage-fixture')) return;
-      localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' }));
+      localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, coins: 500, best: 100, owned: ['fusca'], selected: 'fusca' }));
       localStorage.setItem('garage-fixture', 'yes');
     });
     await page.goto('/');
     await page.locator('#garageNav').click();
 
     await expect(page.locator('.car-card h3')).toHaveText([
-      'Fusca 76', 'Uno com Escada', 'CG 125', 'Fiat 147', 'Brasília 80', 'Kombi 78', 'Chevette 82',
+      'Fusca 76', 'Uno', 'CG 125', 'Fiat 147', 'Brasília 80', 'Biz 125', 'Kombi 78', 'Chevette 82',
       'Moto urbana', 'Palio 98', 'Gol Bolinha', 'Passat 85', 'Bruto 4×4', 'Opala SS', 'Puma GT', 'Maverick GT', 'Marea Turbo',
-      'Raio 1000', 'Veloce GT',
+      'Uno com Escada', 'Harley Electra Glide', 'Raio 1000', 'Hayabusa', 'Veloce GT',
     ]);
 
     const brasilia = page.locator('.car-card').filter({ has: page.getByRole('heading', { name: 'Brasília 80' }) });
@@ -222,7 +222,7 @@ test('the offline cache serves the app and sound can be switched on', async ({ p
   await page.reload();
   expect(await page.evaluate(async () => {
     const image = new Image();
-    image.src = '/assets/vehicle-harley-v1.png';
+    image.src = '/assets/vehicle-harley-v2.png';
     await image.decode();
     return image.naturalWidth;
   })).toBe(1536);
@@ -389,7 +389,7 @@ test('portrait, landscape and square preserve the complete gameplay camera on re
       canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:contain';
       document.body.append(canvas);
       const renderer = new window.Pista.Renderer(canvas);
-      const race = new window.Pista.Race(undefined, () => 0.25);
+      const race = new window.Pista.Race(undefined, () => 0.25, () => new Date('2026-11-14T15:00:00Z'));
       race.start();
       race.speed = 150;
       race.path = 700;
@@ -495,7 +495,7 @@ test.describe('fuel result synchronization', () => {
       if (route.request().method() === 'PUT') uploads.push(route.request().postDataJSON().save);
       return route.fulfill({json: {revision: 0}});
     });
-    await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', coins: 2000, owned: ['fusca'], selected: 'fusca' })));
+    await page.addInitScript(() => localStorage.setItem('pista84', JSON.stringify({ username: 'Tester', tutorialDone: true, demoUsed: true, coins: 2000, owned: ['fusca'], selected: 'fusca' })));
     await page.route('**/runtime-config.json', (route) => route.fulfill({ json: { coins: null } }));
     await page.route(/\/(?:game\.js|chunks\/[^/]+\.js)$/, async (route) => {
       const response = await route.fetch();

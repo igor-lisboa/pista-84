@@ -246,3 +246,7 @@ Quality results list blockers, commands and pass/fail/skip outcomes, tested inte
 ### Quality workflow addition (2026-11-14)
 
 Added the quality skill, Claude/Copilot entrypoints and review agents; documented typing/design and module-size rules. This change modifies guidance only. Skill validation, documentation consistency and diff checks are the applicable checks; runtime build/tests are not rerun for these instructions. The seven existing oversized production TypeScript modules are recorded as debt, not reported as resolved.
+
+### Requested mobile/gameplay improvements audit (2026-11-14)
+
+The consolidated [request audit](../docs/requested-improvements-audit-2026-11-14.md) traces the menu, account hint, performance, vehicle catalog/tuning, demo transition, safe-area, vehicle-scale, result-layout and F1-wheel tilt requests to current source and tests. On Node 24.22.2 after `npm ci`, production build, strict type checking and documentation checks passed; all 180 Node tests passed. The complete configured browser suite passed 295 cases with zero failures and skipped three Web Audio cases unsupported by Windows WebKit. Chromium ran those audio cases. Production dependency audit is clear; six moderate development/native-tool findings remain recorded in the audit. Physical iPhone safe areas, sensors, OS orientation locks, speakers, native builds and low-end-device FPS remain QA-01 limitations.

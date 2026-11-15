@@ -75,7 +75,7 @@ test('the first tilted sample steers immediately and level returns to center wit
     window.dispatchEvent(motion);
     return input.read().steer;
   });
-  expect(steer).toBeGreaterThan(0.79);
+  expect(steer).toBeLessThan(-0.79);
   await expect.poll(() => page.evaluate(() => {
     const motion = new Event('devicemotion');
     Object.defineProperty(motion, 'accelerationIncludingGravity', {value: {x: -9.81, y: 0, z: 0}});
@@ -98,7 +98,7 @@ test('orientation-only upright wheel steering works immediately and sensor silen
     window.dispatchEvent(orientation);
     return input.read().steer;
   });
-  expect(steer).toBeGreaterThan(0.79);
+  expect(steer).toBeLessThan(-0.79);
   await page.clock.fastForward(6000);
   expect(await page.evaluate(() => window.tiltProbe.input?.tiltEnabled)).toBe(false);
   expect(await page.evaluate(() => window.tiltProbe.input?.read().steer)).toBe(0);

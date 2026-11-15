@@ -108,6 +108,10 @@ Run physical/balance QA alongside native tool provisioning. ART-01 is implemente
 
 ## Maintenance delivery - 2026-11-14
 
+Modern phone safe areas now constrain menus, HUD, controls, dialogs and overlays on all four edges; portrait results center inside the usable rectangle. Authored motorcycles use shared logical rider heights so Harley luggage stays broad without making its rider a giant. Tilt maps both sensor paths to the reversed F1-wheel direction requested after hands-on feedback. Browser emulation covers recent iPhone portrait/landscape cutouts; physical iOS/Android validation remains QA-01.
+
+The consolidated completion audit passes the full Node and Chromium/WebKit suites after a locked dependency install. Production dependency audit is clear; moderate findings limited to development/native tooling remain maintenance work requiring native-build verification.
+
 Harley Electra Glide adds a broad old-school touring motorcycle at 6,000 coins, 165 km/h and acceleration rating 42, with three authored poses, mirrored left turns, paint/brake support, four-gear synthetic V-twin audio and fifteen translated taglines. Ownership keeps the new `harley` ID and existing save format. [References, art prompt and review evidence](../docs/harley-v1.md) distinguish arcade choices from manufacturer data; hardware/audio and native-speaker checks remain QA-01/I18N-01.
 
 Veloce GT acceleration raised to 150 with its 350 km/h ceiling retained. Tilt uses level landscape as an absolute wheel center with smoothing and gravity-based orientation fallback; calibration controls are removed. Landscape/fullscreen ownership is cancellation-safe, unsupported locks block portrait play, and portrait controllers pause their host. Physical sensor/OS-lock certification remains QA-01.

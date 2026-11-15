@@ -22,6 +22,8 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 - Road surface rectangles are batched by paint layer to reduce Canvas submissions while preserving the same row geometry, lane markings and wheel tracks. Curvature integration reuses its sample buffers and precomputed projection depths; bounded section caching avoids recomputing seeded road parameters without changing the track or physics.
 - Full paint/fallback sprite caches evict one oldest entry instead of clearing every warmed sprite at once, keeping their existing memory bounds without periodic mass repaint work.
 - Camera offset keeps lateral driving readable near the edges. A fixed 960 x 720 camera is uniformly fitted with object-fit: contain, preserving the complete gameplay frame in portrait, landscape and square windows.
+- Viewport UI is constrained to iOS `viewport-fit=cover` safe-area insets so camera cutouts, Dynamic Island and rounded corners do not cover controls or text.
+- A single fleet scale uses vehicle proportions plus explicit rider height on authored motorcycles, keeping a seated rider plausible relative to the bike.
 - Rain, fog and night remain dynamic rather than fixed into the artwork.
 - Lane dashes are 3 m on and 3 m off (a 6 m cycle), so markings pass twice as often as the earlier 12 m cycle at every speed. This is paint cadence only; physics, curves and traffic keep their metre positions.
 - Road projection spans 104 m; road paint, guardrails, scenery and traffic share the same metre-based motion. Roadside scenery slots are 12 m apart, with a billboard every 19 slots (228 m), alternating sides. Billboard text and colors come from `src/render/billboards.ts`; these are offline house ads, with no ad-network integration or tracking.
@@ -31,7 +33,7 @@ The initial menu retains PISTA 84 branding. The reference is a style/composition
 
 Biz 125 and Hayabusa add six straight/mild/strong right sprites in `vehicle-motorcycles-v1.png`, mirrored for left turns. Model references, prompt, paint/brake support and review evidence: [motorcycle notes](../docs/motorcycles-v1.md).
 
-Harley Electra Glide adds three authored touring-bike poses in `vehicle-harley-v1.png`, with mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters and the loading fallback live in `render/harley-art.ts`. References, full imagegen prompt and review limits: [Harley provenance](../docs/harley-v1.md).
+Harley Electra Glide uses three authored touring-bike poses in `vehicle-harley-v2.png`, with a rider normalized to the fleet's human scale, mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters and the loading fallback live in `render/harley-art.ts`. References, full imagegen prompts and review limits: [Harley provenance](../docs/harley-v1.md).
 
 Authored asset: [vehicle-atlas-v1.png](../web/assets/vehicle-atlas-v1.png). Eight vehicles map to the original catalog IDs: Fusca, Brasília, Gol, Palio, urban motorcycle, Veloce GT, Bruto SUV and Raio sports motorcycle.
 

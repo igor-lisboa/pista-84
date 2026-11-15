@@ -88,6 +88,55 @@ for (const [width, height] of [[375, 667], [667, 375], [320, 568], [568, 320], [
   });
 }
 
+for (const safe of [
+  {width: 430, height: 932, top: 59, right: 0, bottom: 34, left: 0},
+  {width: 932, height: 430, top: 0, right: 59, bottom: 21, left: 59},
+]) {
+  test(`camera cutout and rounded-corner safe rectangle at ${safe.width}x${safe.height}`, async ({page}) => {
+    await page.setViewportSize({width: safe.width, height: safe.height});
+    await openFreshPlayer(page);
+    await page.evaluate(({top, right, bottom, left}) => {
+      const root = document.documentElement.style;
+      root.setProperty('--safe-top', `${top}px`);
+      root.setProperty('--safe-right', `${right}px`);
+      root.setProperty('--safe-bottom', `${bottom}px`);
+      root.setProperty('--safe-left', `${left}px`);
+    }, safe);
+    const menuTop = await page.locator('.menu-top').boundingBox();
+    expect(menuTop!.x).toBeGreaterThanOrEqual(safe.left);
+    expect(menuTop!.y).toBeGreaterThanOrEqual(safe.top);
+    expect(menuTop!.x + menuTop!.width).toBeLessThanOrEqual(safe.width - safe.right + 1);
+    await page.locator('#settingsNav').click();
+    const dialog = await page.locator('#modal').boundingBox();
+    expect(dialog!.x).toBeGreaterThanOrEqual(safe.left);
+    expect(dialog!.y).toBeGreaterThanOrEqual(safe.top);
+    expect(dialog!.x + dialog!.width).toBeLessThanOrEqual(safe.width - safe.right + 1);
+    expect(dialog!.y + dialog!.height).toBeLessThanOrEqual(safe.height - safe.bottom + 1);
+    await page.locator('#closeModal').click();
+    await loadHarness(page);
+    await page.evaluate(() => {
+      const raceUi = document.getElementById('raceUI')!;
+      raceUi.hidden = false;
+      const {Race, defaultSave, showGameOver} = window.Pista;
+      const race = new Race(); race.finish('traffic');
+      const overlay = document.getElementById('overlay')!; overlay.hidden = false;
+      showGameOver(race, defaultSave(), {restart() {}, secondChance() {}, toMenu() {}, enter() {}});
+    });
+    const hud = await page.locator('.hud').boundingBox();
+    expect(hud!.x).toBeGreaterThanOrEqual(safe.left);
+    expect(hud!.y).toBeGreaterThanOrEqual(safe.top);
+    expect(hud!.x + hud!.width).toBeLessThanOrEqual(safe.width - safe.right + 1);
+    const result = await page.locator('.result-card').boundingBox();
+    const safeHeight = safe.height - safe.top - safe.bottom;
+    expect(result!.y).toBeGreaterThanOrEqual(safe.top);
+    expect(result!.y + result!.height).toBeLessThanOrEqual(safe.height - safe.bottom + 1);
+    if (safe.height > safe.width) {
+      const resultCenter = result!.y + result!.height / 2;
+      expect(Math.abs(resultCenter - (safe.top + safeHeight / 2))).toBeLessThan(2);
+    }
+  });
+}
+
 for (const viewport of [{width: 375, height: 667}, {width: 667, height: 375}]) {
   test(`all locales keep result actions visible at ${viewport.width}x${viewport.height}`, async ({page}) => {
     await page.setViewportSize(viewport);
