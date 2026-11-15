@@ -40,7 +40,12 @@ for (const model of CARS) {
             }
             if (changed) {
               bodyChanges++; if (lens) lensChanges++; if (y > .88) tireChanges++;
-              if (['moto', 'superbike', 'cg125'].includes(id) && y < .70 && (pose === 0 ? x < .3 || x > .7 : x > .5)) riderChanges++;
+              // Cargo and tail panels overlap the rider's bounding box. Check authored
+              // blue denim there instead of misclassifying all flanking bodywork as clothing.
+              const denim = (baseline[i + 1] ?? 0) > (baseline[i] ?? 0) * 1.2
+                && (baseline[i + 2] ?? 0) > (baseline[i + 1] ?? 0) * 1.1;
+              if (['moto', 'superbike', 'cg125'].includes(id) && denim && y > .43 && y < .70
+                && (pose === 0 ? x < .3 || x > .7 : x > .5)) riderChanges++;
             }
             if (baseline[i + 3] !== pixels[i + 3] || pixels[i + 3] !== lit[i + 3]) alphaChanges++;
             if (pixels[i] !== lit[i] || pixels[i + 1] !== lit[i + 1] || pixels[i + 2] !== lit[i + 2]) {

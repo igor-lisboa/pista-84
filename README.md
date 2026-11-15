@@ -145,7 +145,7 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (180 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
+- `npm run typecheck` checks the project after building. `npm test` runs the isolated Node tests (184 at the last documented run), including persistence concurrency, accounts and API behavior. `npm run test:browser` runs Chromium/WebKit Playwright specs with live databases disabled.
 - `npm run quality:modules` checks the 299-line production TypeScript limit and lists test overages separately. Responsibility/dependency review still accompanies the automated gate.
 - All code, comments, identifiers, test names and server/API error messages are in English; the player-visible text lives in `src/i18n/locales/*.ts`.
 - The build generates the web/native assets in `www/` and the ESM Worker in `dist/server/index.js`.

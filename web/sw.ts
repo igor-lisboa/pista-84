@@ -20,7 +20,7 @@ const scope = self as unknown as ServiceWorkerScope;
 declare const __PISTA_CLIENT_ASSETS__: readonly string[];
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v38`;
+const CACHE = `${CACHE_PREFIX}v39`;
 const ASSETS = [...new Set([
   '/',
   '/index.html',

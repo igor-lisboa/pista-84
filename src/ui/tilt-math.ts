@@ -16,7 +16,7 @@ export function gravityOnScreen(gx: number, gy: number, angle: number): [number,
   }
 }
 
-/** Positive when the phone's right edge rises; sign accounts for accelerometer conventions. */
+/** Clockwise screen-plane wheel rotation is positive; normalize accelerometer sign conventions. */
 export function screenLean(gx: number, gy: number, angle: number, sign: number): number {
   const [x, y] = gravityOnScreen(gx, gy, angle);
   return -Math.atan2(sign * x, sign * y) / TO_RADIANS;
@@ -33,10 +33,12 @@ export class WheelSteering {
   value = 0;
   private sign: number | null = null;
   private lastTime: number | null = null;
+  private motionAngle: number | null = null;
 
   clear(): void { this.value = 0; this.lastTime = null; }
 
   motion(gx: number, gy: number, angle: number, now: number): number {
+    if (this.motionAngle !== angle) { this.sign = null; this.motionAngle = angle; }
     const [x, y] = gravityOnScreen(gx, gy, angle);
     if (this.sign === null && Math.abs(y) >= MIN_GRAVITY) this.sign = y > 0 ? 1 : -1;
     const degrees = this.sign === null || Math.hypot(x, y) < MIN_GRAVITY ? 0

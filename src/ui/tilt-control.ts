@@ -1,6 +1,7 @@
 import type {MessageKey} from '../i18n/index.ts';
 import {LandscapeLock} from './landscape-lock.ts';
-import {WheelSteering} from './tilt-math.ts';
+import {WheelSteering, orientationGravity} from './tilt-math.ts';
+import {WheelAxes} from './tilt-axes.ts';
 
 export class TiltError extends Error {
   readonly key: MessageKey;
@@ -8,8 +9,12 @@ export class TiltError extends Error {
 }
 
 const TIMEOUT_MS = 5000;
-const screenAngle = (): number => screen.orientation?.angle
-  ?? (window as Window & {orientation?: number}).orientation ?? 0;
+const screenReading = () => ({
+  landscape: innerWidth >= innerHeight,
+  angle: screen.orientation?.angle ?? null,
+  legacyAngle: typeof window.orientation === 'number' ? window.orientation : null,
+  type: screen.orientation?.type ?? '',
+});
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
 async function permission(sensor: unknown): Promise<boolean> {
@@ -24,6 +29,7 @@ export class TiltControl {
   onChange: (enabled: boolean) => void = () => {};
   onSilent: () => void = () => {};
   private wheel = new WheelSteering();
+  private axes = new WheelAxes();
   private readonly landscape = new LandscapeLock();
   private changing = false;
   private lastSensor = 0;
@@ -57,6 +63,7 @@ export class TiltControl {
         throw new TiltError('tilt.denied');
       }
       this.wheel = new WheelSteering();
+      this.axes = new WheelAxes();
       this.motionSeen = -Infinity;
       this.lastSensor = performance.now();
       this.enabled = true;
@@ -82,7 +89,7 @@ export class TiltControl {
     const gravity = event.accelerationIncludingGravity;
     if (!gravity || !finite(gravity.x) || !finite(gravity.y)) return;
     this.lastSensor = this.motionSeen = performance.now();
-    this.wheel.motion(gravity.x, gravity.y, screenAngle(), this.lastSensor);
+    this.wheel.motion(gravity.x, gravity.y, this.axes.resolve(gravity.x, gravity.y, screenReading()), this.lastSensor);
   }
 
   private readOrientation(event: DeviceOrientationEvent): void {
@@ -90,6 +97,7 @@ export class TiltControl {
     const now = performance.now();
     if (now - this.motionSeen < 500) return;
     this.lastSensor = now;
-    this.wheel.orientation(event.beta, event.gamma, screenAngle(), now);
+    const [gx, gy] = orientationGravity(event.beta, event.gamma);
+    this.wheel.orientation(event.beta, event.gamma, this.axes.resolve(gx, gy, screenReading()), now);
   }
 }

@@ -199,7 +199,7 @@ export const it: Messages = {
   'tilt.https': 'Apri il link HTTPS del gioco per usare l’inclinazione.',
   'tilt.denied': 'Permesso di movimento negato. I pulsanti continuano a funzionare.',
   'tilt.silent': 'Nessun segnale dal sensore. Continua con i pulsanti.',
-  "tilt.hold": "Tieni il telefono in orizzontale, con lo schermo verso di te. Abbassa il lato sinistro e alza quello destro per girare a destra; fai il contrario per girare a sinistra. Inclinare il bordo superiore verso di te o lontano non sterza.",
+  "tilt.hold": "Tieni il telefono in orizzontale con lo schermo verso di te. Giralo come un volante: in senso orario per andare a destra, antiorario per andare a sinistra. Inclinarlo verso di te o in avanti non sterza.",
   'tilt.buttons': 'Sterzo a pulsanti attivato.',
   'tilt.centered': 'Volante centrato.',
 

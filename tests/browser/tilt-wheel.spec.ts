@@ -62,7 +62,7 @@ test('a landscape lock completing after tilt is disabled is released again', asy
   await expect(page.locator('body')).toHaveAttribute('data-tilt', 'off');
 });
 
-test('raising the phone right edge steers right immediately and level returns to center', async ({page}) => {
+test('clockwise screen-plane wheel rotation steers right and level returns to center', async ({page}) => {
   await page.setViewportSize({width: 667, height: 375});
   await fakeSensors(page);
   await page.goto('/');
@@ -131,6 +131,43 @@ test('front-back phone tilt and horizontal yaw do not steer', async ({page}) => 
   expect(steering.pitch).toBe(0);
   expect(steering.motion).toBe(0);
 });
+
+for (const source of ['motion', 'orientation'] as const) {
+  test(`landscape ${source} rejects front/back pitch when screen angle still says portrait`, async ({page}) => {
+    await page.setViewportSize({width: 667, height: 375});
+    await fakeSensors(page);
+    await page.addInitScript(source => {
+      Object.defineProperty(screen, 'orientation', {configurable: true, value: {
+        angle: 0, type: source === 'motion' ? 'portrait-primary' : 'landscape-primary', lock: async () => {}, unlock() {},
+      }});
+      Object.defineProperty(window, 'orientation', {configurable: true, value: 0});
+    }, source);
+    await page.goto('/'); await loadHarness(page);
+    const pitch = await page.evaluate(async source => {
+      const input = new window.Pista.InputController(); window.tiltProbe.input = input;
+      await input.toggleTilt();
+      return [20, 45, 70, 90].map(degrees => {
+        const event = new Event(source === 'motion' ? 'devicemotion' : 'deviceorientation');
+        if (source === 'motion') Object.defineProperty(event, 'accelerationIncludingGravity', {
+          value: {x: -9.81 * Math.sin(degrees * Math.PI / 180), y: 0, z: 9.81 * Math.cos(degrees * Math.PI / 180)},
+        });
+        else Object.defineProperties(event, {beta: {value: 0}, gamma: {value: degrees}});
+        window.dispatchEvent(event);
+        return input.read().steer;
+      });
+    }, source);
+    expect(pitch).toEqual([0, 0, 0, 0]);
+    await expect.poll(() => page.evaluate(source => {
+      const event = new Event(source === 'motion' ? 'devicemotion' : 'deviceorientation');
+      if (source === 'motion') Object.defineProperty(event, 'accelerationIncludingGravity', {
+        value: {x: -9.81 * Math.cos(Math.PI / 9), y: -9.81 * Math.sin(Math.PI / 9), z: 0},
+      });
+      else Object.defineProperties(event, {beta: {value: -20}, gamma: {value: 90}});
+      window.dispatchEvent(event);
+      return window.tiltProbe.input?.read().steer ?? 0;
+    }, source)).toBeGreaterThan(.79);
+  });
+}
 
 test('denied permission releases orientation resources and leaves buttons available', async ({page}) => {
   await fakeSensors(page, false, false, true);

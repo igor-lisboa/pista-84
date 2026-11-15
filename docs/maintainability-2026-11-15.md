@@ -1,6 +1,6 @@
 # Maintenance and vehicle visual audit — 2026-11-15
 
-Scope: all uncommitted interface/material work plus project structure and fleet turn/shadow/reflection review. Vehicle IDs, tuning, prices, saves, text, APIs and storage contracts are preserved.
+Scope: interface/material work plus project structure and fleet turn/shadow/reflection review. Vehicle IDs, tuning, prices, saves, APIs and storage contracts are preserved. The latest follow-up revises tilt help in all fifteen locales.
 
 ## Findings and corrections
 
@@ -41,10 +41,57 @@ Remaining coverage gaps are not proven defects: direct browser fullscreen accept
 
 ## Validation record
 
-Implementation checks: Node 24 locked install; build and strict TypeScript; focused 84 simulation/progress and 21 world checks; production dependency audit reports zero vulnerabilities. Initial material run passed 46 paint cases and exposed two ground-reflection mirror failures, under investigation. An earlier eight-case scene run stopped in setup while the new lamp module was being created; no behavior assertions were reached.
+Implementation checks include focused simulation/progress and world tests; the production dependency audit reports zero vulnerabilities. The initial reflection check flagged two isolated cross-engine pixels. Reviewing the full-fleet contact sheet and gameplay captures found no visible defect; the differences came from comparing transparent Canvas RGB rather than the rendered color over asphalt. The assertion now composites against the road color and allows at most 3/255 per-channel rasterization variation. All four vehicle-ground cases pass across Chromium and WebKit.
 
-The final locked build and strict typecheck pass; all **180 Node tests pass** with no failures/skips. `quality:modules` checks **156 production modules**, with no production or test overages. `docs:check` passes for 22 catalog rows, 37 documents and 266 local links at this stage. Chromium/WebKit is running against the final code; its result and capture review will be recorded here.
+Earlier validation on Node 24.22.2: build, strict typecheck, `docs:check` (22 catalog/tuning/audio rows, 37 documents, 267 local links), `quality:modules` (156 production modules) and all **181 Node tests pass**. The full configured browser suite completes with **375 passed, 0 failed and 3 skipped**; Windows WebKit does not support the three Web Audio cases, which run in Chromium. Full-fleet ground and gameplay captures were inspected, including all 22 models' straight/mild/strong poses, mirrored turns and dry/wet lighting. No additional Puma-specific or fleet-wide rendering defect was confirmed at that stage; the following enlarged review identifies further material defects.
 
-The reflection diagnostic initially compared unpremultiplied RGB in almost-transparent pixels; opacity/composited-color checks distinguish visible differences. Cached source-space reflection textures also eliminate mirrored path rasterization differences and per-frame lamp gradient construction. Independent material fixtures were corrected where source inspection showed grille/wiper seams instead of body panels; the same assertions then pass **6/6** across both engines. All eight new platform lifecycle cases pass in the focused run.
+Independent material fixtures were corrected where source inspection showed grille/wiper seams instead of body panels; the same assertions then pass **6/6** across both engines. All eight new platform lifecycle cases pass in the focused run.
 
 Live services/deployed sockets, physical sensors/audio/wake lock, signed native builds and PWA chrome remain unverified. Six moderate development/native-tool dependency findings remain; upgrades need separate native build validation.
+
+## Latest tilt, pairing and material follow-up
+
+The earlier validation record above predates this follow-up. The player reports that pitching the screen toward/away steers the car. Sensor vectors use device coordinates while display rotation may lag: the [W3C coordinate-frame definition](https://www.w3.org/TR/orientation-event/) and [WebKit delayed-orientation report](https://bugs.webkit.org/show_bug.cgi?id=277878) support testing that compatibility case, rather than proving the exact failure on the player's phone. `WheelAxes` validates screen metadata against the viewport, uses a consistent legacy angle when available and keeps a stable device-axis fallback. This resolves display axes without learning a steering-center offset. Both sensor paths now reproduce neutral pitch with a stale zero-degree screen angle, including when orientation type updates first.
+
+All fifteen `tilt.hold` translations now describe clockwise/right and counterclockwise/left wheel rotation while excluding front/back pitch. Pairing has a dedicated heading, a reserved close-button lane and a compact two-column landscape group. Phone menus keep the selected vehicle and footer inside visual-viewport height and camera/home safe areas; touch devices hide the keyboard-only hint.
+
+Source review also finds and fixes Chevette lamp-housing metadata, muted Marea bumper paint and blue-grey motorcycle exhaust chrome. Every model publishes the same pose-region format, including asymmetric lamp housings. Independent fixtures verify actual panel hue for bright mint on white Uno panels and exhaust materials for every Hayabusa paint; these supplement the complete fleet/paint/pose/brake matrix.
+
+Further enlarged source review identifies motorcycle plates receiving paint and normal-Uno side panels being excluded by a misplaced plate rectangle. `sprite-panels.ts` now holds shared pose-specific plate and body-panel data; motorcycle tail/cargo paint is separate from rider clothing. Normal and ladder Uno have different alpha-cropped plate/lamp positions. Amber-lens material detection covers the previously missed brown-orange shade. Source fixtures verify plates, indicator pixels, white side panels, neutral tails, cargo paint and rider helmets/clothing independently of runtime masks. The former broad rider-box assertion wrongly included cargo/tail paint: denim checks and direct garment fixtures replace that assumption.
+
+The enlarged review additionally catches painted upper Uno wheel rims and a CG turn indicator outside its housing. Shared wheel ellipses protect the full visible rim, rather than only the bottom tire strip. Lamp metadata separates dedicated indicators and stacked amber bands from brake-emitting regions. Independent plate/rim/amber fixtures now compare both painted and braked output with the factory material. Region tables are created once; the per-pixel paint path does not allocate wheel tables or callbacks.
+
+Final follow-up validation on Node 24.22.2: `npm run build`, `npm run typecheck`, `npm run docs:check` (22 catalog/tuning/audio rows, 37 documents, 304 local links), `npm run quality:modules` (158 production modules, no production/test overages) and all **184 Node tests** pass. The complete configured Chromium/WebKit run finishes **401 passed, 0 failed, 0 flaky and 3 skipped**, across 404 cases in 44 browser specs. The three unsupported Windows WebKit cases cover delayed audio unlock, brake-friction output and geared-engine switching; Chromium runs them. This includes the full fleet/paint/pose/brake matrix, upper rim/plate/amber fixtures, rider materials, pitch regressions and pairing composition across all fifteen locales. Full-fleet proportions, grounded turns, night/wet effects and the saved interface/material captures were reviewed. Physical iPhone/Android sensor behavior and native-speaker review remain QA-01/I18N-01; the interaction/hardware gaps listed above remain unverified.
+
+## Reviewed follow-up captures
+
+Captures are Chromium browser emulation; both configured engines execute the assertions. Pairing QR/link credentials are masked in saved evidence. Each paint sheet shows 17 garage choices followed by ten traffic colors; rows show straight, mild and strong poses, each with brakes off/on. Mirrored left turns are separately checked through actual Canvas output. The common-scale and ground captures supplement enlarged material sheets.
+
+- Interface: [visual-viewport menu](screenshots/maintenance-v8/menu-visual-viewport.png), [desktop menu icons](screenshots/maintenance-v8/menu-icons-1440.png), [settings icons](screenshots/maintenance-v8/settings-icons-1440.png), [RTL settings](screenshots/maintenance-v8/settings-rtl-icons-1440.png).
+- Pairing: [320x568](screenshots/maintenance-v8/pairing-320.png), [390x844](screenshots/maintenance-v8/pairing-390.png), [568x320](screenshots/maintenance-v8/pairing-568.png), [844x390](screenshots/maintenance-v8/pairing-844.png).
+- Fleet: [common scale](screenshots/maintenance-v8/fleet-common-scale.png), [ground and reflections](screenshots/maintenance-v8/fleet-ground-night.png), [turning gameplay](screenshots/maintenance-v8/turning-gameplay-night.png).
+
+| Model | All garage/traffic paints and brake states |
+| --- | --- |
+| Fusca | [Capture](screenshots/maintenance-v8/fusca-all-paints.png) |
+| Brasilia | [Capture](screenshots/maintenance-v8/brasilia-all-paints.png) |
+| Gol | [Capture](screenshots/maintenance-v8/gol-all-paints.png) |
+| Palio | [Capture](screenshots/maintenance-v8/palio-all-paints.png) |
+| Urban motorcycle | [Capture](screenshots/maintenance-v8/moto-all-paints.png) |
+| SUV | [Capture](screenshots/maintenance-v8/suv-all-paints.png) |
+| Kombi | [Capture](screenshots/maintenance-v8/kombi-all-paints.png) |
+| Ladder Uno | [Capture](screenshots/maintenance-v8/uno-all-paints.png) |
+| Normal Uno | [Capture](screenshots/maintenance-v8/uno-normal-all-paints.png) |
+| Chevette | [Capture](screenshots/maintenance-v8/chevette-all-paints.png) |
+| CG 125 | [Capture](screenshots/maintenance-v8/cg125-all-paints.png) |
+| Opala | [Capture](screenshots/maintenance-v8/opala-all-paints.png) |
+| Maverick | [Capture](screenshots/maintenance-v8/maverick-all-paints.png) |
+| Fiat 147 | [Capture](screenshots/maintenance-v8/fiat147-all-paints.png) |
+| Marea | [Capture](screenshots/maintenance-v8/marea-all-paints.png) |
+| Passat | [Capture](screenshots/maintenance-v8/passat-all-paints.png) |
+| Puma | [Capture](screenshots/maintenance-v8/puma-all-paints.png) |
+| Veloce GT | [Capture](screenshots/maintenance-v8/gt-all-paints.png) |
+| Raio sports motorcycle | [Capture](screenshots/maintenance-v8/superbike-all-paints.png) |
+| Biz 125 | [Capture](screenshots/maintenance-v8/biz125-all-paints.png) |
+| Hayabusa | [Capture](screenshots/maintenance-v8/hayabusa-all-paints.png) |
+| Harley | [Capture](screenshots/maintenance-v8/harley-all-paints.png) |

@@ -68,7 +68,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/render/vehicle-scale.ts` | Shared fleet/rider scale factors for game sprites and garage previews |
 | `src/render/procedural-bikes.ts`, `sprite-geometry.ts`, `vehicle-ground.ts` | Shared motorcycle fallbacks, source-pose contact anchors and vehicle ground effects |
 | `src/render/sprite-reflections.ts`, `sprite-canvas.ts` | Cached source-space lamp spill and common Canvas creation/readback helpers |
-| `src/render/sprite-materials.ts`, `sprite-paint.ts`, `sprite-lamps.ts`, `sprite-brakes.ts` | Factory material/lens masks, custom paint and cached lens-shaped brake feedback |
+| `src/render/sprite-materials.ts`, `sprite-panels.ts`, `sprite-paint.ts`, `sprite-lamps.ts`, `sprite-brakes.ts` | Factory material/lens masks, pose-specific plate/body panels, custom paint and cached lens-shaped brake feedback |
 | `src/audio/audio.ts`, `src/audio/engine-voices.ts` | `AudioEngine`, 22 engine profiles, braking noise, effects, single toggle |
 | `src/audio/music.ts`, `tracks.ts` | Procedural music scheduler and track data (menu loop plus seven race tracks) |
 | `src/i18n/index.ts`, `types.ts`, `locales/*.ts` | `t()`, language detection, `LANGS`, fifteen locales |
@@ -82,6 +82,7 @@ All source is TypeScript; no JavaScript or `.mjs` remains. Node.js **24** runs `
 | `src/ui/leaderboard.ts`, `tutorial.ts`, `about.ts` | Ranking dialog, how-to-play steps, About dialog |
 | `src/ui/input.ts` | Keyboard, on-screen buttons, tilt and remote input merged per frame |
 | `src/ui/tilt-control.ts`, `tilt-math.ts`, `landscape-lock.ts` | Sensor permissions/lifetime, absolute wheel steering/filter and cancellable landscape/fullscreen ownership |
+| `src/ui/tilt-axes.ts` | Viewport-consistent sensor/display axis resolution, including delayed rotation metadata |
 | `src/ui/remote-dialog.ts`, `controller-page.ts` | Pairing dialog (QR) on the main screen; page shown on the phone |
 | `src/ui/car-art.ts`, `dom.ts`, `notifications.ts`, `icons.ts`, `flags.ts`, `units.ts` | Car previews, DOM/format helpers, toasts and feedback, SVG icons, SVG language flags, unit formatting |
 | `src/net/account.ts` | Account client: session identity marker, requests to `/api/auth` and `/api/account`, device cleanup on logout |
@@ -193,7 +194,7 @@ Vercel serves static files and Node API functions (`vercel.json` rewrites `/heal
 
 ## Offline and native
 
-Service worker cache **pista84-v38** stores the listed same-origin app assets (`/`, HTML, CSS including `interface-layout.css`, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
+Service worker cache **pista84-v39** stores the listed same-origin app assets (`/`, HTML, CSS including `interface-layout.css`, manifest, icons, vehicle atlases, `game.js`, generated client chunks and `runtime-config.json`). It uses network-first reads with cache fallback, removes older game caches, and excludes `/api/` traffic. No cloud snapshot, account response, pairing token or API response is cached. Remote control and cloud sync require connectivity. Cross-origin Google Fonts are not cached, so offline play uses the system font fallbacks. The service worker is not registered inside the native wrapper or by the controller page.
 
 Capacitor uses `www/`, app ID `br.com.pista84.app`, name PISTA 84. Android/iOS projects, icons and splash assets exist; iOS includes the motion-use description. `npm run native:sync` builds/copies web assets. Build tools, signing and physical-device verification are separate release requirements. Native-wrapper remote control is currently directed to the web version, and native builds need a separately verified same-origin HTTPS API/cookie setup for accounts.
 

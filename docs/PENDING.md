@@ -6,13 +6,17 @@ See the [specification index](../specs/README.md) for all game definitions and t
 
 ## Done in 1.4
 
+- Landscape tilt axis recovery for delayed screen metadata, explicit wheel-motion help in fifteen locales, compact safe-area menus and pairing headings/QR/actions that stay clear of the close control. See the latest follow-up in the [maintenance audit](maintainability-2026-11-15.md).
+
+- Pose-specific plate/body/wheel material data, neutral Uno rims and dedicated amber indicator protection; independent fixtures include painting and braking plus motorcycle rider clothing.
+
 - Shared vehicle atlas/fallback architecture, corrected turning contact/shadows/lamp reflections and all-production module size enforcement; [maintenance audit](maintainability-2026-11-15.md).
 
 - Pose-aware brake lighting, paint material protection and explicit icon centering; reusable `pista-visual-quality` skill/agents cover UI and vehicle/color maintenance.
 
 - Refined account, result, garage, HUD and pairing composition with readable columns and consistent spacing; full-fleet common-scale visual review recorded in [interface review](interface-v6.md).
 
-- Modern iPhone safe areas, centered portrait results, consistent motorcycle rider scale and screen-plane tilt steering are implemented. Lowering the phone's left edge and raising its right steers right; front/back movement stays neutral. Physical-device confirmation remains QA-01.
+- Modern iPhone safe areas, centered portrait results, consistent motorcycle rider scale and screen-plane tilt steering are implemented. Clockwise wheel rotation steers right; front/back pitch stays neutral even when display rotation metadata lags. Physical-device confirmation remains QA-01.
 - Full TypeScript codebase (`src/game`, `src/render`, `src/audio`, `src/i18n`, `src/ui`, `src/net`, `src/server`, `src/shared`, `api`, `worker`); no JavaScript source is left. Typecheck with `npm run typecheck`.
 - Fatal crashes (any contact with traffic or the barrier), grass drag toward 40 km/h with a fuel and score-multiplier penalty, heavier and smarter traffic (120 s ramp plus 240 s of late-game pressure, lane changes, speed matching, no overlap).
 - Pace-based score and coins earned from score (1 coin per 25 points); twenty-two vehicles with authored sprites, all bought with coins; a paid 1,000-coin second chance.

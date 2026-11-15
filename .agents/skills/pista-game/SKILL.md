@@ -22,4 +22,10 @@ Report observable behavior and validation, with screenshots when a visual compar
 
 Use `pista-vehicles` for new cars, sprite/audio integration and existing-car tuning; use `pista-localization` for every player-facing string change. Both live beside this skill. Test result overlays at iPhone SE sizes in both orientations and verify long dialogs open at scroll position zero.
 
+For tilt-axis changes, test composed screen-plane roll and front/back pitch in
+both landscape grips, with correct and delayed screen angle/type metadata and
+the legacy angle. A sign-only test is insufficient: pitching the screen must
+remain neutral through both sensor paths. Distinguish simulated sensor evidence
+from physical-phone verification.
+
 Follow `.agents/skills/pista-quality/SKILL.md` for completion review: strict typing, focused modules, build/test evidence and affected user interactions. Full quality audits run the complete configured suite and report failures, skips and coverage gaps.

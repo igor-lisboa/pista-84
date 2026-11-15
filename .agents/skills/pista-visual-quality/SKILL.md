@@ -34,6 +34,13 @@ Inspect tire contact, shadow placement and rear-lamp road reflections through
 straight, mild and strong steering in both directions. Day/dry and night/wet
 captures must use the same pose geometry as the sprite. Source lens masks remain
 independent of custom paint; sample shaded body panels as well as total changes.
+Include bright paint on neutral panels and blue-grey exhaust/rim highlights:
+changed-pixel totals can miss clipped white paint or colored chrome.
+Inspect plates independently from body paint, especially motorcycle plates and
+white-car side panels. Rider bounding boxes overlap tail fairings and cargo:
+verify actual garment pixels and painted panels separately against source artwork.
+Check upper wheel rims as well as the bottom tire strip. Braking must not light
+amber indicators; verify independently chosen indicator pixels in turning poses.
 Keep model differences in atlas/material data and shared family painters; avoid
 introducing a separate loading or scene pipeline for an individual vehicle.
 

@@ -1,4 +1,4 @@
-import {insideLenses, lampRegions, type LensRegion} from './sprite-materials.ts';
+import {insideRegion, lampRegions, type LensRegion} from './sprite-materials.ts';
 
 const originals = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>();
 interface LampMasks { readonly brake: Uint8Array; readonly material: Uint8Array }
@@ -24,11 +24,14 @@ function sourceMasks(tile: HTMLCanvasElement, id: string, pose: number): LampMas
   for (let index = 0; index < brake.length; index++) {
     const i = index * 4, r = pixels[i] ?? 0, g = pixels[i + 1] ?? 0, b = pixels[i + 2] ?? 0;
     const x = (index % source.width) / source.width, y = Math.floor(index / source.width) / source.height;
-    if ((pixels[i + 3] ?? 0) < 80 || !insideLenses(x, y, regions)) continue;
+    if ((pixels[i + 3] ?? 0) < 80) continue;
+    const region = regions.find(value => insideRegion(x, y, value));
+    if (!region) continue;
     // The GT's horizontal amber slats are distinct from the red body surrounding them.
-    const lens = id === 'gt' ? r > 85 && g > r * .28 && r > g * 1.15 && g > b * 1.5
-      : r > 85 && r > g * 3 && r > b * 1.6;
-    const indicator = !RED_ONLY_LAMPS.has(id) && r > 85 && g > r * .4 && r > g * 1.15 && g > b * 1.8;
+    const lens = region.brake !== false && (id === 'gt' ? r > 85 && g > r * .28 && r > g * 1.15 && g > b * 1.5
+      : r > 85 && r > g * 3 && r > b * 1.6);
+    const amberFloor = region.brake === false ? .18 : .28;
+    const indicator = !RED_ONLY_LAMPS.has(id) && r > 85 && g > r * amberFloor && r > g * 1.15 && g > b * 1.8;
     if (lens) brake[index] = 1;
     if (lens || indicator) material[index] = 1;
   }

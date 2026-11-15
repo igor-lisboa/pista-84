@@ -112,9 +112,9 @@ Pose-specific material masks protect vehicle lamps, tires and riders across all 
 
 Content-sized account/guest surfaces, compact phone HUD, grouped result summaries/actions, two-column short-landscape garage and pairing composition improve spacing and readable text. The full fleet receives a common-scale visual review; performance, tuning and ownership remain intact. See [interface review](../docs/interface-v6.md).
 
-Modern phone safe areas now constrain menus, HUD, controls, dialogs and overlays on all four edges; portrait results center inside the usable rectangle. Authored motorcycles use shared logical rider heights so Harley luggage stays broad without making its rider a giant. Tilt maps both sensor paths to the reversed F1-wheel direction requested after hands-on feedback. Browser emulation covers recent iPhone portrait/landscape cutouts; physical iOS/Android validation remains QA-01.
+Modern phone safe areas now constrain menus, HUD, controls, dialogs and overlays on all four edges; portrait results center inside the usable rectangle. Authored motorcycles use shared logical rider heights so Harley luggage stays broad without making its rider a giant. Tilt maps both sensor paths to screen-plane wheel rotation: clockwise/right, counterclockwise/left, with front/back pitch neutral. Browser emulation covers recent iPhone portrait/landscape cutouts; physical iOS/Android validation remains QA-01.
 
-The consolidated completion audit passes the full Node and Chromium/WebKit suites after a locked dependency install. Production dependency audit is clear; moderate findings limited to development/native tooling remain maintenance work requiring native-build verification.
+The consolidated completion audit passes build, strict typecheck, documentation and module-size checks, all 181 Node tests, and the full configured Chromium/WebKit suite (375 passed, 0 failed, 3 Windows WebKit Web Audio skips). Production dependency audit is clear; moderate findings limited to development/native tooling remain maintenance work requiring native-build verification.
 
 Harley Electra Glide adds a broad old-school touring motorcycle at 6,000 coins, 165 km/h and acceleration rating 42, with three authored poses, mirrored left turns, paint/brake support, four-gear synthetic V-twin audio and fifteen translated taglines. Ownership keeps the new `harley` ID and existing save format. [References, art prompt and review evidence](../docs/harley-v1.md) distinguish arcade choices from manufacturer data; hardware/audio and native-speaker checks remain QA-01/I18N-01.
 
@@ -134,7 +134,9 @@ Normal Uno and its three authored poses added; ladder Uno intentionally tuned to
 
 ## QLT-01 — Focused implementation modules
 
-The 2026-11-15 tilt follow-up maps lowering the left phone edge and raising the right edge to right steering; front/back pitch and horizontal yaw remain neutral. Physical sensor behavior is still pending QA-01.
+The latest 2026-11-15 tilt follow-up validates landscape sensor axes against the viewport, legacy angle and a stable device-axis fallback; clockwise wheel rotation steers right, while front/back pitch and horizontal yaw remain neutral. Physical sensor behavior is still pending QA-01.
+
+The supplied pairing/menu layouts now have visual-viewport/safe-area and fifteen-locale checks. The fleet follow-up separates authored plate/body/wheel and indicator/brake materials in shared data and adds independent pixel fixtures. See the latest [maintenance evidence](../docs/maintainability-2026-11-15.md); physical-device and native-speaker validation remain pending.
 
 **Implemented 2026-11-15; continuing maintenance rule.** The six oversized production modules are decomposed into application services, simulation responsibilities and scene/art layers. The shared atlas manifest and fallback registry include every vehicle. `npm run quality:modules` enforces the 299-line production limit and reports test overages separately. See the [maintenance audit](../docs/maintainability-2026-11-15.md) for validation and remaining interaction/hardware gaps.
 

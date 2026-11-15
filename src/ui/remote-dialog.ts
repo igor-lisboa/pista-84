@@ -46,13 +46,17 @@ export class RemoteDialog {
 
     byId('modalBody').innerHTML = `
       <div class="remote-content">
+        <header class="remote-heading">
         <span class="label">${t('remote.label')}</span>
         <h1>${t('remote.title')}<span>.</span></h1>
         <p id="remoteState">${t('remote.preparing')}</p>
+        </header>
         <div id="remoteLink"></div>
+        <div class="remote-actions">
         <button id="remotePlay" class="primary" hidden><span>${t('remote.play')}</span></button>
         <button id="pairAgain" class="secondary">${t('remote.again')}</button>
-        <p>${t('remote.help')}</p>
+        <p class="remote-help">${t('remote.help')}</p>
+        </div>
       </div>`;
     byId('pairAgain').onclick = () => void this.open();
     byId('remotePlay').onclick = () => {
@@ -136,8 +140,10 @@ export class RemoteDialog {
     url.searchParams.set('token', joinToken);
     if (['localhost', '127.0.0.1'].includes(url.hostname)) {
       try {
-        const data = (await (await fetch('/network')).json()) as { host?: string };
-        if (data.host) url.hostname = data.host;
+        const data: unknown = await (await fetch('/network')).json();
+        if (data && typeof data === 'object' && 'host' in data && typeof data.host === 'string' && data.host) {
+          url.hostname = data.host;
+        }
       } catch {
         // Keep localhost; the phone can still be paired by typing the address.
       }

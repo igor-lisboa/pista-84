@@ -43,6 +43,10 @@ Atlas registration is data-driven across all models, including the Harley. Loadi
 
 Paint selection protects pose-specific lamp lenses, tires, plates, glass and rider/trim regions in every catalog model. Brake feedback brightens the existing red lens pixels inside the pose's rear-lamp regions, retaining their shape and perspective instead of drawing generic rectangles across the body. Vehicle/paint maintenance reviews all garage paints, traffic colors, three authored poses and mirrored left turns with brakes on/off; non-body regions retain factory colors.
 
+Plate protection uses the authored pose's actual plate rectangle, independently of body hue. A plate mask must not preserve adjacent white body panels or allow motorcycle plates to become the selected paint. Neutral motorcycle tail panels and colored body/cargo panels remain paintable while rider clothing retains its source material.
+
+Reviewed wheel ellipses keep Uno rims and tires outside neutral body paint, including the upper rim above the bottom tire strip. Dedicated indicator housings retain amber color and do not emit brake reflections; CG 125 indicators follow their authored turn positions.
+
 Biz 125 and Hayabusa add six straight/mild/strong right sprites in `vehicle-motorcycles-v1.png`, mirrored for left turns. Model references, prompt, paint/brake support and review evidence: [motorcycle notes](../docs/motorcycles-v1.md).
 
 Harley Electra Glide uses three authored touring-bike poses in `vehicle-harley-v2.png`, with a rider normalized to the fleet's human scale, mirrored left turns, broad saddlebags, neutral chrome/cream trim, custom panel paint and a central brake lamp. Actual atlas gutters live in the shared `render/vehicle-atlases.ts` manifest, and the touring-bike fallback uses `render/procedural-bikes.ts` through the common painter registry. References, full imagegen prompts and review limits: [Harley provenance](../docs/harley-v1.md).

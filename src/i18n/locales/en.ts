@@ -199,7 +199,7 @@ export const en: Messages = {
   'tilt.https': 'Open the HTTPS link of the game to use tilt.',
   'tilt.denied': 'Motion permission denied. The buttons still work.',
   'tilt.silent': 'No sensor signal. Keep using the steering buttons.',
-  "tilt.hold": "Hold the phone sideways, screen facing you. Lower its left edge and raise its right to steer right; reverse for left. Moving the top edge toward or away from you does not steer.",
+  "tilt.hold": "Hold the phone sideways, screen facing you. Turn it like a steering wheel: clockwise for right, counterclockwise for left. Tipping the screen toward or away from you does not steer.",
   'tilt.buttons': 'Button steering enabled.',
   'tilt.centered': 'Wheel centred.',
 

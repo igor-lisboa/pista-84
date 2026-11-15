@@ -1,6 +1,7 @@
 import type {CarLook} from '../game/cars.ts';
 import {protectedMaterial} from './sprite-materials.ts';
 import {lampMaterialMask, registerLampSource} from './sprite-lamps.ts';
+import {plateMaterial, wheelMaterial, neutralBodyPanel, coloredBodyPanel} from './sprite-panels.ts';
 
 type Ctx = CanvasRenderingContext2D;
 type Hsl = readonly [number, number, number];
@@ -131,8 +132,14 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
     const x = ((i / 4) % canvas.width) / canvas.width;
     const y = Math.floor(i / 4 / canvas.width) / canvas.height;
     if (lamps[i / 4]) continue;
-    if (car.id === 'moto' && y > .53 && y < .63 && Math.abs(x - (pose === 0 ? .5 : pose === 1 ? .27 : .25)) < .1) continue;
-    if (protectedMaterial(car.id, pose, x, y, p[i]!, p[i + 1]!, p[i + 2]!)) continue;
+    const max = Math.max(p[i]!, p[i + 1]!, p[i + 2]!), min = Math.min(p[i]!, p[i + 1]!, p[i + 2]!);
+    if (plateMaterial(car.id, pose, x, y, (max - min) / Math.max(1, max))) continue;
+    if (wheelMaterial(car.id, pose, x, y)) continue;
+    const glass = (car.id === 'uno' || car.id === 'uno-normal')
+      && p[i + 2]! > p[i]! * 1.1 && p[i + 2]! > p[i + 1]! && y < .55;
+    const whiteBody = !glass && neutralBodyPanel(car.id, pose, x, y, (max - min) / Math.max(1, max), l);
+    const coloredBody = coloredBodyPanel(car.id, pose, x, y) && diff < .08 && s > .28;
+    if (!whiteBody && !coloredBody && protectedMaterial(car.id, pose, x, y, p[i]!, p[i + 1]!, p[i + 2]!)) continue;
     if (car.id === 'harley' && (y < 0.32 || y > 0.91)) continue;
     // New bikes keep neutral helmets, reflected mirror glass and red brake lenses.
     if (car.id === 'biz125' || car.id === 'hayabusa') {
@@ -140,14 +147,6 @@ export function recolorTile(original: HTMLCanvasElement, car: CarLook, pose = 0)
       const lampY = car.id === 'biz125' ? 0.55 : 0.49;
       if (y < 0.35 || y > 0.8 || (Math.abs(y - lampY) < 0.035 && Math.abs(x - (lampX[pose] ?? 0.5)) < 0.12)) continue;
     }
-    // Neutral Uno panels and the urban bike tail need a body mask distinct from trim/rider hues.
-    const plateX = pose === 0 ? .5 : pose === 1 ? .36 : .32;
-    const plate = y > .65 && y < .75 && Math.abs(x - plateX) < .14;
-    const whiteBody = s < .28 && l > .35 && (
-      (car.id === 'uno' && y > .23 && y < .76 && !plate)
-      || (car.id === 'uno-normal' && y < 0.78 && !(y > 0.60 && y < 0.76 && Math.abs(x - (pose === 0 ? 0.5 : pose === 1 ? 0.36 : 0.32)) < 0.15))
-      || (car.id === 'moto' && y > 0.4 && y < 0.62 && Math.abs(x - (pose === 0 ? 0.5 : 0.25)) < 0.25)
-    );
     // Near-white chrome can have high HSL saturation despite a tiny RGB spread.
     // Explicit neutral body panels still accept paint through the same mapping.
     if (!whiteBody && Math.min(p[i]!, p[i + 1]!, p[i + 2]!) > 160
