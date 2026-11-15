@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@500;600;700&display=swap');
 @import url('./menu-layout.css');
+@import url('./interface-layout.css');
 /* Sunset arcade cabinet: flat colour, hard outlines, offset shadows, no glass. */
 :root{color-scheme:dark;--ink:#160a30;--ink2:#2a1458;--ink3:#43217f;--sun:#ffc531;--sun-d:#b4570a;--hot:#ff3c78;--hot-d:#8c1245;--cyan:#2de2e6;--cream:#fff6dc;--muted:#c3b4e6;--bg:var(--ink);--panel:#1f0f45;--line:#6b45b8;--text:var(--cream);--yellow:var(--sun);--mint:var(--cyan);--pink:var(--hot);--app-height:100dvh;--safe-top:env(safe-area-inset-top,0px);--safe-right:env(safe-area-inset-right,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--display:'Bungee','Impact','Haettenschweiler','Arial Black',sans-serif;--body:'Chakra Petch','Hiragino Sans','Yu Gothic UI','Meiryo','Segoe UI',system-ui,sans-serif}
 *{box-sizing:border-box}

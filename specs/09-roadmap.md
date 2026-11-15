@@ -108,6 +108,8 @@ Run physical/balance QA alongside native tool provisioning. ART-01 is implemente
 
 ## Maintenance delivery - 2026-11-14
 
+Content-sized account/guest surfaces, compact phone HUD, grouped result summaries/actions, two-column short-landscape garage and pairing composition improve spacing and readable text. The full fleet receives a common-scale visual review; performance, tuning and ownership remain intact. See [interface review](../docs/interface-v6.md).
+
 Modern phone safe areas now constrain menus, HUD, controls, dialogs and overlays on all four edges; portrait results center inside the usable rectangle. Authored motorcycles use shared logical rider heights so Harley luggage stays broad without making its rider a giant. Tilt maps both sensor paths to the reversed F1-wheel direction requested after hands-on feedback. Browser emulation covers recent iPhone portrait/landscape cutouts; physical iOS/Android validation remains QA-01.
 
 The consolidated completion audit passes the full Node and Chromium/WebKit suites after a locked dependency install. Production dependency audit is clear; moderate findings limited to development/native tooling remain maintenance work requiring native-build verification.

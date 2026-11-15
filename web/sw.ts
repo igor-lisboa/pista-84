@@ -20,12 +20,13 @@ const scope = self as unknown as ServiceWorkerScope;
 declare const __PISTA_CLIENT_ASSETS__: readonly string[];
 
 const CACHE_PREFIX = 'pista84-';
-const CACHE = `${CACHE_PREFIX}v35`;
+const CACHE = `${CACHE_PREFIX}v36`;
 const ASSETS = [...new Set([
   '/',
   '/index.html',
   '/style.css',
   '/menu-layout.css',
+  '/interface-layout.css',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192.png',

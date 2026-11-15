@@ -192,6 +192,10 @@ No hosted run is recorded for 1.4. The helper does not verify signed native buil
 
 ## Visual review artifacts
 
+### Interface composition follow-up (2026-11-14)
+
+Node 24.22.2: build, strict typecheck, docs audit and all 180 Node tests pass. Affected Chromium/WebKit runs pass 126 cases (account, safe-area/results, demo all-locales, fleet, Harley, HUD, menu, garage and offline loading), then 36 cases (game flows plus account/garage composition), a 14-case composition/HUD/garage rerun after preview alignment refinement, and 14 mobile/HUD cases after restricting compact HUD height to portrait. This covers 174 distinct affected browser cases with no remaining failures or skips, not a full repository rerun. Initial result/HUD failures were corrected with equal side columns, grouped landscape results and compact portrait spacing. The [review and screenshots](../docs/interface-v6.md) record limits; real-device/native validation remains QA-01.
+
 | Command | Output/purpose |
 | --- | --- |
 | `node scripts/screenshots.ts` | Menu, race, garage, portrait and landscape captures in `docs/screenshots/` |

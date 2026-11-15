@@ -4,6 +4,8 @@
 
 ## Reference and visual identity
 
+The interface composition review compares all 22 vehicles on a common logical ground line at scale 1. Existing authored dimensions and aspect ratios are retained after visual review; garage previews gain more room through layout changes. See [interface composition review](../docs/interface-v6.md) for the fleet sheet and viewport evidence.
+
 The latest supplied screenshot is the primary in-game visual reference: a winding grey road, a city skyline, conifers, muted sky, large rear-view vehicles with visible roofs, and limited HUD information. Earlier mountain/coastal scenery and thin procedural car icons are superseded by the 1.3 art direction.
 
 The 1.4 interface wraps the scene in a **sunset-arcade** look: deep purple panels, sun-yellow, hot pink and cyan, Bungee and Chakra Petch fonts (Google Fonts, optional, with system fallbacks), hard outlines, offset shadows and a checkered strip on the menu. See [interface and controls](04-interface-and-controls.md).
