@@ -35,6 +35,35 @@ test('a delayed audio unlock cannot override the player switching sound off', as
   expect(enabled).toBe(false);
 });
 
+test('race music bus is louder than menu music while effects retain their own mix', async ({page}) => {
+  await page.goto('/');
+  await loadHarness(page);
+  const available = await page.evaluate(() => Boolean(window.AudioContext));
+  test.skip(!available, 'This browser build does not provide Web Audio.');
+  const mix = await page.evaluate(async () => {
+    const audio = new window.Pista.AudioEngine();
+    await audio.setEnabled(true);
+    const bus = Reflect.get(audio, 'musicBus');
+    const effects = Reflect.get(audio, 'effects');
+    if (!(bus instanceof GainNode) || !(effects instanceof GainNode)) throw new Error('Audio buses were not initialized');
+    const initialMusicLevel = bus.gain.value;
+    const targets: number[] = [];
+    const setTarget = bus.gain.setTargetAtTime.bind(bus.gain);
+    bus.gain.setTargetAtTime = (value, time, constant) => {
+      targets.push(value);
+      return setTarget(value, time, constant);
+    };
+    audio.setMusic('race');
+    audio.update({status: 'running', speed: 0, car: window.Pista.CARS[0]!}, false);
+    const effectsLevel = effects.gain.value;
+    await audio.setEnabled(false);
+    return {targets, effects: effectsLevel, menu: initialMusicLevel};
+  });
+  expect(mix.targets.at(-1)).toBe(0.09);
+  expect(mix.targets.at(-1)).toBeGreaterThan(mix.menu);
+  expect(mix.effects).toBeCloseTo(0.2, 6);
+});
+
 test('brake friction is audible, throttle stands out, and effects stop at rest or pause', async ({ page }) => {
   await page.goto('/');
   await loadHarness(page);

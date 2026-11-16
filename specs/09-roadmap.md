@@ -120,6 +120,8 @@ Harley Electra Glide adds a broad old-school touring motorcycle at 6,000 coins, 
 
 Veloce GT acceleration raised to 150 with its 350 km/h ceiling retained. Tilt uses level landscape as an absolute wheel center with smoothing and gravity-based orientation fallback; calibration controls are removed. Landscape/fullscreen ownership is cancellation-safe, unsupported locks block portrait play, and portrait controllers pause their host. Physical sensor/OS-lock certification remains QA-01.
 
+Audio and GT tuning follow-up (2026-11-15): race music bus raised to 0.09 (menu remains 0.07); Veloce GT keeps its 54 km/h/s launch and uses falloff 2.4 with the shared 70%-of-maximum taper. Measured 0–100 remains 1.92 s; 90%/95% take 11.28/16.84 s. Physical-speaker mix review remains QA-01.
+
 Puma GT maximum raised to the requested arcade 250 km/h and acceleration rating 45, with matching final audio gear range and measured acceleration. Other tuning, price and saved ownership remain intact; physical performance is not implied.
 
 Hayabusa maximum raised to the requested arcade 370 km/h, with matching final audio gear range and updated measured acceleration. Other tuning, price and saved identity stay intact; this is not a real-world performance claim.

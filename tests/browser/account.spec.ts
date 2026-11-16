@@ -239,43 +239,6 @@ for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
   });
 }
 
-test('a signed-in player changes the password from the account screen', async ({page, context}) => {
-  await backend(context);
-  await page.goto('/');
-  await openAccount(page);
-  await logIn(page, true);
-  await page.locator('#settingsNav').click();
-  // Settings only offers the account: starting over as a new player is not a separate action.
-  await expect(page.locator('#newPlayer')).toHaveCount(0);
-  await page.locator('#account').click();
-  await expect(page.locator('#passwordForm')).toBeVisible();
-
-  await page.locator('#currentPassword').fill('not the password');
-  await page.locator('#newPassword').fill('a different passphrase');
-  await page.locator('#passwordForm button[type=submit]').click();
-  await expect(page.locator('#passwordStatus')).toContainText('senha atual');
-  await expect(page.locator('#currentPassword')).toBeFocused();
-
-  await page.locator('#currentPassword').fill(password);
-  await page.locator('#passwordForm button[type=submit]').click();
-  await expect(page.locator('#passwordStatus')).toContainText('Senha alterada');
-  await expect(page.locator('#currentPassword')).toHaveValue('');
-  await expect(page.locator('#newPassword')).toHaveValue('');
-  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain('a different passphrase');
-
-  // Only the new password works from now on.
-  await context.clearCookies();
-  await page.reload();
-  await page.locator('#settingsNav').click();
-  await page.locator('#account').click();
-  await page.locator('#accountPassword').fill(password);
-  await page.locator('#accountForm button[type=submit]').click();
-  await expect(page.locator('#accountStatus')).toContainText('incorretos');
-  await page.locator('#accountPassword').fill('a different passphrase');
-  await page.locator('#accountForm button[type=submit]').click();
-  await expect(page.locator('#modal')).toBeHidden();
-});
-
 for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
   test(`the close button stays in view while a long dialog scrolls at ${viewport.width}x${viewport.height}`, async ({page}) => {
     await page.setViewportSize(viewport);

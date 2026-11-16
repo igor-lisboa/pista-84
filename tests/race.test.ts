@@ -5,7 +5,7 @@ import {car, quietRace, step} from './support/game.ts';
 
 import {vehicleAcceleration} from '../src/game/vehicle-tuning.ts';
 
-test('every vehicle smoothly loses pull above 70% and approaches its own top speed', () => {
+test('every vehicle smoothly loses pull after its taper threshold and approaches its own top speed', () => {
   for (const spec of CARS) {
     let previous = Infinity;
     for (let percent = 0; percent <= 100; percent++) {
@@ -38,9 +38,9 @@ test('vehicle profiles differ in both initial gain and high-speed endurance', ()
     const spec = car(id);
     return vehicleAcceleration(spec, spec.max * 0.9) / vehicleAcceleration(spec, spec.max * 0.7);
   };
-  assert.ok(retainedPull('kombi') < retainedPull('fusca'));
+  assert.equal(retainedPull('kombi'), retainedPull('gt'));
+  assert.ok(retainedPull('gt') < retainedPull('fusca'));
   assert.ok(retainedPull('fusca') < retainedPull('gol'));
-  assert.ok(retainedPull('gol') < retainedPull('gt'));
 });
 
 /** First road distance with a strong right-hand bend. */

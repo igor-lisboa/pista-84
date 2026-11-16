@@ -62,9 +62,12 @@ The optional-account note is shown only to guests. Signed-in players see their a
 
 The options dialog has four groups. **Player:** a single Account row (there is no separate "new player"
 action). **Game:** language picker, units, sound and tutorial. **Controls:** tilt, sensor status and keyboard help. **Device:** fullscreen and install. The dialog ends with a version label. The Account screen offers sign up / log in; for a signed-in player it shows the
-username, a change-password form (current and new password) and logout. Changing the
-password re-checks the current one, signs every other device out and keeps this device
-signed in. The post-demo account screen and the guest Account screen share one layout: a
+username, a collapsed **Change password** action, and a separate logout section. The
+current/new password fields and submit button appear only after Change password is
+selected; selecting it again closes and clears the form. Logout and its local-data
+warning stay grouped in a visually distinct section. Changing the password re-checks
+the current one, signs every other device out and keeps this device signed in. The
+post-demo account screen and the guest Account screen share one layout: a
 two-sided "Sign up | Log in" switch with the selected side highlighted, a short hint for
 that side, labelled username/password fields and one full-width submit button that shows a
 "please wait" label while the request runs. On the post-demo account screen "Play without an account" is always
@@ -76,6 +79,7 @@ localized. Login merges local and cloud progress before adopting the account
 identity. Usernames are lower case, 3–16 characters of a–z, 0–9, `_` and `-` (no spaces; the field cleans text as it is typed). The signed-in pilot name always matches the unique account username, including after reload/import/restore. A duplicate signup keeps the form open, explains that the pilot name/username is already in use, and selects the username field so the player can choose another. Guests have no account name; the local save keeps the guest player id and no username is reserved. Failures keep local progress and allow retry. Expired sessions allow
 reauthentication to the same account. Signed-in name actions open the
 account screen, preventing accidental account renaming or identity replacement.
+See the [signed-in account disclosure review](../docs/account-disclosure-v1.md).
 Logout explains that local records and unsynced data are cleared while the cloud
 account remains; only sound, language and units carry into the empty guest save.
 Successful logout also refreshes other open game tabs. A network failure during

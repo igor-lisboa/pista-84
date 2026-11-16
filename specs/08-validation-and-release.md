@@ -62,7 +62,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Score and economy | Pace multiplier bounds, per-km reset, coins from score, second chance costs 1,000 coins (`race-fuel-score.test.ts`, `world.test.ts`) |
 | State | Pause freezes progress; reset restores state; a new run seeds opening traffic (`race.test.ts`, `traffic.test.ts`, `world.test.ts`) |
 | Traffic | All five lanes, distinct-lane waves, ramp and caps, paints, gradual speed changes, lane changes without overlap, 16-car cap, frozen while paused (`traffic.test.ts`) |
-| Vehicles and audio | 22 distinct coin vehicles, one engine voice per car, menu and race music tracks, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`) |
+| Vehicles and audio | 22 distinct coin vehicles, one engine voice per car, menu and race music tracks, race music level, geared engines (`world.test.ts`, `vehicle-refinement.test.ts`, `browser/audio.spec.ts`) |
 | Environment | Road bounds/direction changes by seed; local-clock start, per-run weather, continuous light/weather intensities (`world.test.ts`) |
 | Progress | Malformed saves, ownership validation, migration, sound default and language, balance override, GUID/username/units/timestamps, import rules, past players (`world.test.ts`, `cloud.test.ts`, `config.test.ts`) |
 | Accounts | Password rules, scrypt parameters, atomic unique usernames, session rotation/expiry/revocation, HTTPS requirement, shared attempt budgets, forged-GUID rejection, password change, MongoDB account adapters and indexes (`auth.test.ts`, `mongo-accounts.test.ts`, `mongo-store.test.ts`) |
@@ -72,7 +72,7 @@ Run `npm run build`, `npm run typecheck` and `npm test` for current evidence. Ru
 | Room services | Room protocol, token/role checks, atomic answer, expiration/deletion, cross-origin/oversized/invalid JSON rejection, no implicit memory fallback, socket auth/relay/reconnect/expiry (`signaling.test.ts`, `rooms-api.test.ts`, `redis-config.test.ts`, `room-sockets.test.ts`) |
 | Deployment | Production configuration validation, Heroku origin handling and launch, Vercel layout and entrypoint naming, edge proxy fail-closed/cookies/WebSocket upgrade (`node-config.test.ts`, `node-deployment.test.ts`, `vercel-config.test.ts`, `proxy.test.ts`) |
 | Browser game flows | Initial menu hides in race; pause/result/menu; barrier crash screen; off-road drag; language switch; vehicle and paint purchase persistence with unaffordable cars refused; balance override; reload offline; cross-tab save safety (`game.spec.ts`, `garage-purchases.spec.ts`, `race-continuation.spec.ts`, `results.spec.ts`, `save-conflict.spec.ts`, `timestamps.spec.ts`) |
-| Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, password change, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `leaderboard.spec.ts`) |
+| Browser account flows | Tutorial-only first launch, post-demo sign-up/log-in/offline entry, duplicate username, collapsed password-change disclosure and distinct logout area, merge/retry/expired session, logout across tabs, guest ranking message and paged ranking (`username.spec.ts`, `account.spec.ts`, `account-password.spec.ts`, `leaderboard.spec.ts`) |
 | Tutorial, units and install | Five-step tutorial and idle prompt, km/mi, install prompt and iPhone instructions (`tutorial.spec.ts`, `install-depth.spec.ts`) |
 | Touch and layout | Tap to start; pedals bottom-right and arrows bottom-left with the HUD clear of both corners; landscape layouts; tilt landscape prompt; controller layout; stable HUD frames; phone settings/garage layout (`mobile.spec.ts`, `tilt-landscape.spec.ts`, `controller-layout.spec.ts`, `layout.spec.ts`, `phone-screens.spec.ts`, `garage-progress.spec.ts`) |
 | Graphics | All 22 vehicles draw complete, unclipped sprites; straight and turn frames are complete and distinct; five lanes with four dividers; traffic paint and depth order; vehicle sizes and fog (`scene-rendering.spec.ts`, `vehicle-refinement.spec.ts`, `traffic-art.spec.ts`, `install-depth.spec.ts`, `vehicle-weather.spec.ts`) |
@@ -95,6 +95,7 @@ Chromium and WebKit projects run against the same local app. WebKit automation i
 
 - Production build, strict typecheck, docs checks and all 172 Node tests pass. Actual Race measurements (`node scripts/measure-acceleration.ts`, dry road, centered steering, no traffic, unlimited fuel, 20 ms steps): 0–100 in 8.26 s, 70/90/95% in 16.90/30.88/41.94 s. Regression tests check 250 km/h maximum, acceleration rating 45, initial pull 12.825 km/h/s, positive near-ceiling acceleration, no overshoot and top-gear pitch growth.
 - `playwright test tests/browser/game.spec.ts tests/browser/audio.spec.ts tests/browser/vehicle-refinement.spec.ts --grep 'new models and high-price|brake friction|delayed audio|engine audio' --workers=4`: five passed, three unsupported Windows WebKit audio skips, no failures. Both engines check garage 250 km/h and 45 readouts, purchases and reload ownership; Chromium checks audio. This is affected-scope emulation, not physical/native certification.
+- Veloce GT follow-up (2026-11-15): removed the custom 250 km/h taper start. Falloff 2.4 now uses the shared 70%-of-maximum curve; measured 0–100/70%/90%/95% remain 1.92/5.62 s and rise to 11.28/16.84 s at 90%/95%. The launch remains 54 km/h/s.
 
 ### Hayabusa 370 km/h arcade ceiling (2026-11-14)
 
@@ -202,6 +203,14 @@ No hosted run is recorded for 1.4. The helper does not verify signed native buil
 The latest section of the [maintenance audit](../docs/maintainability-2026-11-15.md) records the supplied mobile layouts, delayed screen-angle pitch regression and enlarged fleet/material review. Coverage adds `tests/tilt-axes.test.ts`, motion/orientation cases in `tilt-wheel.spec.ts`, four phone sizes across all fifteen locales in `pairing-locales.spec.ts`, visual-viewport safe areas in `pairing-composition.spec.ts`, and independent plate/rim/indicator/body/garment fixtures in `material-panels.spec.ts` and `motorcycle-materials.spec.ts`. The suite now contains 30 Node files and 44 browser specs. Final measured results and captures are recorded in the audit; simulated sensors and browser emulation do not certify physical-device behavior.
 
 Final follow-up: build, strict typecheck, docs check (22 structured rows, 37 documents, 304 links), module gate (158 production modules, no overages) and **184 Node tests pass**. The full configured browser suite finishes **401 passed, 0 failed, 0 flaky and 3 unsupported WebKit audio skips**. Chromium executes the skipped audio cases. Physical-device/native and native-speaker limits remain pending.
+
+### Race music and Veloce GT high-speed pull (2026-11-15)
+
+Build, strict typecheck, documentation check, module-size check and all **184 Node tests** pass. The focused Chromium/WebKit run of `audio.spec.ts` and `vehicle-refinement.spec.ts` passes **8 cases** with **4 WebKit audio skips** because that build does not provide Web Audio. Race mix coverage confirms its bus target is 0.09 versus 0.07 in menus while effects remain at 0.20. The Race simulation retains Veloce GT's 54 km/h/s launch and 1.92 s 0–100 time; 90% and 95% now take 11.10 s and 16.56 s. Physical-speaker balance remains unverified.
+
+### Signed-in account actions (2026-11-15)
+
+Build, strict typecheck, documentation checks (38 documents, 309 local links), module-size check and all **184 Node tests** pass. The account interaction specs pass **26 Chromium/WebKit cases**, including login/logout continuity, password change and the collapsed disclosure at 390×844 and 844×390. Portrait, landscape and desktop captures are reviewed in the [account disclosure report](../docs/account-disclosure-v1.md). Automated screenshots do not certify physical-device layout or native-speaker review.
 
 ### Vehicle materials and icon follow-up (2026-11-15)
 

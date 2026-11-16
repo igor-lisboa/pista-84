@@ -2,9 +2,9 @@
 
 Replaces the shared 0.25 acceleration gain from the v3 balance. Each of the twenty-two models has an acceleration gain and a high-speed falloff in `src/game/vehicle-tuning.ts` (gains 0.23–0.36, falloffs 0.5–2.4).
 
-Revision 2026-11-14: GT acceleration increases to **150**, with gain **0.36** and falloff **0.5** retained. Its 0-100 time is now **1.92 s**. Uno com Escada is deliberately exaggerated to 400 km/h, acceleration 90, gain 0.36 and falloff 0.5: 0-100 takes **3.16 s**, below the GT's launch performance. Normal Uno keeps the former ladder Uno tuning and 15.48 s 0-100. These are arcade settings, not claims of real performance.
+Revision 2026-11-15: Veloce GT retains acceleration **150**, gain **0.36**, and its **54 km/h/s** launch. Falloff rises to **2.4** (from **0.5**) under the standard 70%-of-maximum taper, making the approach to its 350 km/h cap more demanding without a special threshold. Its 0-100 time remains **1.92 s**; 90% takes **11.28 s** and 95% takes **16.84 s** (previously 9.90 s and 12.90 s). Uno com Escada remains deliberately exaggerated to 400 km/h, acceleration 90, gain 0.36 and falloff 0.5: 0-100 takes **3.16 s**, below the GT's launch performance. Normal Uno keeps the former ladder Uno tuning and 15.48 s 0-100. These are arcade settings, not claims of real performance.
 
-The existing drag curve is multiplied by an additional taper above 70% of maximum speed. Its value and slope join continuously at the threshold. Stronger falloff makes the last part of the speed range take longer, while acceleration remains positive below the maximum and zero at the maximum. Off-road traction still scales the resulting pull.
+The existing drag curve is multiplied by an additional taper above 70% of maximum speed for every vehicle: `1 / (1 + falloff × ((ratio − 0.7) / 0.3)²)`. Its value and slope join continuously at the threshold. Stronger falloff makes the last part of the speed range take longer, while acceleration remains positive below the maximum and zero at the maximum. Off-road traction still scales the resulting pull.
 
 Reproduce with `node scripts/measure-acceleration.ts`. Measured with the real `Race` simulation in 20 ms steps, starting at rest, with no traffic, unlimited fuel and the car kept centered. These are game tuning values, not real-world vehicle specifications.
 
@@ -27,7 +27,7 @@ Reproduce with `node scripts/measure-acceleration.ts`. Measured with the real `R
 | Marea Turbo | 154 | 7.16 | 12.66 | 22.78 | 30.46 |
 | Passat 85 | 119 | 12.28 | 15.78 | 29.42 | 40.88 |
 | Puma GT | 175 | 8.26 | 16.90 | 30.88 | 41.94 |
-| Veloce GT | 245 | 1.92 | 5.62 | 9.90 | 12.90 |
+| Veloce GT | 245 | 1.92 | 5.62 | 11.28 | 16.84 |
 | Raio 1000 | 210 | 4.94 | 12.34 | 22.06 | 29.24 |
 | Biz 125 | 77 | 22.48 | 11.04 | 21.32 | 30.66 |
 | Hayabusa | 259 | 2.80 | 8.74 | 15.56 | 20.52 |

@@ -8,6 +8,7 @@ export type {EngineProfile} from './engine-voices.ts';
 
 const EFFECTS_VOLUME = 0.2;
 const MUSIC_VOLUME = 0.07;
+const RACE_MUSIC_VOLUME = 0.09;
 const ENGINE_LEVEL = 0.28;
 const BRAKE_LEVEL = 0.42;
 const BRAKE_SQUEAL_LEVEL = 0.09;
@@ -101,7 +102,7 @@ export class AudioEngine {
     const voice = engineVoice(profile, race.speed, accelerating && !braking);
 
     this.engineGain!.gain.setTargetAtTime(running ? ENGINE_LEVEL * (accelerating ? 1.5 : 0.8) : 0, now, 0.08);
-    this.musicBus!.gain.setTargetAtTime(this.wantedMusic === 'race' ? MUSIC_VOLUME * 0.65 : MUSIC_VOLUME, now, 0.12);
+    this.musicBus!.gain.setTargetAtTime(this.wantedMusic === 'race' ? RACE_MUSIC_VOLUME : MUSIC_VOLUME, now, 0.12);
     if (this.engineCar !== race.car.id) {
       if (profile.harmonics) {
         let wave = this.waves.get(race.car.id);

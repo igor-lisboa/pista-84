@@ -39,13 +39,13 @@ Hayabusa's 370 km/h maximum is a requested arcade exception, not a real-world sp
 
 Puma GT uses the requested arcade maximum of 250 km/h and acceleration rating 45. Its ID, ownership, price, gain/falloff, handling, consumption, size and braking remain unchanged. These are game values rather than real-world performance claims.
 
-The Veloce GT uses the requested acceleration 150 and gain 0.36 for a stronger initial launch; its existing high-speed taper (0.5) remains. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID and ownership are preserved; its price is 3,200 coins, above the Maverick GT, without retuning its performance. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
+The Veloce GT uses the requested acceleration 150 and gain 0.36 for a strong initial launch. Its higher falloff value makes the 350 km/h ceiling harder to reach while preserving the same smooth 70%-of-maximum taper rule used by every car. Uno com Escada is an intentional Brazilian company-car meme exception: 400 km/h, acceleration 90, gain 0.36 and falloff 0.5, so its initial pull remains below the GT. Its existing `uno` ID and ownership are preserved; its price is 3,200 coins, above the Maverick GT, without retuning its performance. The new `uno-normal` has the former ladder Uno's 150 km/h, acceleration 30 and all other tuning/economy values, with no roof ladder. These are arcade values, not certified real specifications.
 
 Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price }`. A coin vehicle can be selected after purchasing it with available free coins; owned vehicles can be selected again without another charge. Every shape in the `bike` class (Moto urbana, Raio 1000, CG 125, Biz 125, Hayabusa, Harley Electra Glide) uses the smaller collision reach and reduced rain grip. There are no performance upgrades or stat changes from paint. The old "impact speed retained" statistic no longer exists: every contact is a crash.
 
 ### Per-vehicle tuning
 
-`src/game/vehicle-tuning.ts` adds four values per car. Gain scales the catalog acceleration into km/h per second at low speed; falloff is the extra loss of pull above 70% of top speed (`1 / (1 + falloff × ((ratio − 0.7) / 0.3)²)`); width is the visual and collision width relative to a compact car; braking is the dry-road deceleration in km/h per second. Measured acceleration times are in [acceleration-v6.md](../docs/acceleration-v6.md).
+`src/game/vehicle-tuning.ts` adds four values per car. Gain scales the catalog acceleration into km/h per second at low speed; falloff is the extra loss of pull above 70% of top speed using `1 / (1 + falloff × progress²)`; width is the visual and collision width relative to a compact car; braking is the dry-road deceleration in km/h per second. A higher falloff slows the approach to maximum without changing initial acceleration. Measured acceleration times are in [acceleration-v6.md](../docs/acceleration-v6.md).
 
 | ID | Gain | Falloff | Width | Braking |
 | --- | ---: | ---: | ---: | ---: |
@@ -66,7 +66,7 @@ Fusca is always owned. Each car has a `purchase` field: `{ kind: 'coins', price 
 | `marea` | 0.29 | 0.8 | 1.02 | 53 |
 | `passat` | 0.275 | 1.3 | 0.94 | 40 |
 | `puma` | 0.285 | 1.0 | 0.95 | 43 |
-| `gt` | 0.36 | 0.5 | 1.18 | 70 |
+| `gt` | 0.36 | 2.4 | 1.18 | 70 |
 | `superbike` | 0.31 | 0.7 | 0.60 | 64 |
 | `biz125` | 0.27 | 1.8 | 0.50 | 40 |
 | `hayabusa` | 0.35 | 0.65 | 0.66 | 68 |

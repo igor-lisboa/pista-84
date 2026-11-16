@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { AUDIO_PROFILES, engineVoice } from '../src/audio/audio.ts';
-import { vehicleAcceleration } from '../src/game/vehicle-tuning.ts';
+import { vehicleAcceleration, vehicleTuning } from '../src/game/vehicle-tuning.ts';
 import { car, quietRace } from './support/game.ts';
 
 test('new classics have plausible acceleration, speed ceilings and fuel tradeoffs', () => {
@@ -55,11 +55,15 @@ test('Puma arcade tuning approaches 250 km/h smoothly with acceleration rating 4
   assert.ok(engineVoice(profile, 249, true).frequency > engineVoice(profile, 180, true).frequency);
 });
 
-test('Veloce GT acceleration 150 strengthens launch while retaining its 350 km/h ceiling', () => {
+test('Veloce GT keeps its explosive launch and uses stronger standard high-speed falloff', () => {
   const spec = car('gt');
   assert.equal(spec.accel, 150);
   assert.equal(spec.max, 350);
+  assert.equal(vehicleTuning(spec).accelerationGain, 0.36);
+  assert.equal(vehicleTuning(spec).accelerationFalloff, 2.4);
   assert.equal(vehicleAcceleration(spec, 0), 54);
+  assert.ok(Math.abs(vehicleAcceleration(spec, 245) - 54 * (1 - (245 / 350) ** 2)) < 1e-10);
+  assert.ok(vehicleAcceleration(spec, 300) < 54 * (1 - (300 / 350) ** 2));
   assert.equal(vehicleAcceleration(spec, 350), 0);
   assert.ok(vehicleAcceleration(spec, 349) > 0);
   const race = quietRace(spec);
@@ -71,7 +75,7 @@ test('Veloce GT acceleration 150 strengthens launch while retaining its 350 km/h
     race.update(0.02, {accelerate: true});
     targets.forEach((speed, i) => { if (times[i] === 0 && race.speed >= speed) times[i] = race.time; });
   }
-  [1.92, 5.62, 9.90, 12.90].forEach((expected, i) => assert.ok(Math.abs((times[i] ?? 0) - expected) < 0.04));
+  [1.92, 5.62, 11.28, 16.84].forEach((expected, i) => assert.ok(Math.abs((times[i] ?? 0) - expected) < 0.04));
 });
 
 test('modelled engines rise through each gear, drop pitch on shifts and reserve turbo hiss for load', () => {

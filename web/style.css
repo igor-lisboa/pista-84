@@ -436,6 +436,15 @@ html[dir=rtl] .switch:after{left:auto;right:2px}
 .text-button{justify-self:start;margin-top:14px;padding:10px 4px;color:var(--cyan);text-decoration:underline;font:700 14px var(--body)}
 .account-name{font:400 22px var(--display);color:var(--cream);overflow-wrap:anywhere}
 .username-form .group-title{margin:8px 0 0}
+.account-password-section,.account-logout-section{margin-top:18px;padding:14px;border:2px solid var(--line);background:var(--panel)}
+.account-password-toggle{width:100%;min-height:54px;text-align:left}
+.account-password-toggle svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:var(--cyan);stroke-width:2.5;transition:transform .15s}
+.account-password-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+#passwordPanel:not([hidden]){margin-top:14px;padding-top:14px;border-top:2px solid #ffffff20}
+.account-logout-section{border-color:#ff3976;background:#24103c}
+.account-logout-section>p:first-child{margin-top:0;color:var(--muted);font-size:14px;line-height:1.5}
+.account-logout-section #accountLogout{width:100%;justify-content:center}
+.account-logout-section #accountStatus:empty{display:none}
 
 /* ---------- phone dialogs fill the screen; short landscape screens fit without scrolling ---------- */
 @media (max-width:600px){

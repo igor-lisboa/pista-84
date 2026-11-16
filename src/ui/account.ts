@@ -61,9 +61,21 @@ export class AccountDialog {
     byId('modalBody').innerHTML = user ? this.signedInHtml() : this.signedOutHtml(known, signup);
     if (user) {
       byId('accountName').textContent = user.username;
-      byId('passwordForm').onsubmit = event => {
-        event.preventDefault();
-        void this.changePassword();
+      byId<HTMLButtonElement>('changePasswordToggle').onclick = () => {
+        if (this.busy) return;
+        const toggle = byId<HTMLButtonElement>('changePasswordToggle');
+        const panel = byId('passwordPanel');
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        panel.hidden = expanded;
+        panel.replaceChildren();
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        if (!expanded) {
+          panel.innerHTML = this.passwordFormHtml();
+          byId('passwordForm').onsubmit = event => {
+            event.preventDefault();
+            void this.changePassword();
+          };
+        }
       };
     } else {
       if (known) {
@@ -108,8 +120,22 @@ export class AccountDialog {
       <span class="label">${t('auth.account')}</span>
       <h1>${t('auth.account')}</h1>
       <p id="accountName" class="account-name"></p>
-      <form id="passwordForm" class="username-form" novalidate>
-        <h3 class="group-title">${t('auth.changePassword')}</h3>
+      <section class="account-password-section" aria-label="${t('auth.changePassword')}">
+        <button id="changePasswordToggle" class="menu-button account-password-toggle" type="button" aria-expanded="false" aria-controls="passwordPanel">
+          <span>${t('auth.changePassword')}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
+        </button>
+        <div id="passwordPanel" hidden></div>
+      </section>
+      <section class="account-logout-section" aria-label="${t('auth.logout')}">
+        <p>${t('auth.logoutHelp')}</p>
+        <button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button>
+        <p id="accountStatus" class="form-status" role="status" aria-live="polite"></p>
+      </section>`;
+  }
+
+  private passwordFormHtml(): string {
+    return `<form id="passwordForm" class="username-form" novalidate>
         <label for="currentPassword">${t('auth.currentPassword')}</label>
         <input id="currentPassword" type="password" autocomplete="current-password" maxlength="256">
         <label for="newPassword">${t('auth.newPassword')}</label>
@@ -117,10 +143,7 @@ export class AccountDialog {
         <p id="passwordRules" class="username-rules">${t('auth.passwordRules')}</p>
         <p id="passwordStatus" class="form-status" role="status" aria-live="polite"></p>
         <button class="primary submit" type="submit"><span>${t('auth.changePassword')}</span></button>
-      </form>
-      <p>${t('auth.logoutHelp')}</p>
-      <button id="accountLogout" class="menu-button danger" type="button"><span>${t('auth.logout')}</span></button>
-      <p id="accountStatus" class="form-status" role="status" aria-live="polite"></p>`;
+      </form>`;
   }
 
   /** `known` is a device that already has an account but lost its session: only that name can log in. */
