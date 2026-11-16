@@ -278,3 +278,9 @@ Added the quality skill, Claude/Copilot entrypoints and review agents; documente
 ### Requested mobile/gameplay improvements audit (2026-11-14)
 
 The consolidated [request audit](../docs/requested-improvements-audit-2026-11-14.md) traces the menu, account hint, performance, vehicle catalog/tuning, demo transition, safe-area, vehicle-scale, result-layout and F1-wheel tilt requests to current source and tests. On Node 24.22.2 after `npm ci`, production build, strict type checking and documentation checks passed; all 180 Node tests passed. The complete configured browser suite passed 295 cases with zero failures and skipped three Web Audio cases unsupported by Windows WebKit. Chromium ran those audio cases. Production dependency audit is clear; six moderate development/native-tool findings remain recorded in the audit. Physical iPhone safe areas, sensors, OS orientation locks, speakers, native builds and low-end-device FPS remain QA-01 limitations.
+
+
+### Race music level follow-up (2026-11-15)
+
+The race music bus target is raised from 0.09 to 0.18 after the prior increase still sounded low beside the engine; menu music remains 0.07. The focused browser assertion now checks 0.18. Validation was blocked because the available Node runtime is 20.18.1, below the required Node 24; typecheck, docs check, module check, Node tests and browser audio tests were not run. Physical-speaker balance remains unverified under QA-01.
+pm run build failed because the available Node runtime is 20.18.1, below the required Node 24; typecheck, docs check, module check, Node tests and browser audio tests were not run. Physical-speaker balance remains unverified under QA-01.

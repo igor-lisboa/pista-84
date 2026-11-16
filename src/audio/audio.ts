@@ -8,7 +8,7 @@ export type {EngineProfile} from './engine-voices.ts';
 
 const EFFECTS_VOLUME = 0.2;
 const MUSIC_VOLUME = 0.07;
-const RACE_MUSIC_VOLUME = 0.09;
+const RACE_MUSIC_VOLUME = 0.18;
 const ENGINE_LEVEL = 0.28;
 const BRAKE_LEVEL = 0.42;
 const BRAKE_SQUEAL_LEVEL = 0.09;

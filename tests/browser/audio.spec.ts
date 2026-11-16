@@ -59,7 +59,7 @@ test('race music bus is louder than menu music while effects retain their own mi
     await audio.setEnabled(false);
     return {targets, effects: effectsLevel, menu: initialMusicLevel};
   });
-  expect(mix.targets.at(-1)).toBe(0.09);
+  expect(mix.targets.at(-1)).toBe(0.18);
   expect(mix.targets.at(-1)).toBeGreaterThan(mix.menu);
   expect(mix.effects).toBeCloseTo(0.2, 6);
 });

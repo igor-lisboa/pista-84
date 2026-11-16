@@ -145,3 +145,5 @@ The supplied pairing/menu layouts now have visual-viewport/safe-area and fifteen
 Preserve strict runtime boundaries, existing interfaces and offline/storage invariants as code grows. Avoid generic frameworks or arbitrary file fragments.
 
 **Accept:** handwritten implementation modules are below 300 physical lines, existing overages are eliminated or explicitly documented with reasons and follow-up, dependency boundaries remain clear, and build/typecheck/Node plus affected browser checks pass. Full quality audits additionally cover the whole configured browser suite and identify gaps in user-interaction evidence.
+
+Race mix follow-up (2026-11-15): after the 0.09 race-bus increase still left the soundtrack too low against the engine in play, raise the race music bus to 0.18; menu music remains 0.07. Physical-speaker balance remains part of QA-01.
