@@ -2,6 +2,12 @@ import type { Messages } from '../types.ts';
 
 // European Portuguese: only the strings that differ from pt-BR.
 export const ptPT: Messages = {
+  "intro.title": "Bem-vindo à pista",
+  "intro.demoTitle": "Primeira corrida: Veloce GT",
+  "intro.demo": "Experimenta a velocidade! O GT é emprestado apenas para esta corrida.",
+  "intro.garageTitle": "Depois: o teu carro",
+  "intro.garage": "A tua viagem começa com {car}. Corre, ganha moedas e desbloqueia mais veículos na garagem.",
+  "intro.continue": "Continuar",
   "tag.harley": "Muito cromado e um V-twin clássico",
   "demo.transition": "O GT foi só uma demonstração. A tua jornada no PISTA 84 começa com o {car}: corre, ganha moedas e constrói a tua garagem!",
   "tag.biz125": "A companheira do dia a dia",

@@ -71,6 +71,7 @@ test('iPhone has home-screen instructions and detects an installed launch', asyn
   try {
     const page = await context.newPage();
     await page.goto('/');
+    await page.locator('#introContinue').tap();
     await page.locator('#tutSkip').tap();
     await page.locator('#settingsNav').tap();
     await page.locator('#install').tap();
@@ -78,6 +79,7 @@ test('iPhone has home-screen instructions and detects an installed launch', asyn
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
     await page.reload();
+    await page.locator('#introContinue').tap();
     await page.locator('#settingsNav').tap();
     await expect(page.locator('#install')).toBeDisabled();
     await expect(page.locator('#install')).toHaveText('Jogo instalado');

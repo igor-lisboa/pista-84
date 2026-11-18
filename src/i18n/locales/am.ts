@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const am = {
+  "intro.title": "ወደ ውድድሩ እንኳን ደህና መጡ",
+  "intro.demoTitle": "የመጀመሪያው ውድድር፦ Veloce GT",
+  "intro.demo": "ፍጥነቱን ይሞክሩ! GT ለዚህ ውድድር ብቻ በውሰት ይሰጣል።",
+  "intro.garageTitle": "ከዚያ፦ የራስዎ መኪና",
+  "intro.garage": "ጉዞዎ በ{car} ይጀምራል። ይወዳደሩ፣ ሳንቲሞችን ያግኙና በጋራዡ ውስጥ ተጨማሪ ተሽከርካሪዎችን ይክፈቱ።",
+  "intro.continue": "ቀጥል",
   "tag.harley": "ብዙ ክሮም እና ክላሲክ V-twin",
   "demo.transition": "GT ለሙከራው ብቻ የተዋሰ መኪና ነበር። አሁን የPISTA 84 ጉዞዎ በ{car} ይጀምራል፤ ይወዳደሩ፣ ሳንቲሞችን ያግኙ እና ጋራዥዎን ያሳድጉ!",
   "tag.biz125": "የዕለት ተዕለት ታማኝ ጓደኛ",

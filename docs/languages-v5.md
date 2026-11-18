@@ -1,6 +1,6 @@
 # Language expansion v5
 
-The picker (Settings > Game) offers **15 locales**. The original seven are pt-BR, en, pt-PT, fr, it, ja and de. Eight complete translations were added, each checked against every source key and its placeholders. The source table has grown from 170 keys at the time of this change to **253** (accounts, ranking, units, tutorial and more); the key-coverage tests below now enforce the larger set for every locale except pt-PT:
+The picker (Settings > Game) offers **15 locales**. The original seven are pt-BR, en, pt-PT, fr, it, ja and de. Eight complete translations were added, each checked against every source key and its placeholders. The source table has grown from 170 keys at the time of this change to **259** (accounts, ranking, units, tutorial and more); the key-coverage tests below now enforce the larger set for every locale except pt-PT:
 
 | Locale | Native label | Flag |
 | --- | --- | --- |
@@ -19,8 +19,10 @@ All flags are inline SVG, following the existing simplified flag artwork. Native
 
 Urdu sets the document direction to RTL. The driving HUD, steering/pedal groups and controller buttons retain their physical LTR coordinates so left/right and brake/accelerator cannot swap. Switching back restores LTR. Script-aware system font fallbacks cover Indic, Arabic, Chinese and Ethiopic glyphs while preserving the PISTA 84 logo font.
 
-The original pt-PT partial fallback remains compatible: it overrides 186 of the 253 keys and falls back to pt-BR for the rest. The eight new locale files are compile-time complete records (`satisfies Record<MessageKey, string>`) rather than partial tables; en, fr, it, ja and de are plain `Messages` tables that the Node tests require to be complete. Automated checks (`tests/i18n.test.ts`, `tests/browser/languages.spec.ts`) verify key coverage, placeholders, absence of emoji, detection, persistence, Spain's flag, RTL direction and phone driving-control positions. Native-speaker editorial review remains a release task; these translations have not been certified by external reviewers.
+The original pt-PT partial fallback remains compatible: it overrides 192 of the 259 keys and falls back to pt-BR for the rest. The eight new locale files are compile-time complete records (`satisfies Record<MessageKey, string>`) rather than partial tables; en, fr, it, ja and de are plain `Messages` tables that the Node tests require to be complete. Automated checks (`tests/i18n.test.ts`, `tests/browser/languages.spec.ts`) verify key coverage, placeholders, absence of emoji, detection, persistence, Spain's flag, RTL direction and phone driving-control positions. Native-speaker editorial review remains a release task; these translations have not been certified by external reviewers.
 
-New and changed strings require explicit coverage in every locale, including pt-PT; the source currently has 253 keys and pt-PT explicitly overrides 186. Follow [localization workflow](../.agents/skills/pista-localization/SKILL.md).
+New and changed strings require explicit coverage in every locale, including pt-PT; the source currently has 259 keys and pt-PT explicitly overrides 192. Follow [localization workflow](../.agents/skills/pista-localization/SKILL.md).
 
 The latest tilt help describes clockwise/counterclockwise wheel rotation with the screen facing the player and explicitly excludes front/back pitch. The existing `tilt.hold` key is revised in all fifteen locales, including pt-PT; no translation keys or placeholders are added.
+
+The pre-race welcome explains the GT loan and the selected owned vehicle in six explicit keys across all fifteen locales.

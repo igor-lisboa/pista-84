@@ -168,9 +168,9 @@ test('signup merges guest progress, persists a session and logout clears this de
   await page.locator('#account').click();
   await expect(page.locator('#accountName')).toHaveText('driver');
   await page.locator('#accountLogout').click();
-  // Logout reloads the page: wait for the reloaded tutorial before reading storage.
-  await expect(page.locator('#tutNext')).toBeVisible();
-  await expect(otherTab.locator('#tutNext')).toBeVisible();
+  // Logout reloads the page with fresh-player onboarding before reading storage.
+  await expect(page.locator('#introContinue')).toBeVisible();
+  await expect(otherTab.locator('#introContinue')).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('pista84.account'))).toBeNull();
   const fresh = await page.evaluate(() => JSON.parse(localStorage.getItem('pista84')!));
   expect(fresh.playerId).not.toBe(account.id);

@@ -36,6 +36,7 @@ test('Urdu browser detection preserves physical steering and pedal positions on 
     await expect(page.locator('html')).toHaveAttribute('lang', 'ur');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('#start span')).toHaveText(NEW_LANGUAGES.ur);
+    await page.locator('#introContinue').tap();
     await page.locator('#tutSkip').tap();
     await expect(page.locator('#modal')).toBeHidden();
     await page.locator('#start').tap();

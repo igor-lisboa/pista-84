@@ -3,6 +3,8 @@ import type { GameProgress } from './game-progress.ts';
 import type { UsernameDialog } from './username.ts';
 import { TutorialDialog } from './tutorial.ts';
 import { byId } from './dom.ts';
+import { t } from '../i18n/index.ts';
+import { selectedGameCar } from './game-screens.ts';
 
 interface OnboardingHost {
   readonly save: SaveData;
@@ -18,6 +20,7 @@ export class GameOnboarding {
   tutorialActive = false;
   private tutorialRestart = false;
   private welcomeActive = false;
+  private introductionActive = false;
   private readonly tutorialDialog = new TutorialDialog();
   private readonly host: OnboardingHost;
 
@@ -26,8 +29,26 @@ export class GameOnboarding {
   modalClosed(): void {
     // A dialog reopened in the same tick still owns the modal; ignore stale close events.
     if (byId<HTMLDialogElement>('modal').open) return;
-    if (this.tutorialActive) this.finishTutorial();
+    if (this.introductionActive) {
+      this.introductionActive = false;
+      if (!this.host.save.tutorialDone) this.openTutorial(false);
+    } else if (this.tutorialActive) this.finishTutorial();
     else if (this.welcomeActive) this.finishWelcome();
+  }
+
+  /** Explain the demo loan before teaching controls or entering the menu. */
+  openIntroduction(): void {
+    this.introductionActive = true;
+    this.host.openModal();
+    byId('modalBody').innerHTML = `
+      <span class="label">PISTA 84</span>
+      <h1>${t('intro.title')}<span>.</span></h1>
+      <div class="intro-stage"><strong>${t('intro.demoTitle')}</strong><p>${t('intro.demo')}</p></div>
+      <div class="intro-stage"><strong>${t('intro.garageTitle')}</strong><p id="introCar"></p></div>
+      <button id="introContinue" class="menu-button go"><span>${t('intro.continue')}</span></button>`;
+    byId('introCar').textContent = t('intro.garage', { car: selectedGameCar(this.host.save).name });
+    byId('introContinue').onclick = () => byId<HTMLDialogElement>('modal').close();
+    byId('introContinue').focus({ preventScroll: true });
   }
 
   openWelcome(): void {

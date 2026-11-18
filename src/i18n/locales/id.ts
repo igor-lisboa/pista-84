@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const id = {
+  "intro.title": "Selamat datang di lintasan",
+  "intro.demoTitle": "Balapan pertama: Veloce GT",
+  "intro.demo": "Rasakan kecepatannya! GT dipinjamkan hanya untuk balapan ini.",
+  "intro.garageTitle": "Setelah itu: mobilmu sendiri",
+  "intro.garage": "Perjalananmu dimulai dengan {car}. Balapan, kumpulkan koin dan buka kendaraan lain di garasi.",
+  "intro.continue": "Lanjutkan",
   "tag.harley": "Krom berkilau dan V-twin klasik",
   "demo.transition": "GT hanya dipinjamkan untuk demo. Perjalanan PISTA 84-mu dimulai dengan {car}: balapan, kumpulkan koin, dan isi garasimu!",
   "tag.biz125": "Teman setia setiap hari",

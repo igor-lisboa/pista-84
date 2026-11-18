@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const hi = {
+  "intro.title": "रेस में आपका स्वागत है",
+  "intro.demoTitle": "पहली रेस: Veloce GT",
+  "intro.demo": "रफ़्तार का मज़ा लें! GT सिर्फ़ इस रेस के लिए उधार मिली है।",
+  "intro.garageTitle": "फिर: आपकी अपनी कार",
+  "intro.garage": "आपका सफ़र {car} से शुरू होगा। रेस करें, सिक्के कमाएँ और गैराज में नए वाहन अनलॉक करें।",
+  "intro.continue": "आगे बढ़ें",
   "tag.harley": "चमकता क्रोम और क्लासिक V-twin",
   "demo.transition": "GT सिर्फ़ डेमो के लिए मिली थी। अब {car} के साथ PISTA 84 का सफ़र शुरू करें: रेस करें, सिक्के कमाएँ और अपना गैराज बढ़ाएँ!",
   "tag.biz125": "हर दिन की भरोसेमंद साथी",

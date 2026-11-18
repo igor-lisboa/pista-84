@@ -92,7 +92,8 @@ export class GameApp implements RemoteHost {
     this.input.bindButtons();
     // First entry: a signed-in device uploads whatever it kept offline, without any button.
     void this.progress.syncAtRest();
-    if (!this.save.tutorialDone) this.onboarding.openTutorial(false);
+    if (!this.save.demoUsed) this.onboarding.openIntroduction();
+    else if (!this.save.tutorialDone) this.onboarding.openTutorial(false);
     this.input.onTiltChange = (enabled) => {
       document.body.dataset.tilt = enabled ? 'on' : 'off';
       this.screens.settingsDialog.refreshTilt();

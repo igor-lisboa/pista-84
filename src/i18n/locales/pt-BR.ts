@@ -1,5 +1,11 @@
 // Source language: every key is defined here, and the other locales fall back to it.
 export const ptBR = {
+  "intro.title": "Boas-vindas à pista",
+  "intro.demoTitle": "Primeira corrida: Veloce GT",
+  "intro.demo": "Experimente a velocidade! O GT é emprestado só para esta corrida.",
+  "intro.garageTitle": "Depois: seu próprio carro",
+  "intro.garage": "Sua jornada começa com {car}. Corra, ganhe moedas e desbloqueie mais veículos na garagem.",
+  "intro.continue": "Continuar",
   "tag.harley": "Muito cromo e um V-twin clássico",
   "demo.transition": "O GT foi só uma demonstração. Sua jornada no PISTA 84 começa com o {car}: corra, ganhe moedas e monte sua garagem!",
   "tag.biz125": "A parceira de todo dia",

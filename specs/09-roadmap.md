@@ -2,6 +2,8 @@
 
 [Specification index](README.md)
 
+The 2026-11-17 onboarding update explains the GT loan and the selected owned starting vehicle before play (UX09). Native-speaker review remains I18N-01; physical phone validation remains QA-01.
+
 This is the current backlog, not a list of already delivered features. Priorities: **P0** prerequisite for financial integrity; **P1** distribution/commercial readiness; **P2** optimization or broader validation. A pending item is complete only after both implementation and its stated evidence exist.
 
 ## ECO-01 — Server-authoritative commercial economy

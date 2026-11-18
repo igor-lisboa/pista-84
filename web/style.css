@@ -354,6 +354,13 @@ body[data-rotate=needed] #rotateHint{display:grid}
 @media (prefers-reduced-motion:reduce){.rotate-card .ui-icon{animation:none}}
 
 /* ---------- tutorial ---------- */
+.intro-stage{margin:16px 0;padding:14px;border-inline-start:4px solid var(--sun);background:var(--panel)}
+.intro-stage strong{color:var(--sun)}
+.intro-stage p{margin:6px 0 0;color:var(--cream);font-size:15px}
+.intro-stage+ .intro-stage{border-color:var(--cyan)}
+.intro-stage+ .intro-stage strong{color:var(--cyan)}
+#introContinue{width:100%;justify-content:center;text-align:center;margin-top:8px}
+@media(max-height:420px) and (orientation:landscape){.intro-stage{margin:10px 0;padding:10px}.intro-stage p{font-size:14px}}
 .tutorial-card{display:flex;gap:18px;align-items:center;margin:16px 0 12px;padding:16px;background:var(--panel);border:3px solid var(--line);box-shadow:0 4px 0 #000a}
 .tutorial-card p{margin:0;font-size:15px;color:var(--cream)}
 .tutorial-icon{flex:none;display:grid;place-items:center;width:64px;height:64px;background:var(--ink2);border:3px solid var(--sun);color:var(--sun);box-shadow:3px 3px 0 #000b}

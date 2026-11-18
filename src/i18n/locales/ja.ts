@@ -1,6 +1,12 @@
 import type { Messages } from '../types.ts';
 
 export const ja: Messages = {
+  "intro.title": "サーキットへようこそ",
+  "intro.demoTitle": "最初のレース：Veloce GT",
+  "intro.demo": "スピードを体験！GTはこのレースだけの貸出車です。",
+  "intro.garageTitle": "その後は自分の車で",
+  "intro.garage": "{car}で旅を始めましょう。レースでコインを集め、ガレージで新しい車両をアンロックしましょう。",
+  "intro.continue": "次へ",
   "tag.harley": "輝くクロームと伝統のVツイン",
   "demo.transition": "GTはデモ専用の貸出車でした。ここからは{car}でPISTA 84の旅へ！走ってコインを集め、ガレージを充実させよう！",
   "tag.biz125": "毎日の頼れる相棒",

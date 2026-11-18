@@ -34,6 +34,7 @@ export const hudSpeed = async (page: Page): Promise<number> => Number.parseInt(a
 
 /** Completes the first demo through real input; leaves its optional account action visible. */
 export async function finishFirstDemo(page: Page): Promise<void> {
+  await page.locator('#introContinue').click();
   await page.locator('#tutSkip').waitFor({state: 'visible'});
   await page.locator('#tutSkip').click();
   await page.locator('#modal').waitFor({state: 'hidden'});

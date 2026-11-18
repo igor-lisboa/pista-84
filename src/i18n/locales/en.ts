@@ -1,6 +1,12 @@
 import type { Messages } from '../types.ts';
 
 export const en: Messages = {
+  "intro.title": "Welcome to the road",
+  "intro.demoTitle": "First race: Veloce GT",
+  "intro.demo": "Get a taste of speed! The GT is on loan for this race only.",
+  "intro.garageTitle": "Then: your own car",
+  "intro.garage": "Your journey starts with {car}. Race, earn coins and unlock more vehicles in the garage.",
+  "intro.continue": "Continue",
   "tag.harley": "Big chrome and an old-school V-twin",
   "demo.transition": "The GT was a demo loan. Your PISTA 84 journey begins with {car}: race, earn coins and grow your garage!",
   "tag.biz125": "Your everyday companion",

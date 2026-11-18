@@ -10,6 +10,7 @@ test.describe('first play', () => {
     await accountBackend(context);
     await page.goto('/');
     await expect(page.locator('#usernameForm')).toHaveCount(0);
+    await page.locator('#introContinue').click();
 
     const count = page.locator('.tutorial-count');
     await expect(count).toContainText('1');
@@ -26,6 +27,7 @@ test.describe('first play', () => {
     expect((await save(page)).tutorialDone).toBe(true);
 
     await page.reload();
+    await page.locator('#introContinue').click();
     await expect(page.locator('#modal')).toBeHidden();
   });
 });

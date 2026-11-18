@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const zhCN = {
+  "intro.title": "欢迎来到赛道",
+  "intro.demoTitle": "首场比赛：Veloce GT",
+  "intro.demo": "体验极速！GT仅供本场比赛借用。",
+  "intro.garageTitle": "之后：驾驶自己的车",
+  "intro.garage": "你的旅程从{car}开始。参加比赛、赚取金币，在车库中解锁更多车辆。",
+  "intro.continue": "继续",
   "tag.harley": "闪亮镀铬与经典V型双缸",
   "demo.transition": "GT只是演示赛的借用车辆。现在，驾驶{car}开启你的PISTA 84旅程：参加比赛、赚取金币，壮大你的车库！",
   "tag.biz125": "每天可靠的伙伴",

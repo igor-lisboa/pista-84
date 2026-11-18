@@ -1,6 +1,12 @@
 import type { Messages } from '../types.ts';
 
 export const it: Messages = {
+  "intro.title": "Benvenuto in pista",
+  "intro.demoTitle": "Prima gara: Veloce GT",
+  "intro.demo": "Prova il brivido della velocità! La GT è in prestito solo per questa gara.",
+  "intro.garageTitle": "Poi: la tua auto",
+  "intro.garage": "Il tuo viaggio inizia con {car}. Gareggia, guadagna monete e sblocca altri veicoli nel garage.",
+  "intro.continue": "Continua",
   "tag.harley": "Cromature e un V-twin d’altri tempi",
   "demo.transition": "La GT era in prestito per la demo. Il tuo viaggio in PISTA 84 inizia con {car}: corri, guadagna monete e amplia il garage!",
   "tag.biz125": "La compagna di ogni giorno",

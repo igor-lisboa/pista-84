@@ -13,6 +13,8 @@ test('a new device plays offline as a guest: no sign-up, the tutorial follows, t
   await expect(page.locator('#closeModal')).toBeVisible();
 
   await expect(page.locator('#usernameForm')).toHaveCount(0);
+  await expect(page.locator('#introCar')).toContainText('Fusca 76');
+  await page.locator('#introContinue').click();
   await expect(page.locator('.tutorial-count')).toContainText('1');
   for (let step = 2; step <= 5; step += 1) await page.locator('#tutNext').click();
   await page.locator('#tutNext').click();
@@ -54,6 +56,7 @@ test('the first run after the tutorial uses the Veloce GT once; after its crash 
     }
   });
   await page.goto('/');
+  await page.locator('#introContinue').click();
   await page.locator('#start').click();
   await expect(page.getByText(/Demo:/)).toBeVisible();
   await page.keyboard.down('ArrowUp');

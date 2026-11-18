@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const es = {
+  "intro.title": "Bienvenido a la pista",
+  "intro.demoTitle": "Primera carrera: Veloce GT",
+  "intro.demo": "¡Prueba la velocidad! El GT es prestado solo para esta carrera.",
+  "intro.garageTitle": "Después: tu propio coche",
+  "intro.garage": "Tu aventura comienza con {car}. Corre, gana monedas y desbloquea más vehículos en el garaje.",
+  "intro.continue": "Continuar",
   "tag.harley": "Mucho cromo y un V-twin clásico",
   "demo.transition": "El GT era un préstamo para la demo. Tu aventura en PISTA 84 empieza con {car}: ¡corre, gana monedas y amplía tu garaje!",
   "tag.biz125": "Tu compañera de cada día",

@@ -8,6 +8,11 @@ Browser cases are organized by interaction: `game.spec.ts`, `garage-purchases.sp
 
 ## Local execution
 
+The [2026-11-17 welcome review](../docs/first-run-welcome-2026-11-17.md) records
+the pre-demo explanation, tutorial/account regressions and responsive locale
+evidence. Node coverage remains 184 passing tests; physical and editorial review
+remain separate release work.
+
 Node.js **24** is the verified environment: it runs the TypeScript sources natively.
 
 ```powershell

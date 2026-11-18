@@ -1,6 +1,12 @@
 import type { MessageKey } from '../types.ts';
 
 export const ur = {
+  "intro.title": "ریس میں خوش آمدید",
+  "intro.demoTitle": "پہلی ریس: Veloce GT",
+  "intro.demo": "رفتار کا مزہ لیں! GT صرف اس ریس کے لیے ادھار ہے۔",
+  "intro.garageTitle": "پھر: آپ کی اپنی گاڑی",
+  "intro.garage": "آپ کا سفر {car} سے شروع ہوگا۔ ریس کریں، سکے کمائیں اور گیراج میں مزید گاڑیاں کھولیں۔",
+  "intro.continue": "جاری رکھیں",
   "tag.harley": "چمکتا کروم اور کلاسک V-twin",
   "demo.transition": "GT صرف ڈیمو کے لیے ادھار تھی۔ اب {car} کے ساتھ PISTA 84 کا سفر شروع کریں: ریس لگائیں، سکے کمائیں اور اپنا گیراج بڑھائیں!",
   "tag.biz125": "ہر روز کی بھروسہ مند ساتھی",
